@@ -9,7 +9,7 @@ const Index = () => {
 
   return (
     <LandingLayout>
-      <section className="relative min-h-[90vh] bg-gradient-to-r from-court-green to-emerald-700 flex items-center">
+      <section className="relative min-h-[90vh] bg-primary flex items-center">
         <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-3xl text-white">
             <h1 className="text-5xl md:text-6xl font-bold mb-6 animate-fade-in">
@@ -22,15 +22,16 @@ const Index = () => {
             <div className="flex gap-4">
               <Button
                 size="lg"
-                className="bg-court-green hover:bg-emerald-700"
+                variant="default"
+                className="bg-white text-primary hover:bg-gray-800 hover:text-white hover:scale-105 transition-all duration-200 shadow-md"
                 asChild
               >
                 <Link to="/login">Get Started</Link>
               </Button>
               <Button
                 size="lg"
-                variant="outline"
-                className="border-court-green text-court-green hover:bg-court-green hover:text-white"
+                variant="default"
+                className="bg-white text-primary hover:bg-gray-800 hover:text-white hover:scale-105 transition-all duration-200 shadow-md"
                 onClick={() => scrollToSection("features")}
               >
                 Learn More
@@ -99,7 +100,7 @@ const Index = () => {
       </section>
 
       <section id="about" className="py-32 bg-gray-50 relative overflow-hidden">
-        <div className="absolute inset-0 bg-court-green/5"></div>
+        <div className="absolute inset-0 bg-primary/5"></div>
         <div className="container mx-auto px-4 relative">
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-16">
@@ -129,7 +130,7 @@ const Index = () => {
         </div>
       </section>
 
-      <section className="py-32 bg-gradient-to-r from-court-green to-emerald-700 text-white relative overflow-hidden">
+      <section className="py-32 bg-primary text-white relative overflow-hidden">
         <div className="absolute inset-0 bg-black/10"></div>
         <div className="container mx-auto px-4 relative">
           <div className="max-w-3xl mx-auto text-center">
@@ -142,7 +143,7 @@ const Index = () => {
             </p>
             <Button
               size="lg"
-              className="bg-white text-court-green hover:bg-gray-100 text-lg px-8 py-6"
+              className="bg-white text-primary hover:bg-gray-100 text-lg px-8 py-6"
               onClick={() => (window.location.href = "/login")}
             >
               Sign in with Google

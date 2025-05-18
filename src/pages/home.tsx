@@ -1,4 +1,4 @@
-import Navbar from "@/components/layout/navbar";
+import Layout from "@/components/layout/layout";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -75,8 +75,7 @@ const Home = () => {
   ];
 
   return (
-    <>
-      <Navbar />
+    <Layout>
       <div className="container mx-auto p-4">
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
           <h1 className="text-2xl font-bold text-gray-800 mb-2">
@@ -407,7 +406,7 @@ const Home = () => {
           </div>
         </div>
       </div>
-    </>
+    </Layout>
   );
 };
 

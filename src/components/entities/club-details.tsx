@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { MapPin, Clock, Phone, Globe, Star, Check } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -36,22 +35,25 @@ interface ClubDetailsProps {
 
 const ClubDetails: React.FC<ClubDetailsProps> = ({ club, reviews }) => {
   const [mainImage, setMainImage] = useState(club.images[0]);
-  const averageRating = reviews.reduce((acc, review) => acc + review.rating, 0) / reviews.length;
+  const averageRating =
+    reviews.reduce((acc, review) => acc + review.rating, 0) / reviews.length;
 
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden">
       <div className="relative h-96">
-        <img 
-          src={mainImage} 
-          alt={club.name} 
-          className="w-full h-full object-cover" 
+        <img
+          src={mainImage}
+          alt={club.name}
+          className="w-full h-full object-cover"
         />
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-6">
           <h1 className="text-3xl font-bold text-white">{club.name}</h1>
           <div className="flex items-center mt-2">
             <div className="flex items-center text-yellow-400 mr-3">
               <Star className="w-5 h-5 fill-current" />
-              <span className="ml-1 text-white font-medium">{averageRating.toFixed(1)}</span>
+              <span className="ml-1 text-white font-medium">
+                {averageRating.toFixed(1)}
+              </span>
             </div>
             <span className="text-white">({reviews.length} reviews)</span>
             <div className="ml-4">
@@ -69,7 +71,7 @@ const ClubDetails: React.FC<ClubDetailsProps> = ({ club, reviews }) => {
               src={img}
               alt={`${club.name} ${index + 1}`}
               className={`w-20 h-20 object-cover rounded-md cursor-pointer ${
-                mainImage === img ? "ring-2 ring-court-green" : ""
+                mainImage === img ? "ring-2 ring-primary" : ""
               }`}
               onClick={() => setMainImage(img)}
             />
@@ -93,7 +95,7 @@ const ClubDetails: React.FC<ClubDetailsProps> = ({ club, reviews }) => {
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                   {club.facilities.map((facility, index) => (
                     <div key={index} className="flex items-center">
-                      <Check className="h-4 w-4 text-court-green mr-2" />
+                      <Check className="h-4 w-4 text-primary mr-2" />
                       <span className="text-gray-700">{facility}</span>
                     </div>
                   ))}
@@ -102,12 +104,17 @@ const ClubDetails: React.FC<ClubDetailsProps> = ({ club, reviews }) => {
               <TabsContent value="courts" className="pt-4">
                 <div className="space-y-3">
                   {club.courts.map((court, index) => (
-                    <div key={index} className="flex justify-between items-center">
+                    <div
+                      key={index}
+                      className="flex justify-between items-center"
+                    >
                       <div>
-                        <span className="font-medium">{court.type}</span> 
-                        <span className="text-gray-500 text-sm ml-2">({court.count} available)</span>
+                        <span className="font-medium">{court.type}</span>
+                        <span className="text-gray-500 text-sm ml-2">
+                          ({court.count} available)
+                        </span>
                       </div>
-                      <div className="text-court-green font-medium">
+                      <div className="text-primary font-medium">
                         ${court.pricePerHour}/hour
                       </div>
                     </div>
@@ -122,7 +129,9 @@ const ClubDetails: React.FC<ClubDetailsProps> = ({ club, reviews }) => {
                       {club.courts.map((court, index) => (
                         <li key={index} className="flex justify-between">
                           <span>{court.type}</span>
-                          <span className="font-medium">${court.pricePerHour}/hour</span>
+                          <span className="font-medium">
+                            ${court.pricePerHour}/hour
+                          </span>
                         </li>
                       ))}
                     </ul>
@@ -186,7 +195,12 @@ const ClubDetails: React.FC<ClubDetailsProps> = ({ club, reviews }) => {
                 </div>
                 <div className="flex items-start">
                   <Globe className="w-5 h-5 text-gray-500 mt-0.5 mr-2" />
-                  <a href={club.website} className="text-blue-600 hover:underline">{club.website}</a>
+                  <a
+                    href={club.website}
+                    className="text-blue-600 hover:underline"
+                  >
+                    {club.website}
+                  </a>
                 </div>
               </div>
             </div>

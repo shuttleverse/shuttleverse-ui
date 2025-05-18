@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Check, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -38,9 +37,9 @@ const VerificationStatus: React.FC<VerificationStatusProps> = ({
         <span>Unverified</span>
       </div>
       {onRequestVerification && (
-        <Button 
-          variant="outline" 
-          size="sm" 
+        <Button
+          variant="outline"
+          size="sm"
           className="text-xs h-6"
           onClick={onRequestVerification}
         >

@@ -46,14 +46,14 @@ const Login = () => {
               By continuing, you agree to our{" "}
               <Link
                 to="/terms"
-                className="text-court-green hover:text-emerald-700 underline"
+                className="text-primary hover:text-primary/80 underline"
               >
                 Terms of Service
               </Link>{" "}
               and{" "}
               <Link
                 to="/privacy"
-                className="text-court-green hover:text-emerald-700 underline"
+                className="text-primary hover:text-primary/80 underline"
               >
                 Privacy Policy
               </Link>

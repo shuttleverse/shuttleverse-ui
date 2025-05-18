@@ -1,11 +1,10 @@
-
 import React, { useState } from "react";
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 
 interface FilterSidebarProps {
-  onFilterChange: (filters: any) => void;
+  onFilterChange: (filters: unknown) => void;
   entityType: "club" | "court" | "coach" | "stringer";
 }
 
@@ -19,12 +18,46 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
   const [priceRange, setPriceRange] = useState([0, 100]);
   const [facilities, setFacilities] = useState<string[]>([]);
 
-  const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+  const days = [
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+    "Sunday",
+  ];
 
-  const clubFacilities = ["Parking", "Showers", "Pro Shop", "Cafe", "Accessibility"];
-  const courtTypes = ["Indoor", "Outdoor", "Wood", "Synthetic", "Tournament Standard"];
-  const coachSpecialities = ["Beginner", "Intermediate", "Advanced", "Kids", "Adults", "Singles", "Doubles"];
-  const stringerServices = ["Restring", "Repair", "Custom", "Same Day", "Premium Strings"];
+  const clubFacilities = [
+    "Parking",
+    "Showers",
+    "Pro Shop",
+    "Cafe",
+    "Accessibility",
+  ];
+  const courtTypes = [
+    "Indoor",
+    "Outdoor",
+    "Wood",
+    "Synthetic",
+    "Tournament Standard",
+  ];
+  const coachSpecialities = [
+    "Beginner",
+    "Intermediate",
+    "Advanced",
+    "Kids",
+    "Adults",
+    "Singles",
+    "Doubles",
+  ];
+  const stringerServices = [
+    "Restring",
+    "Repair",
+    "Custom",
+    "Same Day",
+    "Premium Strings",
+  ];
 
   const getFacilitiesByType = () => {
     switch (entityType) {
@@ -43,9 +76,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
 
   const handleAvailabilityChange = (day: string) => {
     setAvailability((prev) =>
-      prev.includes(day)
-        ? prev.filter((d) => d !== day)
-        : [...prev, day]
+      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
     );
   };
 
@@ -79,7 +110,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
   return (
     <div className="p-4 bg-white rounded-lg shadow-sm">
       <h3 className="font-medium text-lg mb-4">Filters</h3>
-      
+
       <div className="mb-6">
         <h4 className="font-medium text-sm mb-2">Rating</h4>
         <Slider
@@ -91,7 +122,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
           className="mb-2"
         />
         <div className="text-sm text-gray-600">
-          {rating[0]} star{rating[0] !== 1 && 's'} & above
+          {rating[0]} star{rating[0] !== 1 && "s"} & above
         </div>
       </div>
 

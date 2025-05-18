@@ -1,6 +1,6 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import Navbar from "@/components/layout/navbar";
+import Layout from "@/components/layout/layout";
 import {
   useCreateCourt,
   useAddCourtSchedule,
@@ -13,6 +13,27 @@ import FullCalendar from "@fullcalendar/react";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import { DateSelectArg, EventClickArg } from "@fullcalendar/core";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { AlertCircle, Plus, Trash2 } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const DAYS_OF_WEEK = [
   { value: 1, label: "Monday" },
@@ -22,12 +43,6 @@ const DAYS_OF_WEEK = [
   { value: 5, label: "Friday" },
   { value: 6, label: "Saturday" },
   { value: 0, label: "Sunday" },
-];
-
-const COMMON_DURATIONS = [
-  { value: 60, label: "1 hour" },
-  { value: 90, label: "1.5 hours" },
-  { value: 120, label: "2 hours" },
 ];
 
 const DAY_NUMBER_MAP = {
@@ -368,445 +383,466 @@ const AddCourt = () => {
   };
 
   return (
-    <>
-      <Navbar />
+    <Layout>
       <div className="container mx-auto p-4">
         <div className="max-w-3xl mx-auto">
           <h1 className="text-2xl font-bold text-gray-800 mb-6">
             Add a New Court
           </h1>
 
-          <form
-            onSubmit={handleSubmit}
-            className="bg-white rounded-lg shadow-md p-6"
-          >
-            <div className="mb-6">
-              <h2 className="text-lg font-semibold text-gray-700 mb-4 pb-2 border-b">
-                Basic Information
-              </h2>
+          <Card>
+            <CardHeader>
+              <CardTitle>Court Details</CardTitle>
+              <CardDescription>
+                Enter the details of the badminton court you want to add.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSubmit} className="space-y-8">
+                <div className="space-y-4">
+                  <h2 className="text-lg font-semibold text-gray-700">
+                    Basic Information
+                  </h2>
+                  <Separator />
 
-              <div className="mb-4">
-                <label
-                  htmlFor="name"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Court Name <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  id="name"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  className={`w-full px-3 py-2 border rounded-md ${
-                    errors.name ? "border-red-500" : "border-gray-300"
-                  } focus:outline-none focus:ring-2 focus:ring-emerald-500`}
-                  placeholder="e.g. Downtown Badminton Club"
-                />
-                {errors.name && (
-                  <p className="mt-1 text-sm text-red-500">{errors.name}</p>
-                )}
-              </div>
+                  <div className="grid gap-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="name">
+                        Court Name <span className="text-red-500">*</span>
+                      </Label>
+                      <Input
+                        id="name"
+                        name="name"
+                        value={formData.name}
+                        onChange={handleChange}
+                        placeholder="e.g. Downtown Badminton Club"
+                        className={errors.name ? "border-red-500" : ""}
+                      />
+                      {errors.name && (
+                        <p className="text-sm text-red-500">{errors.name}</p>
+                      )}
+                    </div>
 
-              <div className="mb-4 relative">
-                <label
-                  htmlFor="location"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Location <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <input
-                    ref={locationInputRef}
-                    type="text"
-                    id="location"
-                    name="location"
-                    value={formData.location}
-                    onChange={handleChange}
-                    className={`w-full px-3 py-2 border rounded-md ${
-                      errors.location ? "border-red-500" : "border-gray-300"
-                    } focus:outline-none focus:ring-2 focus:ring-emerald-500`}
-                    placeholder="123 Main St, Anytown, USA"
-                    autoComplete="off"
-                  />
-                </div>
-              </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="location">
+                        Location <span className="text-red-500">*</span>
+                      </Label>
+                      <Input
+                        ref={locationInputRef}
+                        id="location"
+                        name="location"
+                        value={formData.location}
+                        onChange={handleChange}
+                        placeholder="123 Main St, Anytown, USA"
+                        className={errors.location ? "border-red-500" : ""}
+                      />
+                      {errors.location && (
+                        <p className="text-sm text-red-500">
+                          {errors.location}
+                        </p>
+                      )}
+                    </div>
 
-              <div className="mb-4">
-                <label
-                  htmlFor="description"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Description
-                </label>
-                <textarea
-                  id="description"
-                  name="description"
-                  value={formData.description}
-                  onChange={handleChange}
-                  rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  placeholder="Describe the court facilities, hours, etc."
-                />
-              </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="description">Description</Label>
+                      <Textarea
+                        id="description"
+                        name="description"
+                        value={formData.description}
+                        onChange={handleChange}
+                        placeholder="Describe the court facilities, hours, etc."
+                        rows={3}
+                      />
+                    </div>
 
-              <div className="mb-4">
-                <label
-                  htmlFor="website"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Website
-                </label>
-                <input
-                  type="text"
-                  id="website"
-                  name="website"
-                  value={formData.website}
-                  onChange={handleChange}
-                  className={`w-full px-3 py-2 border rounded-md ${
-                    errors.website ? "border-red-500" : "border-gray-300"
-                  } focus:outline-none focus:ring-2 focus:ring-emerald-500`}
-                  placeholder="e.g. https://example.com"
-                />
-                {errors.website && (
-                  <p className="mt-1 text-sm text-red-500">{errors.website}</p>
-                )}
-              </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="website">Website</Label>
+                      <Input
+                        id="website"
+                        name="website"
+                        value={formData.website}
+                        onChange={handleChange}
+                        placeholder="e.g. https://example.com"
+                        className={errors.website ? "border-red-500" : ""}
+                      />
+                      {errors.website && (
+                        <p className="text-sm text-red-500">{errors.website}</p>
+                      )}
+                    </div>
 
-              <div className="mb-4">
-                <label
-                  htmlFor="phoneNumber"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Phone Number
-                </label>
-                <input
-                  type="text"
-                  id="phoneNumber"
-                  name="phoneNumber"
-                  value={formData.phoneNumber}
-                  onChange={handleChange}
-                  className={`w-full px-3 py-2 border rounded-md ${
-                    errors.phoneNumber ? "border-red-500" : "border-gray-300"
-                  } focus:outline-none focus:ring-2 focus:ring-emerald-500`}
-                  placeholder="e.g. (123) 456-7890"
-                />
-                {errors.phoneNumber && (
-                  <p className="mt-1 text-sm text-red-500">
-                    {errors.phoneNumber}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            <div className="mb-6">
-              <div className="flex justify-between items-center mb-4 pb-2 border-b">
-                <h2 className="text-lg font-semibold text-gray-700">
-                  Operating Hours
-                </h2>
-                <button
-                  type="button"
-                  onClick={addSchedule}
-                  className="text-sm bg-emerald-50 text-emerald-600 px-3 py-1 rounded-md hover:bg-emerald-100 md:hidden"
-                >
-                  + Add Schedule
-                </button>
-              </div>
-
-              <div className="hidden md:block mb-6">
-                <div className="border border-gray-300 rounded-lg overflow-hidden">
-                  <FullCalendar
-                    plugins={[timeGridPlugin, interactionPlugin]}
-                    initialView="timeGridWeek"
-                    headerToolbar={false}
-                    dayHeaderFormat={{ weekday: "long" }}
-                    allDaySlot={false}
-                    slotMinTime="06:00:00"
-                    slotMaxTime="23:00:00"
-                    height="auto"
-                    events={getCalendarEvents()}
-                    selectable={true}
-                    selectMirror={true}
-                    select={handleCalendarSelect}
-                    eventClick={handleEventClick}
-                    eventTimeFormat={{
-                      hour: "2-digit",
-                      minute: "2-digit",
-                      hour12: false,
-                    }}
-                    selectAllow={(selectInfo) => {
-                      return (
-                        selectInfo.start.getDay() === selectInfo.end.getDay()
-                      );
-                    }}
-                  />
-                </div>
-                <p className="text-sm text-gray-500 mt-2">
-                  Click and drag on the calendar to add operating hours. Click
-                  an existing block to remove it.
-                </p>
-                <div className="mt-4">
-                  <h3 className="font-medium text-gray-700 mb-2">
-                    Current Schedule:
-                  </h3>
-                  <div className="space-y-2">
-                    {formData.schedules.length > 0 ? (
-                      formData.schedules.map((schedule, index) => (
-                        <div key={index} className="flex items-center text-sm">
-                          <span className="w-32 font-medium">
-                            {
-                              DAYS_OF_WEEK.find(
-                                (d) => d.value === schedule.dayOfWeek
-                              )?.label
-                            }
-                            :
-                          </span>
-                          <span>
-                            {schedule.openTime} - {schedule.closeTime}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => removeSchedule(index)}
-                            className="ml-2 text-red-500 hover:text-red-700"
-                          >
-                            Remove
-                          </button>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-gray-500">No schedules added yet.</p>
-                    )}
+                    <div className="grid gap-2">
+                      <Label htmlFor="phoneNumber">Phone Number</Label>
+                      <Input
+                        id="phoneNumber"
+                        name="phoneNumber"
+                        value={formData.phoneNumber}
+                        onChange={handleChange}
+                        placeholder="e.g. (123) 456-7890"
+                        className={errors.phoneNumber ? "border-red-500" : ""}
+                      />
+                      {errors.phoneNumber && (
+                        <p className="text-sm text-red-500">
+                          {errors.phoneNumber}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="md:hidden">
-                {formData.schedules.map((schedule, index) => (
-                  <div
-                    key={index}
-                    className="mb-4 p-4 border border-gray-200 rounded-md bg-gray-50"
+                {/* Operating Hours */}
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <h2 className="text-lg font-semibold text-gray-700">
+                      Operating Hours
+                    </h2>
+                    <Button
+                      type="button"
+                      onClick={addSchedule}
+                      variant="outline"
+                      size="sm"
+                      className="md:flex hidden"
+                    >
+                      <Plus className="h-4 w-4 mr-1" /> Add Schedule
+                    </Button>
+                  </div>
+                  <Separator />
+
+                  <div className="hidden md:block mb-6">
+                    <div className="border border-gray-300 rounded-lg overflow-hidden">
+                      <FullCalendar
+                        plugins={[timeGridPlugin, interactionPlugin]}
+                        initialView="timeGridWeek"
+                        headerToolbar={false}
+                        dayHeaderFormat={{ weekday: "long" }}
+                        allDaySlot={false}
+                        slotMinTime="06:00:00"
+                        slotMaxTime="23:00:00"
+                        height="auto"
+                        events={getCalendarEvents()}
+                        selectable={true}
+                        selectMirror={true}
+                        select={handleCalendarSelect}
+                        eventClick={handleEventClick}
+                        eventTimeFormat={{
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          hour12: false,
+                        }}
+                        selectAllow={(selectInfo) => {
+                          return (
+                            selectInfo.start.getDay() ===
+                            selectInfo.end.getDay()
+                          );
+                        }}
+                      />
+                    </div>
+                    <p className="text-sm text-gray-500 mt-2">
+                      Click and drag on the calendar to add operating hours.
+                      Click an existing block to remove it.
+                    </p>
+                    <div className="mt-4">
+                      <h3 className="font-medium text-gray-700 mb-2">
+                        Current Schedule:
+                      </h3>
+                      <div className="space-y-2">
+                        {formData.schedules.length > 0 ? (
+                          formData.schedules.map((schedule, index) => (
+                            <div
+                              key={index}
+                              className="flex items-center text-sm"
+                            >
+                              <span className="w-32 font-medium">
+                                {
+                                  DAYS_OF_WEEK.find(
+                                    (d) => d.value === schedule.dayOfWeek
+                                  )?.label
+                                }
+                                :
+                              </span>
+                              <span>
+                                {schedule.openTime} - {schedule.closeTime}
+                              </span>
+                              <Button
+                                type="button"
+                                onClick={() => removeSchedule(index)}
+                                variant="ghost"
+                                size="sm"
+                                className="ml-2 text-red-500 hover:text-red-700 p-0 h-auto"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          ))
+                        ) : (
+                          <p className="text-gray-500">
+                            No schedules added yet.
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="md:hidden space-y-4">
+                    <Button
+                      type="button"
+                      onClick={addSchedule}
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                    >
+                      <Plus className="h-4 w-4 mr-1" /> Add Schedule
+                    </Button>
+
+                    {formData.schedules.map((schedule, index) => (
+                      <Card key={index} className="bg-gray-50">
+                        <CardHeader className="p-4 pb-2">
+                          <div className="flex justify-between">
+                            <CardTitle className="text-md">
+                              Schedule #{index + 1}
+                            </CardTitle>
+                            {formData.schedules.length > 1 && (
+                              <Button
+                                type="button"
+                                onClick={() => removeSchedule(index)}
+                                variant="ghost"
+                                size="sm"
+                                className="text-red-500 p-0 h-auto hover:text-red-700"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            )}
+                          </div>
+                        </CardHeader>
+                        <CardContent className="p-4 pt-2">
+                          <div className="grid grid-cols-3 gap-4">
+                            <div className="space-y-1">
+                              <Label className="text-sm">Day</Label>
+                              <Select
+                                value={schedule.dayOfWeek.toString()}
+                                onValueChange={(value) =>
+                                  handleScheduleChange(
+                                    index,
+                                    "dayOfWeek",
+                                    value
+                                  )
+                                }
+                              >
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select day" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {DAYS_OF_WEEK.map((day) => (
+                                    <SelectItem
+                                      key={day.value}
+                                      value={day.value.toString()}
+                                    >
+                                      {day.label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              {errors[`schedules[${index}].dayOfWeek`] && (
+                                <p className="text-sm text-red-500">
+                                  {errors[`schedules[${index}].dayOfWeek`]}
+                                </p>
+                              )}
+                            </div>
+
+                            <div className="space-y-1">
+                              <Label className="text-sm">Open Time</Label>
+                              <Input
+                                type="time"
+                                value={schedule.openTime}
+                                onChange={(e) =>
+                                  handleScheduleChange(
+                                    index,
+                                    "openTime",
+                                    e.target.value
+                                  )
+                                }
+                                className={
+                                  errors[`schedules[${index}].openTime`]
+                                    ? "border-red-500"
+                                    : ""
+                                }
+                              />
+                              {errors[`schedules[${index}].openTime`] && (
+                                <p className="text-sm text-red-500">
+                                  {errors[`schedules[${index}].openTime`]}
+                                </p>
+                              )}
+                            </div>
+
+                            <div className="space-y-1">
+                              <Label className="text-sm">Close Time</Label>
+                              <Input
+                                type="time"
+                                value={schedule.closeTime}
+                                onChange={(e) =>
+                                  handleScheduleChange(
+                                    index,
+                                    "closeTime",
+                                    e.target.value
+                                  )
+                                }
+                                className={
+                                  errors[`schedules[${index}].closeTime`]
+                                    ? "border-red-500"
+                                    : ""
+                                }
+                              />
+                              {errors[`schedules[${index}].closeTime`] && (
+                                <p className="text-sm text-red-500">
+                                  {errors[`schedules[${index}].closeTime`]}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Court Pricing */}
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <h2 className="text-lg font-semibold text-gray-700">
+                      Court Pricing
+                    </h2>
+                    <Button
+                      type="button"
+                      onClick={addPrice}
+                      variant="outline"
+                      size="sm"
+                    >
+                      <Plus className="h-4 w-4 mr-1" /> Add Price
+                    </Button>
+                  </div>
+                  <Separator />
+
+                  <div className="grid gap-4">
+                    {formData.prices.map((price, index) => (
+                      <Card key={index} className="bg-gray-50">
+                        <CardHeader className="p-4 pb-2">
+                          <div className="flex justify-between">
+                            <CardTitle className="text-md">
+                              Price Option #{index + 1}
+                            </CardTitle>
+                            {formData.prices.length > 1 && (
+                              <Button
+                                type="button"
+                                onClick={() => removePrice(index)}
+                                variant="ghost"
+                                size="sm"
+                                className="text-red-500 p-0 h-auto hover:text-red-700"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            )}
+                          </div>
+                        </CardHeader>
+                        <CardContent className="p-4 pt-2">
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-1">
+                              <Label className="text-sm">Price ($)</Label>
+                              <Input
+                                type="number"
+                                value={price.price}
+                                onChange={(e) =>
+                                  handlePriceChange(
+                                    index,
+                                    "price",
+                                    e.target.value
+                                  )
+                                }
+                                min="0"
+                                step="0.01"
+                                className={
+                                  errors[`prices[${index}].price`]
+                                    ? "border-red-500"
+                                    : ""
+                                }
+                              />
+                              {errors[`prices[${index}].price`] && (
+                                <p className="text-sm text-red-500">
+                                  {errors[`prices[${index}].price`]}
+                                </p>
+                              )}
+                            </div>
+
+                            <div className="space-y-1">
+                              <Label className="text-sm">
+                                Duration (minutes)
+                              </Label>
+                              <Input
+                                type="number"
+                                value={price.duration}
+                                onChange={(e) =>
+                                  handlePriceChange(
+                                    index,
+                                    "duration",
+                                    e.target.value
+                                  )
+                                }
+                                min="1"
+                                max="480"
+                                step="1"
+                                className={
+                                  errors[`prices[${index}].duration`]
+                                    ? "border-red-500"
+                                    : ""
+                                }
+                              />
+                              {errors[`prices[${index}].duration`] && (
+                                <p className="text-sm text-red-500">
+                                  {errors[`prices[${index}].duration`]}
+                                </p>
+                              )}
+                              <p className="text-xs text-gray-500">
+                                Enter any value from 1 to 480 minutes
+                              </p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+
+                {submissionStatus.error && (
+                  <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle>Error</AlertTitle>
+                    <AlertDescription>
+                      {submissionStatus.error}
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                <div className="flex justify-end space-x-4">
+                  <Button
+                    type="button"
+                    onClick={() => navigate("/courts")}
+                    variant="outline"
+                    disabled={isPending}
                   >
-                    <div className="flex justify-between mb-2">
-                      <h3 className="font-medium">Schedule #{index + 1}</h3>
-                      {formData.schedules.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => removeSchedule(index)}
-                          className="text-red-500 hover:text-red-700 text-sm"
-                        >
-                          Remove
-                        </button>
-                      )}
-                    </div>
-
-                    <div className="grid grid-cols-3 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Day
-                        </label>
-                        <select
-                          value={schedule.dayOfWeek}
-                          onChange={(e) =>
-                            handleScheduleChange(
-                              index,
-                              "dayOfWeek",
-                              e.target.value
-                            )
-                          }
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                        >
-                          {DAYS_OF_WEEK.map((day) => (
-                            <option key={day.value} value={day.value}>
-                              {day.label}
-                            </option>
-                          ))}
-                        </select>
-                        {errors[`schedules[${index}].dayOfWeek`] && (
-                          <p className="mt-1 text-sm text-red-500">
-                            {errors[`schedules[${index}].dayOfWeek`]}
-                          </p>
-                        )}
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Open Time
-                        </label>
-                        <input
-                          type="time"
-                          value={schedule.openTime}
-                          onChange={(e) =>
-                            handleScheduleChange(
-                              index,
-                              "openTime",
-                              e.target.value
-                            )
-                          }
-                          className={`w-full px-3 py-2 border rounded-md ${
-                            errors[`schedules[${index}].openTime`]
-                              ? "border-red-500"
-                              : "border-gray-300"
-                          } focus:outline-none focus:ring-2 focus:ring-emerald-500`}
-                        />
-                        {errors[`schedules[${index}].openTime`] && (
-                          <p className="mt-1 text-sm text-red-500">
-                            {errors[`schedules[${index}].openTime`]}
-                          </p>
-                        )}
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Close Time
-                        </label>
-                        <input
-                          type="time"
-                          value={schedule.closeTime}
-                          onChange={(e) =>
-                            handleScheduleChange(
-                              index,
-                              "closeTime",
-                              e.target.value
-                            )
-                          }
-                          className={`w-full px-3 py-2 border rounded-md ${
-                            errors[`schedules[${index}].closeTime`]
-                              ? "border-red-500"
-                              : "border-gray-300"
-                          } focus:outline-none focus:ring-2 focus:ring-emerald-500`}
-                        />
-                        {errors[`schedules[${index}].closeTime`] && (
-                          <p className="mt-1 text-sm text-red-500">
-                            {errors[`schedules[${index}].closeTime`]}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="mb-6">
-              <div className="flex justify-between items-center mb-4 pb-2 border-b">
-                <h2 className="text-lg font-semibold text-gray-700">
-                  Court Pricing
-                </h2>
-                <button
-                  type="button"
-                  onClick={addPrice}
-                  className="text-sm bg-emerald-50 text-emerald-600 px-3 py-1 rounded-md hover:bg-emerald-100"
-                >
-                  + Add Price
-                </button>
-              </div>
-
-              {formData.prices.map((price, index) => (
-                <div
-                  key={index}
-                  className="mb-4 p-4 border border-gray-200 rounded-md bg-gray-50"
-                >
-                  <div className="flex justify-between mb-2">
-                    <h3 className="font-medium">Price Option #{index + 1}</h3>
-                    {formData.prices.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => removePrice(index)}
-                        className="text-red-500 hover:text-red-700 text-sm"
-                      >
-                        Remove
-                      </button>
-                    )}
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Price ($)
-                      </label>
-                      <input
-                        type="number"
-                        value={price.price}
-                        onChange={(e) =>
-                          handlePriceChange(index, "price", e.target.value)
-                        }
-                        min="0"
-                        step="0.01"
-                        className={`w-full px-3 py-2 border rounded-md ${
-                          errors[`prices[${index}].price`]
-                            ? "border-red-500"
-                            : "border-gray-300"
-                        } focus:outline-none focus:ring-2 focus:ring-emerald-500`}
-                      />
-                      {errors[`prices[${index}].price`] && (
-                        <p className="mt-1 text-sm text-red-500">
-                          {errors[`prices[${index}].price`]}
-                        </p>
-                      )}
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Duration (minutes)
-                      </label>
-                      <input
-                        type="number"
-                        value={price.duration}
-                        onChange={(e) =>
-                          handlePriceChange(index, "duration", e.target.value)
-                        }
-                        min="1"
-                        max="480"
-                        step="1"
-                        className={`w-full px-3 py-2 border rounded-md ${
-                          errors[`prices[${index}].duration`]
-                            ? "border-red-500"
-                            : "border-gray-300"
-                        } focus:outline-none focus:ring-2 focus:ring-emerald-500`}
-                      />
-                      {errors[`prices[${index}].duration`] && (
-                        <p className="mt-1 text-sm text-red-500">
-                          {errors[`prices[${index}].duration`]}
-                        </p>
-                      )}
-                      <p className="mt-1 text-xs text-gray-500">
-                        Enter any value from 1 to 480 minutes
-                      </p>
-                    </div>
-                  </div>
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={isPending}
+                    className={isPending ? "opacity-70" : ""}
+                  >
+                    {getSubmitButtonText()}
+                  </Button>
                 </div>
-              ))}
-            </div>
-
-            {submissionStatus.error && (
-              <div className="mb-6 p-4 border border-red-300 bg-red-50 rounded-md text-red-700">
-                {submissionStatus.error}
-              </div>
-            )}
-
-            <div className="flex justify-end space-x-4">
-              <button
-                type="button"
-                onClick={() => navigate("/courts")}
-                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-                disabled={isPending}
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={isPending}
-                className={`px-4 py-2 bg-emerald-600 rounded-md text-white hover:bg-emerald-700 ${
-                  isPending ? "opacity-70 cursor-not-allowed" : ""
-                }`}
-              >
-                {getSubmitButtonText()}
-              </button>
-            </div>
-          </form>
+              </form>
+            </CardContent>
+          </Card>
         </div>
       </div>
-    </>
+    </Layout>
   );
 };
 

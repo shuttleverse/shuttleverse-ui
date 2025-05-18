@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { ArrowUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -23,14 +22,14 @@ const UpvoteButton: React.FC<UpvoteButtonProps> = ({
   const handleUpvote = () => {
     if (!upvoted) {
       setUpvoted(true);
-      setUpvoteCount(prev => prev + 1);
+      setUpvoteCount((prev) => prev + 1);
       toast({
         title: "Information upvoted",
         description: "Thank you for your contribution!",
       });
     } else {
       setUpvoted(false);
-      setUpvoteCount(prev => prev - 1);
+      setUpvoteCount((prev) => prev - 1);
     }
     onUpvote();
   };
@@ -41,7 +40,7 @@ const UpvoteButton: React.FC<UpvoteButtonProps> = ({
       size="sm"
       className={cn(
         "flex items-center space-x-1 hover:bg-gray-100",
-        upvoted && "text-court-green"
+        upvoted && "text-primary"
       )}
       onClick={handleUpvote}
     >

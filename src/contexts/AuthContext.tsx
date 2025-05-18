@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 import { useAuthStatus } from "@/services/auth";
 import { useUserProfile } from "@/services/user";
-import { AuthContext } from "./AuthContext.context";
+import { AuthContext } from "@/contexts/AuthContext.context";
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const { data: authData, isLoading: isAuthLoading } = useAuthStatus();

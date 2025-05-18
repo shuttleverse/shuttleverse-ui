@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Flag } from "lucide-react";
 import {
@@ -21,7 +20,10 @@ interface ClaimOwnershipButtonProps {
   entityName: string;
 }
 
-const ClaimOwnershipButton: React.FC<ClaimOwnershipButtonProps> = ({ entityType, entityName }) => {
+const ClaimOwnershipButton: React.FC<ClaimOwnershipButtonProps> = ({
+  entityType,
+  entityName,
+}) => {
   const { toast } = useToast();
 
   const handleSubmitClaim = (e: React.FormEvent) => {
@@ -44,7 +46,8 @@ const ClaimOwnershipButton: React.FC<ClaimOwnershipButtonProps> = ({ entityType,
         <DialogHeader>
           <DialogTitle>Claim ownership of {entityName}</DialogTitle>
           <DialogDescription>
-            Submit proof that you are the owner of this {entityType}. Our team will review your request and verify your ownership.
+            Submit proof that you are the owner of this {entityType}. Our team
+            will review your request and verify your ownership.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmitClaim}>

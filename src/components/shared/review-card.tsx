@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Star, User } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -19,7 +18,6 @@ const ReviewCard: React.FC<ReviewCardProps> = ({
   comment,
   date,
 }) => {
-  // Create an array for star display
   const stars = Array.from({ length: 5 }, (_, i) => i < rating);
 
   return (

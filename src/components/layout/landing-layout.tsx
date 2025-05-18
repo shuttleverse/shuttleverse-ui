@@ -21,29 +21,29 @@ const LandingLayout: React.FC<LandingLayoutProps> = ({ children }) => {
         <div className="w-full px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
             <div className="flex items-center">
-              <Link to="/" className="text-2xl font-bold text-court-green">
+              <Link to="/" className="text-2xl font-bold text-primary">
                 Shuttleverse
               </Link>
             </div>
 
             <div className="flex items-center">
-              <div className="hidden md:flex items-center gap-8">
+              <div className="hidden md:flex items-center space-x-1">
                 <button
                   onClick={() => scrollToSection("features")}
-                  className="text-gray-600 hover:text-court-green transition-colors"
+                  className="px-4 py-2 text-sm font-medium text-gray-700 rounded-md hover:bg-gray-100 hover:text-primary hover:underline decoration-primary decoration-2 underline-offset-4 transition-colors"
                 >
                   Features
                 </button>
                 <button
                   onClick={() => scrollToSection("about")}
-                  className="text-gray-600 hover:text-court-green transition-colors"
+                  className="px-4 py-2 text-sm font-medium text-gray-700 rounded-md hover:bg-gray-100 hover:text-primary hover:underline decoration-primary decoration-2 underline-offset-4 transition-colors"
                 >
                   About
                 </button>
               </div>
 
               <button
-                className="md:hidden p-2 text-gray-600 hover:text-court-green transition-colors"
+                className="md:hidden p-2 text-gray-600 hover:text-primary transition-colors"
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
               >
                 {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -56,19 +56,19 @@ const LandingLayout: React.FC<LandingLayoutProps> = ({ children }) => {
               <div className="flex flex-col space-y-4">
                 <button
                   onClick={() => scrollToSection("features")}
-                  className="text-gray-600 hover:text-court-green transition-colors text-left px-2 py-1"
+                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-primary rounded-md transition-colors hover:underline decoration-primary decoration-2 underline-offset-4 text-left w-full"
                 >
                   Features
                 </button>
                 <button
                   onClick={() => scrollToSection("about")}
-                  className="text-gray-600 hover:text-court-green transition-colors text-left px-2 py-1"
+                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-primary rounded-md transition-colors hover:underline decoration-primary decoration-2 underline-offset-4 text-left w-full"
                 >
                   About
                 </button>
                 <Button
                   variant="outline"
-                  className="border-court-green text-court-green hover:bg-court-green hover:text-white transition-colors w-full"
+                  className="border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-colors w-full"
                   onClick={() => (window.location.href = "/login")}
                 >
                   Sign In
@@ -90,13 +90,13 @@ const LandingLayout: React.FC<LandingLayoutProps> = ({ children }) => {
             <div className="flex space-x-6">
               <Link
                 to="/privacy"
-                className="text-gray-600 hover:text-court-green transition-colors"
+                className="text-gray-600 hover:text-primary hover:underline transition-colors"
               >
                 Privacy Policy
               </Link>
               <Link
                 to="/terms"
-                className="text-gray-600 hover:text-court-green transition-colors"
+                className="text-gray-600 hover:text-primary hover:underline transition-colors"
               >
                 Terms of Service
               </Link>
