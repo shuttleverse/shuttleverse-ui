@@ -12,10 +12,25 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
   onFilterChange,
   entityType,
 }) => {
+  const getMaxRange = (entityType: "club" | "court" | "coach" | "stringer") => {
+    switch (entityType) {
+      case "club":
+        return 200;
+      case "court":
+        return 150;
+      case "coach":
+        return 200;
+      case "stringer":
+        return 50;
+      default:
+        throw new Error("Invalid entity type: " + entityType);
+    }
+  };
+
   const [rating, setRating] = useState([0]);
   const [verified, setVerified] = useState(false);
   const [availability, setAvailability] = useState<string[]>([]);
-  const [priceRange, setPriceRange] = useState([0, 100]);
+  const [priceRange, setPriceRange] = useState([0, getMaxRange(entityType)]);
   const [facilities, setFacilities] = useState<string[]>([]);
 
   const days = [
@@ -28,63 +43,9 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
     "Sunday",
   ];
 
-  const clubFacilities = [
-    "Parking",
-    "Showers",
-    "Pro Shop",
-    "Cafe",
-    "Accessibility",
-  ];
-  const courtTypes = [
-    "Indoor",
-    "Outdoor",
-    "Wood",
-    "Synthetic",
-    "Tournament Standard",
-  ];
-  const coachSpecialities = [
-    "Beginner",
-    "Intermediate",
-    "Advanced",
-    "Kids",
-    "Adults",
-    "Singles",
-    "Doubles",
-  ];
-  const stringerServices = [
-    "Restring",
-    "Repair",
-    "Custom",
-    "Same Day",
-    "Premium Strings",
-  ];
-
-  const getFacilitiesByType = () => {
-    switch (entityType) {
-      case "club":
-        return clubFacilities;
-      case "court":
-        return courtTypes;
-      case "coach":
-        return coachSpecialities;
-      case "stringer":
-        return stringerServices;
-      default:
-        return [];
-    }
-  };
-
   const handleAvailabilityChange = (day: string) => {
     setAvailability((prev) =>
       prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
-    );
-  };
-
-  const handleFacilityChange = (facility: string) => {
-    setFacilities((prev) =>
-      prev.includes(facility)
-        ? prev.filter((f) => f !== facility)
-        : [...prev, facility]
     );
   };
 
@@ -102,7 +63,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
     setRating([0]);
     setVerified(false);
     setAvailability([]);
-    setPriceRange([0, 100]);
+    setPriceRange([0, getMaxRange(entityType)]);
     setFacilities([]);
     onFilterChange({});
   };
@@ -110,22 +71,6 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
   return (
     <div className="p-4 bg-white rounded-lg shadow-sm">
       <h3 className="font-medium text-lg mb-4">Filters</h3>
-
-      <div className="mb-6">
-        <h4 className="font-medium text-sm mb-2">Rating</h4>
-        <Slider
-          defaultValue={[0]}
-          max={5}
-          step={1}
-          value={rating}
-          onValueChange={setRating}
-          className="mb-2"
-        />
-        <div className="text-sm text-gray-600">
-          {rating[0]} star{rating[0] !== 1 && "s"} & above
-        </div>
-      </div>
-
       <div className="mb-6">
         <div className="flex items-center space-x-2">
           <Checkbox
@@ -170,35 +115,16 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
           {entityType === "coach" && "Specialities"}
           {entityType === "stringer" && "Services"}
         </h4>
-        <div className="space-y-2">
-          {getFacilitiesByType().map((facility) => (
-            <div key={facility} className="flex items-center space-x-2">
-              <Checkbox
-                id={`facility-${facility}`}
-                checked={facilities.includes(facility)}
-                onCheckedChange={() => handleFacilityChange(facility)}
-              />
-              <label
-                htmlFor={`facility-${facility}`}
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-              >
-                {facility}
-              </label>
-            </div>
-          ))}
-        </div>
       </div>
 
       <div className="mb-6">
         <h4 className="font-medium text-sm mb-2">Price Range</h4>
         <Slider
-          defaultValue={[0, 100]}
-          min={0}
-          max={200}
           step={10}
           value={priceRange}
           onValueChange={setPriceRange}
           className="mb-2"
+          max={getMaxRange(entityType)}
         />
         <div className="flex justify-between text-sm text-gray-600">
           <span>${priceRange[0]}</span>

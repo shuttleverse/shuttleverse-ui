@@ -5,13 +5,13 @@ import {
 } from "@tanstack/react-query";
 import api from "@/api/axios";
 
-export type CourtSchedule = {
+export type CourtFormScheduleData = {
   dayOfWeek: number;
   openTime: string;
   closeTime: string;
 };
 
-export type CourtPrice = {
+export type CourtFormPriceData = {
   price: number;
   duration: number;
 };
@@ -22,16 +22,18 @@ export type CourtFormData = {
   description?: string;
   website?: string;
   phoneNumber?: string;
-  schedules: CourtSchedule[];
-  prices: CourtPrice[];
+  otherContacts?: string;
+  schedules: CourtFormScheduleData[];
+  prices: CourtFormPriceData[];
 };
 
-type CourtAPIData = {
+type CourtCreationAPIData = {
   name: string;
   location: string;
   description: string;
   website: string;
   phoneNumber: string;
+  otherContacts?: string;
 };
 
 export function useCourts(filters = {}) {
@@ -61,12 +63,13 @@ export function useCreateCourt() {
 
   return useMutation({
     mutationFn: async (courtData: CourtFormData) => {
-      const courtAPIData: CourtAPIData = {
+      const courtAPIData: CourtCreationAPIData = {
         name: courtData.name,
         location: courtData.location,
         description: courtData.description,
         website: courtData.website,
         phoneNumber: courtData.phoneNumber,
+        otherContacts: courtData.otherContacts,
       };
       const { data } = await api.post("/api/community/v1/court", courtAPIData);
       return data;
@@ -81,7 +84,7 @@ export function useAddCourtSchedule() {
   return useMutation({
     mutationFn: async (params: {
       courtId: string;
-      scheduleData: CourtSchedule[];
+      scheduleData: CourtFormScheduleData[];
     }) => {
       const { data } = await api.post(
         `/api/community/v1/court/${params.courtId}/schedule`,
@@ -96,7 +99,7 @@ export function useAddCourtPrice() {
   return useMutation({
     mutationFn: async (params: {
       courtId: string;
-      priceData: CourtPrice[];
+      priceData: CourtFormPriceData[];
     }) => {
       const { data } = await api.post(
         `/api/community/v1/court/${params.courtId}/price`,

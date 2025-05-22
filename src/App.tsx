@@ -9,7 +9,9 @@ import Clubs from "@/pages/clubs";
 import Courts from "@/pages/courts";
 import AddCourt from "@/pages/add-court";
 import Coaches from "@/pages/coaches";
+import AddCoach from "@/pages/add-coach";
 import Stringers from "@/pages/stringers";
+import AddStringer from "@/pages/add-stringer";
 import ClubDetail from "@/pages/club-detail";
 import NotFound from "@/pages/not-found";
 import ProtectedRoute from "@/components/protected-routes";
@@ -37,7 +39,9 @@ const App = () => {
                 <Route path="/courts" element={<Courts />} />
                 <Route path="/courts/add" element={<AddCourt />} />
                 <Route path="/coaches" element={<Coaches />} />
+                <Route path="/coaches/add" element={<AddCoach />} />
                 <Route path="/stringers" element={<Stringers />} />
+                <Route path="/stringers/add" element={<AddStringer />} />
                 <Route path="/clubs/:id" element={<ClubDetail />} />
               </Route>
               <Route path="*" element={<NotFound />} />

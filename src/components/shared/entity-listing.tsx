@@ -90,13 +90,11 @@ const EntityListing: React.FC<EntityListingProps> = ({
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const handleFilterChange = (filters: unknown) => {
-    console.log("Filters applied:", filters);
     setFilteredEntities(entities);
   };
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Searching for:", searchTerm);
   };
 
   const handleAddEntityClick = () => {

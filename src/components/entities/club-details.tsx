@@ -1,12 +1,10 @@
 import React, { useState } from "react";
-import { MapPin, Clock, Phone, Globe, Star, Check } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { MapPin, Phone, Globe, Star, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import ReviewCard from "../shared/review-card";
-import UpvoteButton from "../shared/upvote-button";
-import VerificationStatus from "../shared/verification-status";
-import ClaimOwnershipButton from "../shared/claim-ownership-button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import UpvoteButton from "@/components/shared/upvote-button";
+import VerificationStatus from "@/components/shared/verification-status";
 
 interface ClubDetailsProps {
   club: {
@@ -163,18 +161,6 @@ const ClubDetails: React.FC<ClubDetailsProps> = ({ club, reviews }) => {
                 <h2 className="text-xl font-semibold">Reviews</h2>
                 <Button>Write a Review</Button>
               </div>
-              <div className="space-y-4">
-                {reviews.map((review) => (
-                  <ReviewCard
-                    key={review.id}
-                    authorName={review.authorName}
-                    authorImage={review.authorImage}
-                    rating={review.rating}
-                    comment={review.comment}
-                    date={review.date}
-                  />
-                ))}
-              </div>
             </div>
           </div>
 
@@ -216,8 +202,6 @@ const ClubDetails: React.FC<ClubDetailsProps> = ({ club, reviews }) => {
                 ))}
               </div>
             </div>
-
-            <ClaimOwnershipButton entityType="club" entityName={club.name} />
           </div>
         </div>
       </div>

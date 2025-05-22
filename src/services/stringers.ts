@@ -1,66 +1,114 @@
-import { useInfiniteQuery } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
+import api from "@/api/axios";
 
-// Mock data for stringers
-const mockStringers = Array(20)
-  .fill(null)
-  .map((_, i) => ({
-    id: `stringer-${i + 1}`,
-    type: "stringer" as const,
-    name: `${
-      [
-        "Pro String",
-        "Fast Restring",
-        "Master Stringer",
-        "Racket Workshop",
-        "String Master",
-      ][i % 5]
-    } ${i + 1}`,
-    location: `${
-      ["New York", "Los Angeles", "Chicago", "Seattle", "Boston"][i % 5]
-    }, US`,
-    description: `Professional stringer with expertise in ${
-      [
-        "high tension stringing",
-        "string customization",
-        "racket repairs",
-        "premium strings",
-        "bespoke service",
-      ][i % 5]
-    }.`,
-    website: i % 3 === 0 ? `https://stringer${i + 1}.example.com` : undefined,
-    upvotes: Math.floor(Math.random() * 120),
-    isVerified: i % 3 === 0,
-  }));
+export type StringerFormScheduleData = {
+  dayOfWeek: number;
+  openTime: string;
+  closeTime: string;
+};
 
-// Simulates paginated API response
-const getMockStringers = (page = 0, size = 6) => {
-  const startIndex = page * size;
-  const endIndex = startIndex + size;
-  const content = mockStringers.slice(startIndex, endIndex);
+export type StringerFormPriceData = {
+  stringName: string;
+  price: number;
+};
 
-  return {
-    data: {
-      content,
-      number: page,
-      size,
-      totalElements: mockStringers.length,
-      totalPages: Math.ceil(mockStringers.length / size),
-      last: endIndex >= mockStringers.length,
-    },
-  };
+export type StringerFormData = {
+  name: string;
+  location?: string;
+  description?: string;
+  website?: string;
+  phoneNumber?: string;
+  otherContacts: string;
+  schedules: StringerFormScheduleData[];
+  prices: StringerFormPriceData[];
+};
+
+type StringerCreationAPIData = {
+  name: string;
+  location?: string;
+  description?: string;
+  website?: string;
+  phoneNumber?: string;
+  otherContacts: string;
 };
 
 export function useStringers(filters = {}) {
   return useInfiniteQuery({
     queryKey: ["stringers", filters],
-    queryFn: async ({ pageParam = 0 }) => {
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      return getMockStringers(pageParam);
+    queryFn: async ({ queryKey, pageParam = 0, signal }) => {
+      const [_, queryFilters] = queryKey;
+      const { data } = await api.get("/api/community/v1/stringer", {
+        params: {
+          page: pageParam,
+          ...(typeof queryFilters === "object" ? queryFilters : {}),
+        },
+        signal,
+      });
+      return data;
     },
     getNextPageParam: (lastPage) => {
       if (lastPage.data.last) return undefined;
       return lastPage.data.number + 1;
     },
     initialPageParam: 0,
+  });
+}
+
+export function useCreateStringer() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (stringerData: StringerFormData) => {
+      const stringerAPIData: StringerCreationAPIData = {
+        name: stringerData.name,
+        location: stringerData.location,
+        description: stringerData.description,
+        website: stringerData.website,
+        phoneNumber: stringerData.phoneNumber,
+        otherContacts: stringerData.otherContacts,
+      };
+      const { data } = await api.post(
+        "/api/community/v1/stringer",
+        stringerAPIData
+      );
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["stringers"] });
+    },
+  });
+}
+
+export function useAddStringerSchedule() {
+  return useMutation({
+    mutationFn: async (params: {
+      stringerId: string;
+      scheduleData: StringerFormScheduleData[];
+    }) => {
+      const { data } = await api.post(
+        `/api/community/v1/stringer/${params.stringerId}/schedule`,
+        params.scheduleData
+      );
+      return data;
+    },
+  });
+}
+
+export function useAddStringerPrice() {
+  return useMutation({
+    mutationFn: async (params: {
+      stringerId: string;
+      priceData: StringerFormPriceData[];
+    }) => {
+      const { data } = await api.post(
+        `/api/community/v1/stringer/${params.stringerId}/price`,
+        params.priceData
+      );
+      return data;
+    },
   });
 }

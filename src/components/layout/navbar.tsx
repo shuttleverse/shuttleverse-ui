@@ -17,7 +17,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 const Navbar = () => {
   const { isAuthenticated, user } = useAuth();
-  const [open, setOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const navLinkStyle =
     "px-4 py-2 text-sm font-medium text-gray-700 rounded-md hover:bg-gray-100 hover:text-primary hover:underline decoration-primary decoration-2 underline-offset-4 transition-colors";
@@ -30,7 +30,7 @@ const Navbar = () => {
             <Link to="/" className="text-2xl font-bold text-primary mr-4">
               Shuttleverse
             </Link>
-            <div className="flex items-center space-x-1">
+            <div className="hidden md:flex items-center space-x-1">
               <Link to="/courts" className={navLinkStyle}>
                 Courts
               </Link>
@@ -39,9 +39,6 @@ const Navbar = () => {
               </Link>
               <Link to="/stringers" className={navLinkStyle}>
                 Stringers
-              </Link>
-              <Link to="/clubs" className={navLinkStyle}>
-                Clubs
               </Link>
             </div>
           </div>
@@ -112,14 +109,14 @@ const Navbar = () => {
 
             <button
               className="md:hidden p-2 text-gray-600 hover:text-primary transition-colors"
-              onClick={() => setOpen(!open)}
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
             >
-              {open ? <X size={24} /> : <Menu size={24} />}
+              {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
           </div>
         </div>
 
-        {open && (
+        {isMenuOpen && (
           <div className="md:hidden py-4 border-t">
             <div className="flex flex-col space-y-4">
               <div className="relative">
@@ -134,12 +131,6 @@ const Navbar = () => {
               </div>
 
               <div className="space-y-2 pt-2">
-                <Link
-                  to="/clubs"
-                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-primary rounded-md transition-colors hover:underline decoration-primary decoration-2 underline-offset-4"
-                >
-                  Clubs
-                </Link>
                 <Link
                   to="/courts"
                   className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-primary rounded-md transition-colors hover:underline decoration-primary decoration-2 underline-offset-4"
@@ -192,15 +183,12 @@ const Navbar = () => {
                   <Button
                     variant="outline"
                     className="border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-colors w-full"
-                    onClick={() => (window.location.href = "/login")}
+                    asChild
                   >
-                    Log In
+                    <Link to="/login">Log In</Link>
                   </Button>
-                  <Button
-                    className="w-full"
-                    onClick={() => (window.location.href = "/signup")}
-                  >
-                    Sign Up
+                  <Button className="w-full" asChild>
+                    <Link to="/signup">Sign Up</Link>
                   </Button>
                 </div>
               )}
