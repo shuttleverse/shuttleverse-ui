@@ -1,16 +1,9 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import {
-  Check,
-  MapPin,
-  ThumbsUp,
-  Building,
-  MapPinned,
-  User,
-  Scissors,
-} from "lucide-react";
+import { Check, MapPin } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
+import { EntityAvatar } from "@/components/shared/entity-avatar";
 
 interface EntityCardProps {
   id: string;
@@ -37,36 +30,34 @@ const EntityCard: React.FC<EntityCardProps> = ({
 }) => {
   const displayName = name || `Unnamed ${type}`;
 
-  const getEntityIcon = () => {
+  const getPluralType = (type: EntityCardProps["type"]) => {
     switch (type) {
-      case "club":
-        return <Building className="w-12 h-12 text-gray-400" />;
-      case "court":
-        return <MapPinned className="w-12 h-12 text-gray-400" />;
       case "coach":
-        return <User className="w-12 h-12 text-gray-400" />;
+        return "coaches";
       case "stringer":
-        return <Scissors className="w-12 h-12 text-gray-400" />;
+        return "stringers";
       default:
-        return null;
+        return `${type}s`;
     }
   };
 
   return (
-    <Link to={`/${type}s/${id}`} className="block">
+    <Link to={`/${getPluralType(type)}/${id}`} className="block">
       <Card className="overflow-hidden h-full transition-all hover:shadow-md">
-        <div className="relative h-48 w-full bg-gray-100 flex items-center justify-center">
-          <div className="flex flex-col items-center">
-            {getEntityIcon()}
-            <div className="text-gray-400 text-5xl font-light uppercase mt-2">
-              {displayName.charAt(0)}
-            </div>
-          </div>
+        <div className="relative h-48 w-full">
+          <EntityAvatar
+            id={id}
+            name={displayName}
+            type={type}
+            size="lg"
+            shape="rectangle"
+            className="w-full h-full object-cover"
+          />
           {isVerified && (
             <div className="absolute top-2 right-2">
               <Badge
                 variant="secondary"
-                className="bg-primary text-primary-foreground hover:bg-primary/90"
+                className="bg-sky-500/20 text-sky-600 hover:bg-sky-500/30 border border-sky-500/30"
               >
                 <Check className="w-3 h-3 mr-1" /> Verified
               </Badge>
@@ -81,11 +72,6 @@ const EntityCard: React.FC<EntityCardProps> = ({
           <div className="flex justify-between items-center">
             <div className="flex items-center text-sm text-gray-500 mb-2">
               <MapPin className="w-4 h-4 mr-1" /> {location}
-            </div>
-
-            <div className="flex items-center text-sm text-gray-500">
-              <ThumbsUp className="w-4 h-4 mr-1" />
-              <span>{upvotes}</span>
             </div>
           </div>
 

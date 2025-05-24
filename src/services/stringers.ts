@@ -2,6 +2,7 @@ import {
   useInfiniteQuery,
   useMutation,
   useQueryClient,
+  useQuery,
 } from "@tanstack/react-query";
 import api from "@/api/axios";
 
@@ -23,7 +24,6 @@ export type StringerFormData = {
   website?: string;
   phoneNumber?: string;
   otherContacts: string;
-  schedules: StringerFormScheduleData[];
   prices: StringerFormPriceData[];
 };
 
@@ -34,6 +34,42 @@ type StringerCreationAPIData = {
   website?: string;
   phoneNumber?: string;
   otherContacts: string;
+};
+
+export type StringerScheduleData = {
+  id: string;
+  dayOfWeek: number;
+  startTime: string;
+  endTime: string;
+  upvotes: number;
+};
+
+export type StringerPriceData = {
+  id: string;
+  stringName: string;
+  price: number;
+  upvotes: number;
+};
+
+export type StringerData = {
+  id: string;
+  type: "stringer";
+  name: string;
+  website: null;
+  location?: string;
+  description?: string;
+  phoneNumber?: string;
+  otherContacts: string;
+  isVerified: boolean;
+  priceList: StringerPriceData[];
+  upvotes: number;
+};
+
+type StringerResponse = {
+  data: {
+    content: StringerData[];
+    last: boolean;
+  };
 };
 
 export function useStringers(filters = {}) {
@@ -107,6 +143,41 @@ export function useAddStringerPrice() {
       const { data } = await api.post(
         `/api/community/v1/stringer/${params.stringerId}/price`,
         params.priceData
+      );
+      return data;
+    },
+  });
+}
+
+export function useStringer(id: string) {
+  return useQuery({
+    queryKey: ["stringer", id],
+    queryFn: async () => {
+      const { data } = await api.get(`/api/community/v1/stringer/${id}`);
+      return {
+        ...data.data,
+        type: "stringer" as const,
+      };
+    },
+  });
+}
+
+export function useUpvoteStringerSchedule() {
+  return useMutation({
+    mutationFn: async (params: { stringerId: string; scheduleId: string }) => {
+      const { data } = await api.post(
+        `/api/community/v1/stringer/schedule/${params.scheduleId}/upvote`
+      );
+      return data;
+    },
+  });
+}
+
+export function useUpvoteStringerPrice() {
+  return useMutation({
+    mutationFn: async (params: { stringerId: string; priceId: string }) => {
+      const { data } = await api.post(
+        `/api/community/v1/stringer/price/${params.priceId}/upvote`
       );
       return data;
     },

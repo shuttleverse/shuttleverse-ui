@@ -2,6 +2,7 @@ import {
   useInfiniteQuery,
   useMutation,
   useQueryClient,
+  useQuery,
 } from "@tanstack/react-query";
 import api from "@/api/axios";
 
@@ -36,6 +37,36 @@ type CoachCreationAPIData = {
   website?: string;
   phoneNumber?: string;
   otherContacts: string;
+};
+
+export type CoachScheduleData = {
+  id: string;
+  dayOfWeek: number;
+  startTime: string;
+  endTime: string;
+  upvotes: number;
+};
+
+export type CoachPriceData = {
+  id: string;
+  price: number;
+  duration: number;
+  upvotes: number;
+};
+
+export type CoachData = {
+  id: string;
+  type: "coach";
+  name: string;
+  location?: string;
+  description?: string;
+  experience_years?: number;
+  website?: string;
+  phoneNumber?: string;
+  otherContacts: string;
+  isVerified: boolean;
+  scheduleList: CoachScheduleData[];
+  priceList: CoachPriceData[];
 };
 
 export function useCoaches(filters = {}) {
@@ -107,6 +138,43 @@ export function useAddCoachPrice() {
       const { data } = await api.post(
         `/api/community/v1/coach/${params.coachId}/price`,
         params.priceData
+      );
+      return data;
+    },
+  });
+}
+
+export function useCoach(id: string) {
+  return useQuery({
+    queryKey: ["coach", id],
+    queryFn: async () => {
+      const { data } = await api.get(`/api/community/v1/coach/${id}`);
+      return {
+        ...data.data,
+        type: "coach" as const,
+        schedules: data.data.scheduleList || [],
+        prices: data.data.priceList || [],
+      };
+    },
+  });
+}
+
+export function useUpvoteCoachSchedule() {
+  return useMutation({
+    mutationFn: async (params: { coachId: string; scheduleId: string }) => {
+      const { data } = await api.post(
+        `/api/community/v1/coach/schedule/${params.scheduleId}/upvote`
+      );
+      return data;
+    },
+  });
+}
+
+export function useUpvoteCoachPrice() {
+  return useMutation({
+    mutationFn: async (params: { coachId: string; priceId: string }) => {
+      const { data } = await api.post(
+        `/api/community/v1/coach/price/${params.priceId}/upvote`
       );
       return data;
     },

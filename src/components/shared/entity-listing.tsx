@@ -108,19 +108,21 @@ const EntityListing: React.FC<EntityListingProps> = ({
   return (
     <Layout>
       <div className="container mx-auto px-4 py-6">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold">{title}</h1>
-          <div className="flex gap-2">
+        <div className="flex justify-between items-center mb-6 flex-col sm:flex-row gap-2 sm:gap-0">
+          <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold mb-2 sm:mb-0">
+            {title}
+          </h1>
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
             <Button
               variant="outline"
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 px-3 py-1 text-sm sm:px-4 sm:py-2 sm:text-base w-full sm:w-auto"
               onClick={() => setShowFilters(!showFilters)}
             >
               <SlidersHorizontal className="h-4 w-4" />
               <span>Filters</span>
             </Button>
             <Button
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 px-3 py-1 text-sm sm:px-4 sm:py-2 sm:text-base w-full sm:w-auto"
               onClick={handleAddEntityClick}
             >
               <Plus className="h-4 w-4" />
@@ -187,7 +189,7 @@ const EntityListing: React.FC<EntityListingProps> = ({
             )}
 
             {filteredEntities.length > 0 && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-2">
                 {filteredEntities.map((entity, index) => (
                   <EntityCard
                     key={entity.id || index}

@@ -2,6 +2,7 @@ import {
   useInfiniteQuery,
   useMutation,
   useQueryClient,
+  useQuery,
 } from "@tanstack/react-query";
 import api from "@/api/axios";
 
@@ -34,6 +35,35 @@ type CourtCreationAPIData = {
   website: string;
   phoneNumber: string;
   otherContacts?: string;
+};
+
+export type CourtScheduleData = {
+  id: string;
+  dayOfWeek: number;
+  openTime: string;
+  closeTime: string;
+  upvotes: number;
+};
+
+export type CourtPriceData = {
+  id: string;
+  price: number;
+  duration: number;
+  upvotes: number;
+};
+
+export type CourtData = {
+  id: string;
+  type: "court";
+  name: string;
+  location: string;
+  description?: string;
+  website?: string;
+  phoneNumber?: string;
+  otherContacts?: string;
+  isVerified: boolean;
+  scheduleList: CourtScheduleData[];
+  priceList: CourtPriceData[];
 };
 
 export function useCourts(filters = {}) {
@@ -104,6 +134,43 @@ export function useAddCourtPrice() {
       const { data } = await api.post(
         `/api/community/v1/court/${params.courtId}/price`,
         params.priceData
+      );
+      return data;
+    },
+  });
+}
+
+export function useCourt(id: string) {
+  return useQuery({
+    queryKey: ["court", id],
+    queryFn: async () => {
+      const { data } = await api.get(`/api/community/v1/court/${id}`);
+      return {
+        ...data.data,
+        type: "court" as const,
+        schedules: data.data.scheduleList || [],
+        prices: data.data.priceList || [],
+      };
+    },
+  });
+}
+
+export function useUpvoteCourtSchedule() {
+  return useMutation({
+    mutationFn: async (params: { courtId: string; scheduleId: string }) => {
+      const { data } = await api.post(
+        `/api/community/v1/court/schedule/${params.scheduleId}/upvote`
+      );
+      return data;
+    },
+  });
+}
+
+export function useUpvoteCourtPrice() {
+  return useMutation({
+    mutationFn: async (params: { courtId: string; priceId: string }) => {
+      const { data } = await api.post(
+        `/api/community/v1/court/price/${params.priceId}/upvote`
       );
       return data;
     },

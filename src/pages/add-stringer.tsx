@@ -24,20 +24,12 @@ export default function AddStringer() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const createStringer = useCreateStringer();
-  const addSchedule = useAddStringerSchedule();
   const addPrice = useAddStringerPrice();
 
   const handleSubmit = async (formData: StringerFormData) => {
     try {
-      const { schedules, prices, ...stringerData } = formData;
+      const { prices, ...stringerData } = formData;
       const { data: stringer } = await createStringer.mutateAsync(formData);
-
-      if (schedules.length > 0) {
-        await addSchedule.mutateAsync({
-          stringerId: stringer.id,
-          scheduleData: schedules,
-        });
-      }
 
       if (prices.length > 0) {
         await addPrice.mutateAsync({
