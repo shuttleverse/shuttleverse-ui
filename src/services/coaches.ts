@@ -8,8 +8,8 @@ import api from "@/api/axios";
 
 export type CoachFormScheduleData = {
   dayOfWeek: number;
-  openTime: string;
-  closeTime: string;
+  startTime: string;
+  endTime: string;
 };
 
 export type CoachFormPriceData = {
@@ -20,9 +20,10 @@ export type CoachFormPriceData = {
 export type CoachFormData = {
   name: string;
   location?: string;
+  longitude?: string;
+  latitude?: string;
   description?: string;
   experience_years?: number;
-  website?: string;
   phoneNumber?: string;
   otherContacts: string;
   schedules: CoachFormScheduleData[];
@@ -32,6 +33,10 @@ export type CoachFormData = {
 type CoachCreationAPIData = {
   name: string;
   location?: string;
+  locationPoint?: {
+    longitude?: string;
+    latitude?: string;
+  };
   description?: string;
   experience_years?: number;
   website?: string;
@@ -61,7 +66,6 @@ export type CoachData = {
   location?: string;
   description?: string;
   experience_years?: number;
-  website?: string;
   phoneNumber?: string;
   otherContacts: string;
   isVerified: boolean;
@@ -99,9 +103,15 @@ export function useCreateCoach() {
       const coachAPIData: CoachCreationAPIData = {
         name: coachData.name,
         location: coachData.location,
+        ...(coachData.longitude &&
+          coachData.latitude && {
+            locationPoint: {
+              longitude: coachData.longitude,
+              latitude: coachData.latitude,
+            },
+          }),
         description: coachData.description,
         experience_years: coachData.experience_years,
-        website: coachData.website,
         phoneNumber: coachData.phoneNumber,
         otherContacts: coachData.otherContacts,
       };

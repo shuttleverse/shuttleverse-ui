@@ -23,10 +23,7 @@ const EntityCard: React.FC<EntityCardProps> = ({
   name,
   location,
   description,
-  website,
-  upvotes,
   isVerified,
-  ...rest
 }) => {
   const displayName = name || `Unnamed ${type}`;
 
@@ -79,18 +76,6 @@ const EntityCard: React.FC<EntityCardProps> = ({
             <p className="text-sm text-gray-600 mt-2 line-clamp-2">
               {description}
             </p>
-          )}
-
-          {website && (
-            <a
-              href={website}
-              className="text-sm text-primary hover:underline mt-2 block"
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {website}
-            </a>
           )}
         </CardContent>
       </Card>

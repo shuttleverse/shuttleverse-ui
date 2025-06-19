@@ -12,6 +12,8 @@ import type { CoachFormData } from "@/services/coaches";
 const requiredFields = {
   name: true,
   location: false,
+  longitude: false,
+  latitude: false,
   description: false,
   website: false,
   phoneNumber: false,
@@ -29,7 +31,7 @@ export default function AddCoach() {
 
   const handleSubmit = async (formData: CoachFormData) => {
     try {
-      const { schedules, prices, ...coachData } = formData;
+      const { schedules, prices } = formData;
       const { data: coach } = await createCoach.mutateAsync(formData);
 
       if (schedules.length > 0) {

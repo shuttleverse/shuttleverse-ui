@@ -11,16 +11,15 @@ import type {
   DateSelectArg,
   EventClickArg,
 } from "@fullcalendar/core";
+import type { CoachFormScheduleData } from "@/services/coaches";
+import type { CourtFormScheduleData } from "@/services/courts";
 
-export type ScheduleData = {
-  dayOfWeek: number;
-  openTime: string;
-  closeTime: string;
-};
+export type ScheduleData = CoachFormScheduleData | CourtFormScheduleData;
 
 interface ScheduleCalendarProps {
   schedules: ScheduleData[];
   onChange: (schedules: ScheduleData[]) => void;
+  entityType: "coach" | "court" | "stringer";
 }
 
 const DAYS_OF_WEEK = [
@@ -36,6 +35,7 @@ const DAYS_OF_WEEK = [
 export function ScheduleCalendar({
   schedules,
   onChange,
+  entityType,
 }: ScheduleCalendarProps) {
   const [events, setEvents] = useState<EventInput[]>([]);
 
@@ -44,8 +44,9 @@ export function ScheduleCalendar({
       id: index.toString(),
       title: "Operating Hours",
       daysOfWeek: [schedule.dayOfWeek === 7 ? 0 : schedule.dayOfWeek],
-      startTime: schedule.openTime,
-      endTime: schedule.closeTime,
+      startTime:
+        "startTime" in schedule ? schedule.startTime : schedule.openTime,
+      endTime: "startTime" in schedule ? schedule.endTime : schedule.closeTime,
       backgroundColor: "hsl(var(--primary))",
       borderColor: "hsl(var(--primary))",
       textColor: "hsl(var(--primary-foreground))",
@@ -57,11 +58,18 @@ export function ScheduleCalendar({
     const jsDay = info.start.getDay();
     const apiDay = jsDay === 0 ? 7 : jsDay;
 
-    const newSchedule: ScheduleData = {
-      dayOfWeek: apiDay,
-      openTime: info.start.toTimeString().slice(0, 5),
-      closeTime: info.end.toTimeString().slice(0, 5),
-    };
+    const newSchedule =
+      entityType === "coach"
+        ? ({
+            dayOfWeek: apiDay,
+            startTime: info.start.toTimeString().slice(0, 5),
+            endTime: info.end.toTimeString().slice(0, 5),
+          } as CoachFormScheduleData)
+        : ({
+            dayOfWeek: apiDay,
+            openTime: info.start.toTimeString().slice(0, 5),
+            closeTime: info.end.toTimeString().slice(0, 5),
+          } as CourtFormScheduleData);
 
     onChange([...schedules, newSchedule]);
   };
@@ -77,6 +85,13 @@ export function ScheduleCalendar({
     e.stopPropagation();
     const updatedSchedules = schedules.filter((_, i) => i !== index);
     onChange(updatedSchedules);
+  };
+
+  const getTimeRange = (schedule: ScheduleData) => {
+    if ("startTime" in schedule) {
+      return `${schedule.startTime} - ${schedule.endTime}`;
+    }
+    return `${schedule.openTime} - ${schedule.closeTime}`;
   };
 
   return (
@@ -146,9 +161,7 @@ export function ScheduleCalendar({
                     ].label
                   }
                 </span>
-                <span className="ml-2">
-                  {schedule.openTime} - {schedule.closeTime}
-                </span>
+                <span className="ml-2">{getTimeRange(schedule)}</span>
               </div>
               <Button
                 type="button"

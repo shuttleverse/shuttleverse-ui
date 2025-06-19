@@ -24,6 +24,7 @@ import { ScheduleCalendar, type ScheduleData } from "./schedule-calendar";
 import { type CoachFormData } from "@/services/coaches";
 import { type StringerFormData } from "@/services/stringers";
 import { type CourtFormData } from "@/services/courts";
+import GeoapifyInput from "@/components/shared/geoapify-input";
 
 type EntityType = "court" | "coach" | "stringer";
 type EntityFormData = CourtFormData | CoachFormData | StringerFormData;
@@ -33,7 +34,7 @@ interface EntityFormProps {
   onSubmit: (data: EntityFormData) => void;
   defaultValues?: Partial<EntityFormData>;
   isSubmitting?: boolean;
-  requiredFields: Record<keyof EntityFormData, boolean>;
+  requiredFields: Record<keyof EntityFormData | "website", boolean>;
 }
 
 export function EntityForm({
@@ -47,11 +48,14 @@ export function EntityForm({
     defaultValues: {
       name: "",
       location: "",
+      longitude: "",
+      latitude: "",
       description: "",
-      website: "",
+      ...(entityType === "court" ? { website: "" } : {}),
       phoneNumber: "",
       schedules: [],
       prices: [],
+      ...(entityType === "stringer" ? { additionalDetails: "" } : {}),
       otherContacts: "",
       ...(entityType === "coach" ? { experience_years: 0 } : {}),
       ...defaultValues,
@@ -122,7 +126,9 @@ export function EntityForm({
                   </FormLabel>
                   <FormControl>
                     <Input
-                      placeholder={getEntityNamePlaceholder()}
+                      placeholder={
+                        defaultValues?.name || getEntityNamePlaceholder()
+                      }
                       {...field}
                       required={requiredFields.name}
                     />
@@ -144,10 +150,35 @@ export function EntityForm({
                     )}
                   </FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder="123 Main St, Anytown, USA"
-                      {...field}
-                      required={requiredFields.location}
+                    <GeoapifyInput
+                      value={field.value}
+                      type="amenity"
+                      language="en"
+                      limit={5}
+                      filterByCountryCode={[]}
+                      filterByCircle={[]}
+                      filterByRect={[]}
+                      filterByPlace=""
+                      biasByCountryCode={[]}
+                      biasByCircle=""
+                      biasByRect=""
+                      biasByProximity=""
+                      placeSelect={(place) => {
+                        if (place.properties.name) {
+                          form.setValue(
+                            "location",
+                            place.properties.name as string
+                          );
+                          form.setValue(
+                            "longitude",
+                            place.properties.lon?.toString() || ""
+                          );
+                          form.setValue(
+                            "latitude",
+                            place.properties.lat?.toString() || ""
+                          );
+                        }
+                      }}
                     />
                   </FormControl>
                   <FormMessage />
@@ -168,9 +199,14 @@ export function EntityForm({
                   </FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder={`Describe the ${entityType.toLowerCase()}...`}
+                      placeholder={
+                        defaultValues?.description ||
+                        `Describe the ${entityType.toLowerCase()}...`
+                      }
                       {...field}
                       required={requiredFields.description}
+                      maxLength={400}
+                      className="resize-none"
                     />
                   </FormControl>
                   <FormMessage />
@@ -192,7 +228,11 @@ export function EntityForm({
                       <Input
                         type="number"
                         min="0"
-                        placeholder="e.g. 5"
+                        placeholder={
+                          (
+                            defaultValues as CoachFormData
+                          )?.experience_years?.toString() || "e.g. 5"
+                        }
                         {...field}
                         onChange={(e) => field.onChange(Number(e.target.value))}
                         required
@@ -204,29 +244,34 @@ export function EntityForm({
               />
             )}
 
-            <FormField
-              control={form.control}
-              name="website"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    Website
-                    {requiredFields.website && (
-                      <span className="text-red-500 ml-1">*</span>
-                    )}
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="https://example.com"
-                      {...field}
-                      required={requiredFields.website}
-                      type="url"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {entityType === "court" && (
+              <FormField
+                control={form.control}
+                name="website"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Website
+                      {requiredFields.website && (
+                        <span className="text-red-500 ml-1">*</span>
+                      )}
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder={
+                          (defaultValues as CourtFormData)?.website ||
+                          "https://example.com"
+                        }
+                        {...field}
+                        required={requiredFields.website}
+                        type="url"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
             <FormField
               control={form.control}
@@ -241,7 +286,9 @@ export function EntityForm({
                   </FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="(123) 456-7890"
+                      placeholder={
+                        defaultValues?.phoneNumber || "(123) 456-7890"
+                      }
                       {...field}
                       required={requiredFields.phoneNumber}
                       type="tel"
@@ -251,6 +298,29 @@ export function EntityForm({
                 </FormItem>
               )}
             />
+
+            {entityType === "stringer" && (
+              <FormField
+                control={form.control}
+                name="additionalDetails"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Additional Details</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder={
+                          (defaultValues as StringerFormData)?.additionalDetails
+                        }
+                        {...field}
+                        maxLength={255}
+                        className="resize-none"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
             <FormField
               control={form.control}
@@ -265,9 +335,14 @@ export function EntityForm({
                   </FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="e.g. WeChat, Facebook, Instagram, etc."
+                      placeholder={
+                        defaultValues?.otherContacts ||
+                        "e.g. WeChat, Facebook, Instagram, etc."
+                      }
                       {...field}
                       required={requiredFields.otherContacts}
+                      maxLength={255}
+                      className="resize-none"
                     />
                   </FormControl>
                   <FormMessage />
@@ -277,19 +352,22 @@ export function EntityForm({
           </CardContent>
         </Card>
 
-        <FormField
-          control={form.control}
-          name="schedules"
-          render={({ field: { value, onChange } }) => (
-            <FormItem>
-              <ScheduleCalendar
-                schedules={value as ScheduleData[]}
-                onChange={onChange}
-              />
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        {entityType !== "stringer" && (
+          <FormField
+            control={form.control}
+            name="schedules"
+            render={({ field: { value, onChange } }) => (
+              <FormItem>
+                <ScheduleCalendar
+                  schedules={value as ScheduleData[]}
+                  onChange={onChange}
+                  entityType={entityType}
+                />
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
 
         <Card>
           <CardHeader>
@@ -322,8 +400,8 @@ export function EntityForm({
                       <FormControl>
                         <Input
                           type="number"
-                          min="0.01"
-                          step="0.01"
+                          min="1"
+                          step="1"
                           {...field}
                           onChange={(e) =>
                             field.onChange(Number(e.target.value))

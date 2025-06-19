@@ -13,9 +13,16 @@ type ScheduleData = CourtScheduleData | CoachScheduleData;
 interface ScheduleDisplayProps {
   schedules: ScheduleData[];
   onUpvote?: (scheduleId: string) => void;
+  hasUpvotedSchedule?: (scheduleId: string) => boolean;
+  isUpvotesLoading?: boolean;
 }
 
-export function ScheduleDisplay({ schedules, onUpvote }: ScheduleDisplayProps) {
+export function ScheduleDisplay({
+  schedules,
+  onUpvote,
+  hasUpvotedSchedule,
+  isUpvotesLoading = false,
+}: ScheduleDisplayProps) {
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -50,6 +57,9 @@ export function ScheduleDisplay({ schedules, onUpvote }: ScheduleDisplayProps) {
     textColor: "hsl(var(--primary-foreground))",
     extendedProps: {
       upvotes: schedule.upvotes || 0,
+      onUpvote: onUpvote,
+      hasUpvoted: hasUpvotedSchedule?.(schedule.id) || false,
+      isUpvotesLoading,
     },
     classNames: [
       "cursor-pointer",
@@ -67,50 +77,65 @@ export function ScheduleDisplay({ schedules, onUpvote }: ScheduleDisplayProps) {
             No schedules available
           </div>
         )}
-        {schedules.map((schedule) => (
-          <div
-            key={schedule.id}
-            className="flex items-center justify-between bg-primary/10 rounded-lg p-3"
-          >
-            <div>
-              <div className="font-semibold text-primary">
-                {getDayName(schedule.dayOfWeek)}
+        {schedules.map((schedule) => {
+          const hasUpvoted = hasUpvotedSchedule?.(schedule.id) || false;
+
+          return (
+            <div
+              key={schedule.id}
+              className="flex items-center justify-between bg-primary/10 rounded-lg p-3 gap-3"
+            >
+              <div className="flex-shrink min-w-0">
+                <div className="font-semibold text-primary">
+                  {getDayName(schedule.dayOfWeek)}
+                </div>
+                <div className="text-sm text-muted-foreground truncate">
+                  {getTimeRange(schedule)}
+                </div>
               </div>
-              <div className="text-sm text-muted-foreground">
-                {getTimeRange(schedule)}
+              <div
+                className={`flex items-center gap-2 flex-shrink-0 ${
+                  onUpvote && !hasUpvoted && !isUpvotesLoading
+                    ? "cursor-pointer"
+                    : "cursor-default"
+                }`}
+                onClick={() =>
+                  onUpvote &&
+                  !hasUpvoted &&
+                  !isUpvotesLoading &&
+                  onUpvote(schedule.id)
+                }
+              >
+                <ThumbsUp
+                  className={`w-5 h-5 p-1 rounded ${
+                    hasUpvoted ? "bg-green-100 text-green-600" : "text-gray-600"
+                  }`}
+                />
+                <span className="text-sm font-medium">
+                  {schedule.upvotes || 0}
+                </span>
+                {onUpvote && (
+                  <div className="w-16 px-2 py-0.5 text-xs rounded-full border bg-green-500/20 text-green-600 border-green-500/30 text-center">
+                    {hasUpvoted ? "Upvoted" : "Upvote"}
+                  </div>
+                )}
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <ThumbsUp className="w-4 h-4 text-primary" />
-              <span className="text-sm font-medium">
-                {schedule.upvotes || 0}
-              </span>
-              {onUpvote && (
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  className="px-2 py-0.5 text-xs rounded-full bg-white/80 text-primary hover:bg-primary/10 border border-primary"
-                  onClick={() => onUpvote(schedule.id)}
-                >
-                  Upvote
-                </Button>
-              )}
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     );
   }
 
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto h-full">
       <FullCalendar
         plugins={[timeGridPlugin, interactionPlugin]}
         initialView="timeGridWeek"
         headerToolbar={false}
-        height="auto"
-        slotMinTime="08:00:00"
-        slotMaxTime="22:00:00"
+        height="90%"
+        slotMinTime="5:00:00"
+        slotMaxTime="24:00:00"
         allDaySlot={false}
         events={events}
         eventContent={renderEventContent}
@@ -130,24 +155,27 @@ export function ScheduleDisplay({ schedules, onUpvote }: ScheduleDisplayProps) {
 function renderEventContent(eventInfo: EventContentArg) {
   const { timeText, event } = eventInfo;
   const upvotes = event.extendedProps.upvotes || 0;
+  const onUpvote = event.extendedProps.onUpvote;
+  const hasUpvoted = event.extendedProps.hasUpvoted || false;
+  const isUpvotesLoading = event.extendedProps.isUpvotesLoading || false;
+
   return (
-    <div className="flex flex-col h-full justify-between">
+    <div
+      className="flex flex-col h-full justify-between p-1 cursor-pointer transition-all"
+      onClick={() =>
+        onUpvote && !hasUpvoted && !isUpvotesLoading && onUpvote(event.id)
+      }
+    >
       <div className="flex flex-col gap-1">
-        <span className="font-bold text-sm">{timeText}</span>
+        <span className="font-bold text-xs">{timeText}</span>
       </div>
-      <div className="flex items-center gap-2 mt-1">
-        <ThumbsUp className="w-4 h-4 text-white/80" />
+      <div className="flex items-center gap-1 mt-1">
+        <ThumbsUp
+          className={`w-4 h-4 p-0.5 rounded ${
+            hasUpvoted ? "bg-green-100 text-green-600" : "text-white/80"
+          }`}
+        />
         <span className="text-xs font-semibold">{upvotes}</span>
-        {event.extendedProps.onUpvote && (
-          <Button
-            size="sm"
-            variant="secondary"
-            className="ml-auto px-2 py-0.5 text-xs rounded-full bg-white/80 text-primary hover:bg-primary/10 border border-primary"
-            onClick={() => event.extendedProps.onUpvote(event.id)}
-          >
-            Upvote
-          </Button>
-        )}
       </div>
     </div>
   );

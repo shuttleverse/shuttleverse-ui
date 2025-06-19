@@ -12,6 +12,8 @@ import Layout from "@/components/layout/layout";
 const requiredFields = {
   name: true,
   location: true,
+  longitude: true,
+  latitude: true,
   description: false,
   website: false,
   phoneNumber: false,
@@ -29,7 +31,7 @@ export default function AddCourt() {
 
   const handleSubmit = async (formData: CourtFormData) => {
     try {
-      const { schedules, prices, ...courtData } = formData;
+      const { schedules, prices } = formData;
       const { data: court } = await createCourt.mutateAsync(formData);
 
       if (schedules && schedules.length > 0) {

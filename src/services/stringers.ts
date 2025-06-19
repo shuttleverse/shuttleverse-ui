@@ -6,12 +6,6 @@ import {
 } from "@tanstack/react-query";
 import api from "@/api/axios";
 
-export type StringerFormScheduleData = {
-  dayOfWeek: number;
-  openTime: string;
-  closeTime: string;
-};
-
 export type StringerFormPriceData = {
   stringName: string;
   price: number;
@@ -20,9 +14,11 @@ export type StringerFormPriceData = {
 export type StringerFormData = {
   name: string;
   location?: string;
+  longitude?: string;
+  latitude?: string;
   description?: string;
-  website?: string;
   phoneNumber?: string;
+  additionalDetails?: string;
   otherContacts: string;
   prices: StringerFormPriceData[];
 };
@@ -30,18 +26,15 @@ export type StringerFormData = {
 type StringerCreationAPIData = {
   name: string;
   location?: string;
+  locationPoint?: {
+    longitude?: string;
+    latitude?: string;
+  };
   description?: string;
   website?: string;
   phoneNumber?: string;
+  additionalDetails?: string;
   otherContacts: string;
-};
-
-export type StringerScheduleData = {
-  id: string;
-  dayOfWeek: number;
-  startTime: string;
-  endTime: string;
-  upvotes: number;
 };
 
 export type StringerPriceData = {
@@ -55,21 +48,14 @@ export type StringerData = {
   id: string;
   type: "stringer";
   name: string;
-  website: null;
   location?: string;
+  additionalDetails?: string;
   description?: string;
   phoneNumber?: string;
   otherContacts: string;
   isVerified: boolean;
   priceList: StringerPriceData[];
   upvotes: number;
-};
-
-type StringerResponse = {
-  data: {
-    content: StringerData[];
-    last: boolean;
-  };
 };
 
 export function useStringers(filters = {}) {
@@ -102,9 +88,16 @@ export function useCreateStringer() {
       const stringerAPIData: StringerCreationAPIData = {
         name: stringerData.name,
         location: stringerData.location,
+        ...(stringerData.longitude &&
+          stringerData.latitude && {
+            locationPoint: {
+              longitude: stringerData.longitude,
+              latitude: stringerData.latitude,
+            },
+          }),
         description: stringerData.description,
-        website: stringerData.website,
         phoneNumber: stringerData.phoneNumber,
+        additionalDetails: stringerData.additionalDetails,
         otherContacts: stringerData.otherContacts,
       };
       const { data } = await api.post(
@@ -115,21 +108,6 @@ export function useCreateStringer() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["stringers"] });
-    },
-  });
-}
-
-export function useAddStringerSchedule() {
-  return useMutation({
-    mutationFn: async (params: {
-      stringerId: string;
-      scheduleData: StringerFormScheduleData[];
-    }) => {
-      const { data } = await api.post(
-        `/api/community/v1/stringer/${params.stringerId}/schedule`,
-        params.scheduleData
-      );
-      return data;
     },
   });
 }
@@ -158,17 +136,6 @@ export function useStringer(id: string) {
         ...data.data,
         type: "stringer" as const,
       };
-    },
-  });
-}
-
-export function useUpvoteStringerSchedule() {
-  return useMutation({
-    mutationFn: async (params: { stringerId: string; scheduleId: string }) => {
-      const { data } = await api.post(
-        `/api/community/v1/stringer/schedule/${params.scheduleId}/upvote`
-      );
-      return data;
     },
   });
 }

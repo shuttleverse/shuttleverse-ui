@@ -1,10 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
-import {
-  useCreateStringer,
-  useAddStringerSchedule,
-  useAddStringerPrice,
-} from "@/services/stringers";
+import { useCreateStringer, useAddStringerPrice } from "@/services/stringers";
 import { EntityForm } from "@/components/forms/entity-form";
 import Layout from "@/components/layout/layout";
 import type { StringerFormData } from "@/services/stringers";
@@ -12,6 +8,8 @@ import type { StringerFormData } from "@/services/stringers";
 const requiredFields = {
   name: true,
   location: false,
+  longitude: true,
+  latitude: true,
   description: false,
   website: false,
   phoneNumber: false,
@@ -28,7 +26,7 @@ export default function AddStringer() {
 
   const handleSubmit = async (formData: StringerFormData) => {
     try {
-      const { prices, ...stringerData } = formData;
+      const { prices } = formData;
       const { data: stringer } = await createStringer.mutateAsync(formData);
 
       if (prices.length > 0) {

@@ -13,6 +13,8 @@ import {
   useUpvoteCoachPrice,
 } from "@/services/coaches";
 import { useStringer, useUpvoteStringerPrice } from "@/services/stringers";
+import { useUpvotes, type UpvoteData } from "@/services/upvotes";
+import { useAuth } from "@/hooks/useAuth";
 
 type URLPath = "courts" | "coaches" | "stringers";
 type APIType = "court" | "coach" | "stringer";
@@ -33,12 +35,49 @@ export default function EntityDetailsPage() {
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const urlPath = location.pathname.split("/")[1] as URLPath;
   const type = URL_TO_API_TYPE[urlPath];
 
   const useEntity = ENTITY_HOOKS[type];
   const activeQuery = useEntity(id!);
+
+  const userUpvotesQuery = useUpvotes(
+    {
+      entityType: type === "court" ? 0 : type === "stringer" ? 1 : 2,
+      infoType: 0,
+    },
+    !!user
+  );
+
+  const userPriceUpvotesQuery = useUpvotes(
+    {
+      entityType: type === "court" ? 0 : type === "stringer" ? 1 : 2,
+      infoType: 1,
+    },
+    !!user
+  );
+
+  const hasUpvotedSchedule = (scheduleId: string) => {
+    if (!user || !userUpvotesQuery.data?.pages) return false;
+    return userUpvotesQuery.data.pages.some((page) =>
+      page.data?.content?.some(
+        (upvote: UpvoteData) =>
+          upvote.infoType === "SCHEDULE" && upvote.entity.id === scheduleId
+      )
+    );
+  };
+
+  const hasUpvotedPrice = (priceId: string) => {
+    if (!user || !userPriceUpvotesQuery.data?.pages) return false;
+    return userPriceUpvotesQuery.data.pages.some((page) =>
+      page.data?.content?.some(
+        (upvote: UpvoteData) =>
+          upvote.infoType === "PRICE" && upvote.entity.id === priceId
+      )
+    );
+  };
 
   const upvoteScheduleMutation = {
     court: useUpvoteCourtSchedule(),
@@ -68,6 +107,9 @@ export default function EntityDetailsPage() {
           scheduleId,
         });
       }
+
+      userUpvotesQuery.refetch();
+
       toast({
         title: "Success",
         description: "Schedule upvoted successfully",
@@ -105,6 +147,9 @@ export default function EntityDetailsPage() {
           priceId,
         });
       }
+
+      userPriceUpvotesQuery.refetch();
+
       toast({
         title: "Success",
         description: "Price upvoted successfully",
@@ -170,6 +215,11 @@ export default function EntityDetailsPage() {
           type !== "stringer" ? handleUpvoteSchedule : undefined
         }
         onUpvotePrice={handleUpvotePrice}
+        hasUpvotedSchedule={hasUpvotedSchedule}
+        hasUpvotedPrice={hasUpvotedPrice}
+        isUpvotesLoading={
+          userUpvotesQuery.isLoading || userPriceUpvotesQuery.isLoading
+        }
       />
     </Layout>
   );

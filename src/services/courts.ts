@@ -20,6 +20,8 @@ export type CourtFormPriceData = {
 export type CourtFormData = {
   name: string;
   location: string;
+  longitude: string;
+  latitude: string;
   description?: string;
   website?: string;
   phoneNumber?: string;
@@ -31,6 +33,10 @@ export type CourtFormData = {
 type CourtCreationAPIData = {
   name: string;
   location: string;
+  locationPoint: {
+    longitude?: string;
+    latitude?: string;
+  };
   description: string;
   website: string;
   phoneNumber: string;
@@ -96,6 +102,13 @@ export function useCreateCourt() {
       const courtAPIData: CourtCreationAPIData = {
         name: courtData.name,
         location: courtData.location,
+        ...(courtData.longitude &&
+          courtData.latitude && {
+            locationPoint: {
+              longitude: courtData.longitude,
+              latitude: courtData.latitude,
+            },
+          }),
         description: courtData.description,
         website: courtData.website,
         phoneNumber: courtData.phoneNumber,

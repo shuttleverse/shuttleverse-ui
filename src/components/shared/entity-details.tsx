@@ -14,12 +14,18 @@ interface EntityDetailsProps {
   entity: EntityData;
   onUpvoteSchedule?: (scheduleId: string) => void;
   onUpvotePrice?: (priceId: string) => void;
+  hasUpvotedSchedule?: (scheduleId: string) => boolean;
+  hasUpvotedPrice?: (priceId: string) => boolean;
+  isUpvotesLoading?: boolean;
 }
 
 export function EntityDetails({
   entity,
   onUpvoteSchedule,
   onUpvotePrice,
+  hasUpvotedSchedule,
+  hasUpvotedPrice,
+  isUpvotesLoading = false,
 }: EntityDetailsProps) {
   const renderPrices = () => {
     if (!entity.priceList || entity.priceList.length === 0) {
@@ -31,6 +37,8 @@ export function EntityDetails({
     }
 
     return entity.priceList.map((price) => {
+      const hasUpvoted = hasUpvotedPrice(price.id) || false;
+
       if ("stringName" in price) {
         return (
           <div
@@ -45,17 +53,30 @@ export function EntityDetails({
                 ${price.price.toFixed(2)}
               </p>
             </div>
-            <div className="flex items-center gap-2">
-              <ThumbsUp className="w-4 h-4 text-primary" />
+            <div
+              className={`flex items-center gap-2 ${
+                onUpvotePrice && !hasUpvoted && !isUpvotesLoading
+                  ? "cursor-pointer"
+                  : "cursor-default"
+              }`}
+              onClick={() =>
+                onUpvotePrice &&
+                !hasUpvoted &&
+                !isUpvotesLoading &&
+                onUpvotePrice(price.id)
+              }
+            >
+              <ThumbsUp
+                className={`w-5 h-5 p-1 rounded ${
+                  hasUpvoted ? "bg-green-100 text-green-600" : "text-gray-600"
+                }`}
+              />
               <span className="text-sm font-medium">{price.upvotes || 0}</span>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="hover:bg-primary/10"
-                onClick={() => onUpvotePrice?.(price.id)}
-              >
-                Upvote
-              </Button>
+              {onUpvotePrice && (
+                <div className="w-16 px-2 py-0.5 text-xs rounded-full border bg-green-500/20 text-green-600 border-green-500/30 text-center">
+                  {hasUpvoted ? "Upvoted" : "Upvote"}
+                </div>
+              )}
             </div>
           </div>
         );
@@ -74,17 +95,30 @@ export function EntityDetails({
                 {price.duration && ` / ${price.duration} minutes`}
               </p>
             </div>
-            <div className="flex items-center gap-2">
-              <ThumbsUp className="w-4 h-4 text-primary" />
+            <div
+              className={`flex items-center gap-2 ${
+                onUpvotePrice && !hasUpvoted && !isUpvotesLoading
+                  ? "cursor-pointer"
+                  : "cursor-default"
+              }`}
+              onClick={() =>
+                onUpvotePrice &&
+                !hasUpvoted &&
+                !isUpvotesLoading &&
+                onUpvotePrice(price.id)
+              }
+            >
+              <ThumbsUp
+                className={`w-5 h-5 p-1 rounded ${
+                  hasUpvoted ? "bg-green-100 text-green-600" : "text-gray-600"
+                }`}
+              />
               <span className="text-sm font-medium">{price.upvotes || 0}</span>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="hover:bg-primary/10"
-                onClick={() => onUpvotePrice?.(price.id)}
-              >
-                Upvote
-              </Button>
+              {onUpvotePrice && (
+                <div className="w-16 px-2 py-0.5 text-xs rounded-full border bg-green-500/20 text-green-600 border-green-500/30 text-center">
+                  {hasUpvoted ? "Upvoted" : "Upvote"}
+                </div>
+              )}
             </div>
           </div>
         );
@@ -93,7 +127,7 @@ export function EntityDetails({
   };
 
   return (
-    <div className="container mx-auto py-6 px-2 sm:px-4">
+    <div className="w-full max-w-7xl mx-auto py-6 px-2 sm:px-4">
       <Button
         variant="ghost"
         onClick={() => window.history.back()}
@@ -108,8 +142,8 @@ export function EntityDetails({
           <div className="relative">
             <div className="absolute inset-0 bg-gradient-to-r from-primary to-primary-indigo opacity-10" />
             <div className="relative p-4 sm:p-8">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
-                <div className="space-y-6 sm:space-y-8">
+              <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 sm:gap-8">
+                <div className="space-y-6 sm:space-y-8 xl:col-span-1">
                   <div className="flex flex-col items-center md:items-start">
                     <EntityAvatar
                       id={entity.id}
@@ -142,7 +176,7 @@ export function EntityDetails({
                         </span>
                       </div>
                     )}
-                    {entity.website && (
+                    {entity.type === "court" && entity.website && (
                       <div className="flex items-center gap-2 sm:gap-3 text-muted-foreground group">
                         <Globe className="w-5 h-5 text-primary group-hover:text-primary-indigo transition-colors" />
                         <a
@@ -174,16 +208,29 @@ export function EntityDetails({
                   )}
                 </div>
 
+                {entity.type === "stringer" && entity.additionalDetails && (
+                  <div className="bg-white/50 rounded-lg p-3 sm:p-6 shadow-sm xl:col-span-1">
+                    <h2 className="text-lg sm:text-2xl font-semibold text-primary-indigo mb-4 sm:mb-6">
+                      Additional Details
+                    </h2>
+                    <p className="text-muted-foreground text-sm sm:text-base leading-relaxed">
+                      {entity.additionalDetails}
+                    </p>
+                  </div>
+                )}
+
                 {entity.type !== "stringer" &&
                   entity.scheduleList &&
                   entity.scheduleList.length > 0 && (
-                    <div className="bg-white/50 rounded-lg p-3 sm:p-6 shadow-sm">
+                    <div className="bg-white/50 rounded-lg p-3 sm:p-6 shadow-sm xl:col-span-2 min-h-[700px]">
                       <h2 className="text-lg sm:text-2xl font-semibold text-primary-indigo mb-4 sm:mb-6">
                         Schedules
                       </h2>
                       <ScheduleDisplay
                         schedules={entity.scheduleList}
                         onUpvote={onUpvoteSchedule}
+                        hasUpvotedSchedule={hasUpvotedSchedule}
+                        isUpvotesLoading={isUpvotesLoading}
                       />
                     </div>
                   )}
