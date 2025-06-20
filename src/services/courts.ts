@@ -5,6 +5,7 @@ import {
   useQuery,
 } from "@tanstack/react-query";
 import api from "@/api/axios";
+import { queryClient } from "@/api/query-client";
 
 export type CourtFormScheduleData = {
   dayOfWeek: number;
@@ -176,6 +177,10 @@ export function useUpvoteCourtSchedule() {
       );
       return data;
     },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["upvotes"] });
+      queryClient.invalidateQueries({ queryKey: ["court"] });
+    },
   });
 }
 
@@ -186,6 +191,10 @@ export function useUpvoteCourtPrice() {
         `/api/community/v1/court/price/${params.priceId}/upvote`
       );
       return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["upvotes"] });
+      queryClient.invalidateQueries({ queryKey: ["court"] });
     },
   });
 }

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Search, User, LogOut, Bell, Menu, X } from "lucide-react";
+import { Search, User, LogOut, Menu, X } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
 import { Button } from "@/components/ui/button";

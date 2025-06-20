@@ -1,10 +1,10 @@
-import { useInfiniteQuery, useMutation } from "@tanstack/react-query";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import api from "@/api/axios";
 
 export type UpvoteQueryData = {
   entityId?: string;
   entityType: 0 | 1 | 2; // 0: court, 1: stringer, 2: coach
-  infoType: 0 | 1; // 0: schedule, 1: price (optional to get both)
+  infoType: 0 | 1; // 0: schedule, 1: price
 };
 
 export type UpvoteData = {
@@ -51,5 +51,10 @@ export function useUpvotes(filters: UpvoteQueryData, enabled: boolean = true) {
     },
     initialPageParam: 0,
     enabled,
+    staleTime: 60 * 60 * 1000, // an hour
+    gcTime: 60 * 60 * 1000, // an hour
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
+    refetchOnReconnect: true,
   });
 }

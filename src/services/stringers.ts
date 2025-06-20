@@ -5,6 +5,7 @@ import {
   useQuery,
 } from "@tanstack/react-query";
 import api from "@/api/axios";
+import { queryClient } from "@/api/query-client";
 
 export type StringerFormPriceData = {
   stringName: string;
@@ -147,6 +148,10 @@ export function useUpvoteStringerPrice() {
         `/api/community/v1/stringer/price/${params.priceId}/upvote`
       );
       return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["upvotes"] });
+      queryClient.invalidateQueries({ queryKey: ["stringer"] });
     },
   });
 }

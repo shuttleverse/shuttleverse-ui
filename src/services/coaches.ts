@@ -5,6 +5,7 @@ import {
   useQuery,
 } from "@tanstack/react-query";
 import api from "@/api/axios";
+import { queryClient } from "@/api/query-client";
 
 export type CoachFormScheduleData = {
   dayOfWeek: number;
@@ -177,6 +178,10 @@ export function useUpvoteCoachSchedule() {
       );
       return data;
     },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["upvotes"] });
+      queryClient.invalidateQueries({ queryKey: ["coach"] });
+    },
   });
 }
 
@@ -187,6 +192,10 @@ export function useUpvoteCoachPrice() {
         `/api/community/v1/coach/price/${params.priceId}/upvote`
       );
       return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["upvotes"] });
+      queryClient.invalidateQueries({ queryKey: ["coach"] });
     },
   });
 }

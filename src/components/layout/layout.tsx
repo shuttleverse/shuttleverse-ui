@@ -1,5 +1,3 @@
-
-import React from "react";
 import Navbar from "./navbar";
 import Footer from "./footer";
 
@@ -12,9 +10,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     <div className="flex flex-col min-h-screen bg-neutral-light">
       <Navbar />
       <main className="flex-grow pt-16">
-        <div className="w-full mx-auto">
-          {children}
-        </div>
+        <div className="w-full mx-auto">{children}</div>
       </main>
       <Footer />
     </div>
