@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shuttleverse-ui
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: shuttleverse-ui
+  template:
+    metadata:
+      labels:
+        app: shuttleverse-ui
+    spec:
+      containers:
+        - name: shuttleverse-ui
+          image: docker-user/shuttleverse-ui:latest
+          ports:
+            - containerPort: 5173
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: shuttleverse-ui
+  namespace: default
+spec:
+  selector:
+    app: shuttleverse-ui
+  ports:
+    - port: 5173
+      targetPort: 5173
+  type: ClusterIP
