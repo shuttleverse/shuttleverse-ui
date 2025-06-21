@@ -6,7 +6,7 @@ on:
       - main
   pull_request:
     branches:
-      - '**'
+      - "**"
 
 jobs:
   # CI for pull requests
@@ -18,7 +18,7 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
-    
+
     # TODO: Add prettier check and tests
 
   # CD for main branch
@@ -37,6 +37,8 @@ jobs:
       OCI_CLI_KEY_CONTENT: ${{ secrets.OCI_CLI_KEY_CONTENT }}
       OCI_CLI_REGION: ${{ secrets.OCI_CLI_REGION }}
       OCI_CLI_KEY_PASSPHRASE: ${{ secrets.OCI_CLI_KEY_PASSPHRASE }}
+      VITE_API_URL: ${{ secrets.VITE_API_URL }}
+      VITE_GEOAPIFY_API_KEY: ${{ secrets.VITE_GEOAPIFY_API_KEY }}
 
     steps:
       - name: Checkout Code
@@ -79,7 +81,3 @@ jobs:
       - name: Restart Deployment
         run: |
           kubectl rollout restart deployment shuttleverse-ui
-
-
-
-
