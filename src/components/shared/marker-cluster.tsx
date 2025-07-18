@@ -145,26 +145,41 @@ const createMarkerContent = (
   const markerElement = document.createElement("div");
   markerElement.className = "custom-marker";
   markerElement.style.cssText = `
-    width: 32px;
-    height: 32px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     background: ${getMarkerColor(entity.type)};
-    border: 3px solid white;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    border: 4px solid #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.25);
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
     font-weight: bold;
-    font-size: 12px;
+    font-size: 18px;
     cursor: pointer;
     transition: all 0.2s ease;
     ${isSelected ? "transform: scale(1.2); border-color: #fbbf24;" : ""}
   `;
 
-  const iconElement = document.createElement("div");
-  iconElement.textContent = entity.type.charAt(0).toUpperCase();
-  markerElement.appendChild(iconElement);
+  const svgNS = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(svgNS, "svg");
+  svg.setAttribute("width", "");
+  svg.setAttribute("height", "36");
+  svg.setAttribute("viewBox", "0 0 36 36");
+
+  const text = document.createElementNS(svgNS, "text");
+  text.setAttribute("x", "18");
+  text.setAttribute("y", "23");
+  text.setAttribute("text-anchor", "middle");
+  text.setAttribute("font-size", "16");
+  text.setAttribute("font-family", "sans-serif");
+  text.setAttribute("fill", "#fff");
+  text.textContent = entity.type.charAt(0).toUpperCase();
+  svg.appendChild(text);
+
+  markerElement.innerHTML = "";
+  markerElement.appendChild(svg);
 
   return markerElement;
 };

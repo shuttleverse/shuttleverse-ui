@@ -5,19 +5,17 @@ export type MarkerType = "court" | "coach" | "stringer";
 
 export interface CustomMarkerProps {
   type: MarkerType;
-  customIcon?: string; // URL to custom PNG or SVG
+  customIcon?: string;
   size?: number;
   color?: string;
 }
 
-// Default colors for each entity type
 const DEFAULT_COLORS = {
-  court: "#10b981", // emerald-500
-  coach: "#3b82f6", // blue-500
-  stringer: "#f59e0b", // amber-500
+  court: "#10b981",
+  coach: "#3b82f6",
+  stringer: "#f59e0b",
 };
 
-// Default icons for each entity type
 const DEFAULT_ICONS = {
   court: MapPin,
   coach: Users,
@@ -32,7 +30,6 @@ export const createCustomMarkerIcon = (
 ): google.maps.Icon => {
   const defaultColor = color || DEFAULT_COLORS[type];
 
-  // If custom icon is provided, use it
   if (customIcon) {
     return {
       url: customIcon,
@@ -41,7 +38,6 @@ export const createCustomMarkerIcon = (
     };
   }
 
-  // Otherwise, create a default SVG icon
   const IconComponent = DEFAULT_ICONS[type];
 
   return {
@@ -58,7 +54,6 @@ export const createCustomMarkerIcon = (
   };
 };
 
-// React component for custom marker (for use in info windows or other UI elements)
 export const CustomMarkerIcon: React.FC<CustomMarkerProps> = ({
   type,
   customIcon,

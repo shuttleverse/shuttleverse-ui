@@ -23,6 +23,7 @@ import { Link } from "react-router-dom";
 import { CustomMarkerIcon } from "./custom-map-marker";
 import MarkerCluster from "./marker-cluster";
 import MapController from "./map-controller";
+import "./interactive-map.css";
 
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
@@ -31,40 +32,19 @@ const DEFAULT_LOCATION = {
   lng: -71.0589,
 };
 
+const LOCAL_STORAGE_KEY = "shuttleverse_user_location";
+const LOCATION_EXPIRY_MS = 24 * 60 * 60 * 1000;
+
 const mapContainerStyle = {
   width: "100%",
   height: "100%",
-};
-
-const defaultMapOptions = {
-  zoomControl: true,
-  streetViewControl: false,
-  mapTypeControl: false,
-  fullscreenControl: true,
-  gestureHandling: "greedy",
-  scrollwheel: true,
-  draggable: true,
-  disableDoubleClickZoom: false,
 };
 
 export const CustomMarker: React.FC<{
   entity: MapEntity;
   onClick: () => void;
   isSelected: boolean;
-}> = ({ entity, onClick, isSelected }) => {
-  const getMarkerColor = (type: string) => {
-    switch (type) {
-      case "court":
-        return "#10b981";
-      case "coach":
-        return "#3b82f6";
-      case "stringer":
-        return "#f59e0b";
-      default:
-        return "#6b7280";
-    }
-  };
-
+}> = ({ entity, onClick }) => {
   const getMarkerBackground = (type: string) => {
     switch (type) {
       case "court":
@@ -165,13 +145,50 @@ const EntityInfoWindow: React.FC<{
   );
 };
 
-const InteractiveMap: React.FC = () => {
-  const [center, setCenter] = useState(DEFAULT_LOCATION);
+interface InteractiveMapProps {
+  mapRef?: React.MutableRefObject<google.maps.Map | null>;
+  onEntitiesChange?: (entities: MapEntity[], bbox: BoundingBox | null) => void;
+  fullScreen?: boolean;
+  defaultZoom?: number;
+}
+
+const InteractiveMap: React.FC<InteractiveMapProps> = ({
+  mapRef: externalMapRef,
+  onEntitiesChange,
+  fullScreen,
+  defaultZoom,
+}) => {
+  const [center, setCenter] = useState(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (
+            parsed &&
+            parsed.latitude &&
+            parsed.longitude &&
+            parsed.timestamp &&
+            Date.now() - parsed.timestamp < LOCATION_EXPIRY_MS
+          ) {
+            return {
+              lat: parseFloat(parsed.latitude),
+              lng: parseFloat(parsed.longitude),
+            };
+          }
+        }
+      } catch (e) {
+        // Ignore JSON parse error
+      }
+    }
+    return DEFAULT_LOCATION;
+  });
   const [selectedEntity, setSelectedEntity] = useState<MapEntity | null>(null);
   const [userLocation, setUserLocation] = useState<LocationPoint | null>(null);
   const [boundingBox, setBoundingBox] = useState<BoundingBox | null>(null);
   const [isLoadingLocation, setIsLoadingLocation] = useState(true);
-  const mapRef = useRef<google.maps.Map | null>(null);
+  const internalMapRef = useRef<google.maps.Map | null>(null);
+  const mapRef = externalMapRef || internalMapRef;
 
   useEffect(() => {
     const getUserLocation = () => {
@@ -186,6 +203,7 @@ const InteractiveMap: React.FC = () => {
           const userLoc = {
             latitude: position.coords.latitude.toString(),
             longitude: position.coords.longitude.toString(),
+            timestamp: Date.now(),
           };
           setUserLocation(userLoc);
           setCenter({
@@ -193,6 +211,12 @@ const InteractiveMap: React.FC = () => {
             lng: position.coords.longitude,
           });
           setIsLoadingLocation(false);
+          // Save to localStorage
+          try {
+            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(userLoc));
+          } catch (e) {
+            // Ignore localStorage error
+          }
         },
         (error) => {
           console.log("Error getting location:", error);
@@ -262,6 +286,12 @@ const InteractiveMap: React.FC = () => {
     setSelectedEntity(null);
   }, []);
 
+  useEffect(() => {
+    if (onEntitiesChange) {
+      onEntitiesChange(allEntities, boundingBox);
+    }
+  }, [allEntities, boundingBox, onEntitiesChange]);
+
   if (isLoadingLocation) {
     return (
       <div className="bg-gray-100 rounded-lg h-64 flex items-center justify-center">
@@ -288,40 +318,120 @@ const InteractiveMap: React.FC = () => {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-semibold">Interactive Map</h2>
-        <div className="flex items-center gap-4 text-sm text-gray-500">
-          <div className="flex items-center gap-1">
-            <div className="w-3 h-3 bg-emerald-500 rounded-full"></div>
-            <span>Courts</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-            <span>Coaches</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <div className="w-3 h-3 bg-amber-500 rounded-full"></div>
-            <span>Stringers</span>
+    <div
+      className={fullScreen ? "" : "bg-white rounded-lg shadow-md p-6"}
+      style={
+        fullScreen
+          ? {
+              width: "100vw",
+              height: "100vh",
+              padding: 0,
+              borderRadius: 0,
+              boxShadow: "none",
+            }
+          : {}
+      }
+    >
+      {!fullScreen && (
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-lg font-semibold">Interactive Map</h2>
+          <div className="flex items-center gap-4 text-sm text-gray-500">
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 bg-emerald-500 rounded-full"></div>
+              <span>Courts</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+              <span>Coaches</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 bg-amber-500 rounded-full"></div>
+              <span>Stringers</span>
+            </div>
           </div>
         </div>
-      </div>
-
-      <div style={{ width: "100%", height: "400px", position: "relative" }}>
+      )}
+      <div
+        className={fullScreen ? "" : "responsive-map-container"}
+        style={{
+          width: "100%",
+          position: "relative",
+          height: fullScreen ? "100vh" : undefined,
+        }}
+      >
         <APIProvider apiKey={GOOGLE_MAPS_API_KEY}>
+          <button
+            type="button"
+            aria-label="Go to my location"
+            onClick={() => {
+              if (mapRef.current) {
+                if (userLocation) {
+                  mapRef.current.panTo({
+                    lat: parseFloat(userLocation.latitude),
+                    lng: parseFloat(userLocation.longitude),
+                  });
+                } else {
+                  mapRef.current.panTo(DEFAULT_LOCATION);
+                }
+                mapRef.current.setZoom(defaultZoom ?? 12);
+              }
+            }}
+            style={{
+              position: "absolute",
+              top: 20,
+              right: 20,
+              zIndex: 1001,
+              width: 48,
+              height: 48,
+              borderRadius: "50%",
+              background: "#fff",
+              border: "none",
+              boxShadow: "0 4px 16px rgba(16, 185, 129, 0.15)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              transition: "box-shadow 0.2s, background 0.2s",
+              outline: "none",
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.background = "#f0fdf4";
+              e.currentTarget.style.boxShadow =
+                "0 6px 24px rgba(16, 185, 129, 0.25)";
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.background = "#fff";
+              e.currentTarget.style.boxShadow =
+                "0 4px 16px rgba(16, 185, 129, 0.15)";
+            }}
+          >
+            {/* Location SVG icon */}
+            <svg
+              width="24"
+              height="24"
+              fill="none"
+              stroke="#059669"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              viewBox="0 0 24 24"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <circle cx="12" cy="12" r="4" />
+              <line x1="12" y1="2" x2="12" y2="6" />
+              <line x1="12" y1="18" x2="12" y2="22" />
+              <line x1="2" y1="12" x2="6" y2="12" />
+              <line x1="18" y1="12" x2="22" y2="12" />
+            </svg>
+          </button>
           <Map
             mapId="shuttleverse-map"
             style={mapContainerStyle}
             defaultCenter={center}
-            defaultZoom={12}
-            onCameraChanged={(ev) => {
-              console.log(
-                "camera changed:",
-                ev.detail.center,
-                "zoom:",
-                ev.detail.zoom
-              );
-            }}
+            defaultZoom={defaultZoom ?? 12}
+            disableDefaultUI={true}
+            tilt={30}
+            renderingType="VECTOR"
           >
             <MapController
               onMapReady={onMapReady}
