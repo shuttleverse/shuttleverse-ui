@@ -100,6 +100,7 @@ export function useCreateCourt() {
 
   return useMutation({
     mutationFn: async (courtData: CourtFormData) => {
+
       const courtAPIData: CourtCreationAPIData = {
         name: courtData.name,
         location: courtData.location,
@@ -115,6 +116,7 @@ export function useCreateCourt() {
         phoneNumber: courtData.phoneNumber,
         otherContacts: courtData.otherContacts,
       };
+
       const { data } = await api.post("/api/community/v1/court", courtAPIData);
       return data;
     },

@@ -1,11 +1,15 @@
 import Layout from "@/components/layout/layout";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useCourts } from "@/services/courts";
 import { useCoaches } from "@/services/coaches";
 import { useStringers } from "@/services/stringers";
-import { MapPin, Users, Wrench, Plus, Map } from "lucide-react";
+import { MapPin, Users, Wrench, Plus } from "lucide-react";
+import InteractiveMap from "@/components/shared/interactive-map";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const Home = () => {
+  const isMobile = useIsMobile();
+  const navigate = useNavigate();
   const courtsQuery = useCourts();
   const coachesQuery = useCoaches();
   const stringersQuery = useStringers();
@@ -46,6 +50,15 @@ const Home = () => {
   return (
     <Layout>
       <div className="container mx-auto p-4">
+        {isMobile && (
+          <button
+            onClick={() => navigate("/map")}
+            className="w-full mb-4 py-3 rounded-lg bg-emerald-600 text-white font-semibold text-lg shadow hover:bg-emerald-700 transition-colors"
+            style={{ letterSpacing: 0.5 }}
+          >
+            Near Me
+          </button>
+        )}
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
           <h1 className="text-2xl font-bold text-gray-800 mb-2">
             Shuttleverse
@@ -104,59 +117,16 @@ const Home = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold">Interactive Map</h2>
-            <span className="text-sm text-gray-500">Coming Soon</span>
-          </div>
-          <div className="bg-gray-100 rounded-lg h-64 flex items-center justify-center">
-            <div className="text-center">
-              <Map className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-              <p className="text-gray-500">
-                Interactive map will be available soon
-              </p>
-              <p className="text-sm text-gray-400">
-                Find courts, coaches, and stringers near you
-              </p>
+        {!isMobile && (
+          <div className="mb-6">
+            <div
+              className="responsive-map-container"
+              style={{ width: "100%", height: "75vh", position: "relative" }}
+            >
+              <InteractiveMap />
             </div>
           </div>
-        </div>
-        <div className="bg-gray-50 rounded-lg shadow-md p-6 mb-6">
-          <h2 className="text-lg font-semibold mb-4">
-            Contribute to the Community
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Link
-              to="/courts/add"
-              className="bg-white p-4 rounded-lg border border-gray-200 hover:border-emerald-300 transition-colors text-center"
-            >
-              <div className="bg-emerald-100 p-2 rounded-full w-10 h-10 flex items-center justify-center mx-auto mb-2">
-                <Plus className="h-5 w-5 text-emerald-600" />
-              </div>
-              <span className="font-medium text-gray-800">Add a Court</span>
-            </Link>
-
-            <Link
-              to="/coaches/add"
-              className="bg-white p-4 rounded-lg border border-gray-200 hover:border-emerald-300 transition-colors text-center"
-            >
-              <div className="bg-emerald-100 p-2 rounded-full w-10 h-10 flex items-center justify-center mx-auto mb-2">
-                <Plus className="h-5 w-5 text-emerald-600" />
-              </div>
-              <span className="font-medium text-gray-800">Add a Coach</span>
-            </Link>
-
-            <Link
-              to="/stringers/add"
-              className="bg-white p-4 rounded-lg border border-gray-200 hover:border-emerald-300 transition-colors text-center"
-            >
-              <div className="bg-emerald-100 p-2 rounded-full w-10 h-10 flex items-center justify-center mx-auto mb-2">
-                <Plus className="h-5 w-5 text-emerald-600" />
-              </div>
-              <span className="font-medium text-gray-800">Add a Stringer</span>
-            </Link>
-          </div>
-        </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="space-y-6">

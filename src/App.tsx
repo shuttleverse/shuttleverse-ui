@@ -17,6 +17,7 @@ import Home from "@/pages/home";
 import Onboarding from "@/pages/onboarding";
 import EntityDetailsPage from "@/pages/entity-details";
 import { AuthProvider } from "@/contexts/AuthContext";
+import MapPage from "@/pages/map";
 
 const queryClient = new QueryClient();
 
@@ -32,6 +33,7 @@ const App = () => {
               <Route path="/" element={<Index />} />
               <Route path="/login" element={<Login />} />
               <Route path="/onboarding" element={<Onboarding />} />
+              <Route path="/map" element={<MapPage />} />
               <Route element={<ProtectedRoute />}>
                 <Route path="/home" element={<Home />} />
                 <Route path="/courts" element={<Courts />} />

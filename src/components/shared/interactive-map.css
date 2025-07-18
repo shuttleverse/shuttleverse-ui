@@ -1,0 +1,12 @@
+.responsive-map-container {
+  width: 100%;
+  height: 600px;
+  position: relative;
+}
+
+@media (max-width: 768px) {
+  .responsive-map-container {
+    height: 40vh;
+    min-height: 220px;
+  }
+}
