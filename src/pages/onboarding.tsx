@@ -13,12 +13,9 @@ const Onboarding = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await updateProfile.mutateAsync({ username, bio }).then(() => {
-        refetchProfile();
-        setTimeout(() => {
-          navigate("/home");
-        }, 100);
-      });
+      await updateProfile.mutateAsync({ username, bio });
+      await refetchProfile();
+      navigate("/home");
     } catch (error) {
       toast.error("Failed to create profile. Please try again.");
     }

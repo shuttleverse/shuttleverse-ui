@@ -3,7 +3,8 @@ import { Link } from "react-router-dom";
 import { useCourts } from "@/services/courts";
 import { useCoaches } from "@/services/coaches";
 import { useStringers } from "@/services/stringers";
-import { MapPin, Users, Wrench, Plus, Map } from "lucide-react";
+import { MapPin, Users, Wrench, Plus } from "lucide-react";
+import InteractiveMap from "@/components/shared/interactive-map";
 
 const Home = () => {
   const courtsQuery = useCourts();
@@ -104,22 +105,8 @@ const Home = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold">Interactive Map</h2>
-            <span className="text-sm text-gray-500">Coming Soon</span>
-          </div>
-          <div className="bg-gray-100 rounded-lg h-64 flex items-center justify-center">
-            <div className="text-center">
-              <Map className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-              <p className="text-gray-500">
-                Interactive map will be available soon
-              </p>
-              <p className="text-sm text-gray-400">
-                Find courts, coaches, and stringers near you
-              </p>
-            </div>
-          </div>
+        <div className="mb-6">
+          <InteractiveMap />
         </div>
         <div className="bg-gray-50 rounded-lg shadow-md p-6 mb-6">
           <h2 className="text-lg font-semibold mb-4">
