@@ -100,11 +100,6 @@ export function useCreateCourt() {
 
   return useMutation({
     mutationFn: async (courtData: CourtFormData) => {
-      // Debug logging to check coordinate values being sent
-      console.log("Court form data coordinates:", {
-        longitude: courtData.longitude,
-        latitude: courtData.latitude,
-      });
 
       const courtAPIData: CourtCreationAPIData = {
         name: courtData.name,
@@ -121,8 +116,6 @@ export function useCreateCourt() {
         phoneNumber: courtData.phoneNumber,
         otherContacts: courtData.otherContacts,
       };
-
-      console.log("Court API data being sent:", courtAPIData);
 
       const { data } = await api.post("/api/community/v1/court", courtAPIData);
       return data;

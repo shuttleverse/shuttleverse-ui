@@ -42,13 +42,6 @@ export function useEntitiesByLocation(
         const entityObj = entity as Record<string, unknown>;
         const locationPoint = entityObj.locationPoint as LocationPoint;
 
-        // Debug logging to check coordinate values
-        console.log(`Entity ${entityObj.name} coordinates:`, {
-          longitude: locationPoint?.longitude,
-          latitude: locationPoint?.latitude,
-          rawLocationPoint: entityObj.locationPoint,
-        });
-
         return {
           id: entityObj.id as string,
           name: entityObj.name as string,

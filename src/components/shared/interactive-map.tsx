@@ -193,7 +193,6 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
   useEffect(() => {
     const getUserLocation = () => {
       if (!navigator.geolocation) {
-        console.log("Geolocation is not supported by this browser.");
         setIsLoadingLocation(false);
         return;
       }
@@ -219,7 +218,6 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
           }
         },
         (error) => {
-          console.log("Error getting location:", error);
           setIsLoadingLocation(false);
         },
         {
@@ -255,7 +253,6 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
 
   const onMapReady = useCallback((map: google.maps.Map) => {
     mapRef.current = map;
-    console.log("Map loaded and ready for interaction");
   }, []);
 
   useEffect(() => {
