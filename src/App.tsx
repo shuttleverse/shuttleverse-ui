@@ -34,17 +34,17 @@ const App = () => {
               <Route path="/login" element={<Login />} />
               <Route path="/onboarding" element={<Onboarding />} />
               <Route path="/map" element={<MapPage />} />
+              <Route path="/home" element={<Home />} />
+              <Route path="/courts" element={<Courts />} />
+              <Route path="/courts/:id" element={<EntityDetailsPage />} />
+              <Route path="/coaches" element={<Coaches />} />
+              <Route path="/coaches/:id" element={<EntityDetailsPage />} />
+              <Route path="/stringers" element={<Stringers />} />
+              <Route path="/stringers/:id" element={<EntityDetailsPage />} />
               <Route element={<ProtectedRoute />}>
-                <Route path="/home" element={<Home />} />
-                <Route path="/courts" element={<Courts />} />
                 <Route path="/courts/add" element={<AddCourt />} />
-                <Route path="/courts/:id" element={<EntityDetailsPage />} />
-                <Route path="/coaches" element={<Coaches />} />
                 <Route path="/coaches/add" element={<AddCoach />} />
-                <Route path="/coaches/:id" element={<EntityDetailsPage />} />
-                <Route path="/stringers" element={<Stringers />} />
                 <Route path="/stringers/add" element={<AddStringer />} />
-                <Route path="/stringers/:id" element={<EntityDetailsPage />} />
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>
