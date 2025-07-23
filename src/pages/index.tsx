@@ -26,7 +26,7 @@ const Index = () => {
                 className="bg-white text-primary hover:bg-gray-800 hover:text-white hover:scale-105 transition-all duration-200 shadow-md"
                 asChild
               >
-                <Link to="/login">Get Started</Link>
+                <Link to="/home">Get Started</Link>
               </Button>
               <Button
                 size="lg"
@@ -135,18 +135,17 @@ const Index = () => {
         <div className="container mx-auto px-4 relative">
           <div className="max-w-3xl mx-auto text-center">
             <h2 className="text-4xl font-bold mb-6">
-              Ready to Join the Community?
+              Ready to Explore?
             </h2>
             <p className="text-xl mb-10 opacity-90">
-              Sign in with Google to access all features and connect with other
-              badminton enthusiasts.
+              Start exploring courts, coaches, and stringers in your area. Sign in to add your own listings and upvote your favorites.
             </p>
             <Button
               size="lg"
               className="bg-white text-primary hover:bg-gray-100 text-lg px-8 py-6"
-              onClick={() => (window.location.href = "/login")}
+              asChild
             >
-              Sign in with Google
+              <Link to="/home">Get Started</Link>
             </Button>
           </div>
         </div>

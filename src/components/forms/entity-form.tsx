@@ -371,8 +371,8 @@ export function EntityForm({
 
         <Card>
           <CardHeader>
-            <div className="flex justify-between items-center">
-              <CardTitle>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <CardTitle className="text-lg">
                 {getEntityTitle()} Pricing
                 {requiredFields.prices && (
                   <span className="text-red-500 ml-1">*</span>
@@ -383,6 +383,7 @@ export function EntityForm({
                 onClick={addPrice}
                 variant="outline"
                 size="sm"
+                className="w-full sm:w-auto"
               >
                 <Plus className="h-4 w-4 mr-1" /> Add Price
               </Button>
@@ -390,7 +391,10 @@ export function EntityForm({
           </CardHeader>
           <CardContent className="space-y-4">
             {priceFields.map((field, index) => (
-              <div key={field.id} className="grid grid-cols-2 gap-4">
+              <div
+                key={field.id}
+                className="grid grid-cols-1 md:grid-cols-2 gap-4"
+              >
                 <FormField
                   control={form.control}
                   name={`prices.${index}.price`}
@@ -439,7 +443,7 @@ export function EntityForm({
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Duration</FormLabel>
-                        <div className="flex gap-4 items-center">
+                        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
                           <FormControl>
                             <div className="flex items-center gap-2">
                               <Select
@@ -503,15 +507,18 @@ export function EntityForm({
                 )}
 
                 {priceFields.length > 1 && (
-                  <Button
-                    type="button"
-                    onClick={() => removePrice(index)}
-                    variant="ghost"
-                    size="sm"
-                    className="text-red-500 hover:text-red-700"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  <div className="flex justify-end md:col-span-2">
+                    <Button
+                      type="button"
+                      onClick={() => removePrice(index)}
+                      variant="ghost"
+                      size="sm"
+                      className="text-red-500 hover:text-red-700"
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Remove Price
+                    </Button>
+                  </div>
                 )}
               </div>
             ))}

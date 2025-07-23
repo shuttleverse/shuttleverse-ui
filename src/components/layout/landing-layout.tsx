@@ -69,9 +69,9 @@ const LandingLayout: React.FC<LandingLayoutProps> = ({ children }) => {
                 <Button
                   variant="outline"
                   className="border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-colors w-full"
-                  onClick={() => (window.location.href = "/login")}
+                  asChild
                 >
-                  Sign In
+                  <Link to="/home">Get Started</Link>
                 </Button>
               </div>
             </div>

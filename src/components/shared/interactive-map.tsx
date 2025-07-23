@@ -23,6 +23,8 @@ import { Link } from "react-router-dom";
 import { CustomMarkerIcon } from "./custom-map-marker";
 import MarkerCluster from "./marker-cluster";
 import MapController from "./map-controller";
+import { useIsMobile } from "@/hooks/use-mobile";
+import MapSidePanel from "./map-side-panel";
 import "./interactive-map.css";
 
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
@@ -38,6 +40,8 @@ const LOCATION_EXPIRY_MS = 24 * 60 * 60 * 1000;
 const mapContainerStyle = {
   width: "100%",
   height: "100%",
+  borderRadius: "12px",
+  overflow: "hidden",
 };
 
 export const CustomMarker: React.FC<{
@@ -135,7 +139,9 @@ const EntityInfoWindow: React.FC<{
           </p>
         )}
         <Link
-          to={`/${entity.type}s/${entity.id}`}
+          to={`/${entity.type === "coach" ? "coaches" : entity.type + "s"}/${
+            entity.id
+          }`}
           className="inline-block bg-emerald-600 text-white text-sm px-3 py-1 rounded hover:bg-emerald-700 transition-colors"
         >
           View Details
@@ -158,6 +164,7 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
   fullScreen,
   defaultZoom,
 }) => {
+  const isMobile = useIsMobile();
   const [center, setCenter] = useState(() => {
     if (typeof window !== "undefined") {
       try {
@@ -283,6 +290,20 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
     setSelectedEntity(null);
   }, []);
 
+  const handlePanToEntity = useCallback(
+    (entity: MapEntity) => {
+      if (mapRef.current && entity.locationPoint) {
+        mapRef.current.panTo({
+          lat: parseFloat(entity.locationPoint.latitude),
+          lng: parseFloat(entity.locationPoint.longitude),
+        });
+        mapRef.current.setZoom(14);
+        setSelectedEntity(entity);
+      }
+    },
+    [mapRef]
+  );
+
   useEffect(() => {
     if (onEntitiesChange) {
       onEntitiesChange(allEntities, boundingBox);
@@ -316,7 +337,7 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
 
   return (
     <div
-      className={fullScreen ? "" : "bg-white rounded-lg shadow-md p-6"}
+      className={fullScreen ? "" : "bg-white rounded-xl shadow-lg p-6"}
       style={
         fullScreen
           ? {
@@ -326,130 +347,98 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
               borderRadius: 0,
               boxShadow: "none",
             }
-          : {}
+          : {
+              width: "100%",
+              height: "100%",
+            }
       }
     >
-      {!fullScreen && (
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-semibold">Interactive Map</h2>
-          <div className="flex items-center gap-4 text-sm text-gray-500">
-            <div className="flex items-center gap-1">
-              <div className="w-3 h-3 bg-emerald-500 rounded-full"></div>
-              <span>Courts</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-              <span>Coaches</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <div className="w-3 h-3 bg-amber-500 rounded-full"></div>
-              <span>Stringers</span>
-            </div>
-          </div>
-        </div>
-      )}
       <div
         className={fullScreen ? "" : "responsive-map-container"}
         style={{
           width: "100%",
           position: "relative",
-          height: fullScreen ? "100vh" : undefined,
+          height: fullScreen ? "100vh" : "calc(100% - 3rem)",
+          borderRadius: fullScreen ? "0" : "12px",
+          overflow: "hidden",
+          display: "flex",
+          flexDirection: "column",
         }}
       >
-        <APIProvider apiKey={GOOGLE_MAPS_API_KEY}>
-          <button
-            type="button"
-            aria-label="Go to my location"
-            onClick={() => {
-              if (mapRef.current) {
-                if (userLocation) {
-                  mapRef.current.panTo({
-                    lat: parseFloat(userLocation.latitude),
-                    lng: parseFloat(userLocation.longitude),
-                  });
-                } else {
-                  mapRef.current.panTo(DEFAULT_LOCATION);
-                }
-                mapRef.current.setZoom(defaultZoom ?? 12);
-              }
-            }}
-            style={{
-              position: "absolute",
-              top: 20,
-              right: 20,
-              zIndex: 1001,
-              width: 48,
-              height: 48,
-              borderRadius: "50%",
-              background: "#fff",
-              border: "none",
-              boxShadow: "0 4px 16px rgba(16, 185, 129, 0.15)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-              transition: "box-shadow 0.2s, background 0.2s",
-              outline: "none",
-            }}
-            onMouseOver={(e) => {
-              e.currentTarget.style.background = "#f0fdf4";
-              e.currentTarget.style.boxShadow =
-                "0 6px 24px rgba(16, 185, 129, 0.25)";
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.background = "#fff";
-              e.currentTarget.style.boxShadow =
-                "0 4px 16px rgba(16, 185, 129, 0.15)";
-            }}
-          >
-            {/* Location SVG icon */}
-            <svg
-              width="24"
-              height="24"
-              fill="none"
-              stroke="#059669"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              viewBox="0 0 24 24"
+        {!fullScreen && (
+          <div className="flex justify-between items-center mb-4 flex-shrink-0">
+            <h2 className="text-lg font-semibold">Near By</h2>
+            <div className="flex items-center gap-4 text-sm text-gray-500">
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 bg-emerald-500 rounded-full"></div>
+                <span>Courts</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1">
+                  <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                  <span>Coaches</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 bg-amber-500 rounded-full"></div>
+                <span>Stringers</span>
+              </div>
+            </div>
+          </div>
+        )}
+        <div className="relative w-full flex-1">
+          <APIProvider apiKey={GOOGLE_MAPS_API_KEY}>
+            <Map
+              mapId="shuttleverse-map"
+              style={mapContainerStyle}
+              defaultCenter={center}
+              defaultZoom={defaultZoom ?? 12}
+              disableDefaultUI={true}
+              tilt={30}
+              renderingType="VECTOR"
             >
-              <circle cx="12" cy="12" r="10" />
-              <circle cx="12" cy="12" r="4" />
-              <line x1="12" y1="2" x2="12" y2="6" />
-              <line x1="12" y1="18" x2="12" y2="22" />
-              <line x1="2" y1="12" x2="6" y2="12" />
-              <line x1="18" y1="12" x2="22" y2="12" />
-            </svg>
-          </button>
-          <Map
-            mapId="shuttleverse-map"
-            style={mapContainerStyle}
-            defaultCenter={center}
-            defaultZoom={defaultZoom ?? 12}
-            disableDefaultUI={true}
-            tilt={30}
-            renderingType="VECTOR"
-          >
-            <MapController
-              onMapReady={onMapReady}
-              onBoundsChanged={onBoundsChanged}
-            />
-
-            <MarkerCluster
-              entities={allEntities}
-              onMarkerClick={handleMarkerClick}
-              selectedEntity={selectedEntity}
-              map={mapRef.current}
-            />
-
-            {selectedEntity && (
-              <EntityInfoWindow
-                entity={selectedEntity}
-                onClose={handleInfoWindowClose}
+              <MapController
+                onMapReady={onMapReady}
+                onBoundsChanged={onBoundsChanged}
               />
-            )}
-          </Map>
-        </APIProvider>
+
+              <MarkerCluster
+                entities={allEntities}
+                onMarkerClick={handleMarkerClick}
+                selectedEntity={selectedEntity}
+                map={mapRef.current}
+              />
+
+              {selectedEntity && (
+                <EntityInfoWindow
+                  entity={selectedEntity}
+                  onClose={handleInfoWindowClose}
+                />
+              )}
+
+              {!isMobile && (
+                <MapSidePanel
+                  entities={allEntities}
+                  selectedEntity={selectedEntity}
+                  onEntityClick={handlePanToEntity}
+                  onLocationClick={() => {
+                    if (mapRef.current) {
+                      if (userLocation) {
+                        mapRef.current.panTo({
+                          lat: parseFloat(userLocation.latitude),
+                          lng: parseFloat(userLocation.longitude),
+                        });
+                      } else {
+                        mapRef.current.panTo(DEFAULT_LOCATION);
+                      }
+                      mapRef.current.setZoom(defaultZoom ?? 12);
+                    }
+                  }}
+                />
+              )}
+            </Map>
+          </APIProvider>
+        </div>
       </div>
 
       {(courtsQuery.isLoading ||
@@ -460,10 +449,6 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
           <p className="text-sm text-gray-500 mt-1">Loading entities...</p>
         </div>
       )}
-
-      <div className="mt-4 text-sm text-gray-500 text-center">
-        Found {allEntities.length} entities in this area
-      </div>
     </div>
   );
 };

@@ -3,9 +3,11 @@ import { useNavigate } from "react-router-dom";
 import Layout from "@/components/layout/layout";
 import EntityCard from "@/components/shared/entity-card";
 import FilterSidebar from "@/components/shared/filter-sidebar";
+import AuthPrompt from "@/components/shared/auth-prompt";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, SlidersHorizontal, Plus } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 interface EntityData {
   id: string;
@@ -47,10 +49,12 @@ const EntityListing: React.FC<EntityListingProps> = ({
   onAddEntity,
 }) => {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
   const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } =
     useEntityData();
   const [searchTerm, setSearchTerm] = useState("");
   const [showFilters, setShowFilters] = useState(false);
+  const [showAuthPrompt, setShowAuthPrompt] = useState(false);
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
@@ -98,6 +102,11 @@ const EntityListing: React.FC<EntityListingProps> = ({
   };
 
   const handleAddEntityClick = () => {
+    if (!isAuthenticated) {
+      setShowAuthPrompt(true);
+      return;
+    }
+
     if (onAddEntity) {
       onAddEntity();
     } else {
@@ -107,6 +116,14 @@ const EntityListing: React.FC<EntityListingProps> = ({
 
   return (
     <Layout>
+      {showAuthPrompt && (
+        <AuthPrompt
+          title="Sign in to Add"
+          description={`You need to be signed in to add a new ${entityType}.`}
+          action={`Sign in to add ${entityType}`}
+          onClose={() => setShowAuthPrompt(false)}
+        />
+      )}
       <div className="container mx-auto px-4 py-6">
         <div className="flex justify-between items-center mb-6 flex-col sm:flex-row gap-2 sm:gap-0">
           <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold mb-2 sm:mb-0">

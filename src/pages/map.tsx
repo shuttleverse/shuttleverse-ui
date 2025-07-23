@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import InteractiveMap from "@/components/shared/interactive-map";
 import { MapEntity, BoundingBox } from "@/services/map";
 import { useIsMobile } from "@/hooks/use-mobile";
+import EntityInfo from "@/components/shared/entity-info";
 
 const MIN_HEIGHT = 100;
 const MAX_HEIGHT = 0.7;
@@ -123,82 +124,67 @@ const MapPage = () => {
           onEntitiesChange={handleEntitiesChange}
           defaultZoom={defaultZoom}
         />
-        <div
-          style={{
-            position: "fixed",
-            left: 0,
-            right: 0,
-            bottom: 0,
-            zIndex: 1002,
-            background: "#fff",
-            borderTopLeftRadius: 18,
-            borderTopRightRadius: 18,
-            boxShadow: "0 -2px 16px rgba(0,0,0,0.08)",
-            height: sheetHeight,
-            minHeight: MIN_HEIGHT,
-            maxHeight: window.innerHeight * MAX_HEIGHT,
-            display: "flex",
-            flexDirection: "column",
-            touchAction: "none",
-            transition: dragging.current
-              ? "none"
-              : "height 0.2s cubic-bezier(.4,1.3,.6,1)",
-          }}
-        >
+        {isMobile && (
           <div
             style={{
-              height: 24,
-              cursor: "grab",
+              position: "fixed",
+              left: 0,
+              right: 0,
+              bottom: 0,
+              zIndex: 1002,
+              background: "#fff",
+              borderTopLeftRadius: 18,
+              borderTopRightRadius: 18,
+              boxShadow: "0 -2px 16px rgba(0,0,0,0.08)",
+              height: sheetHeight,
+              minHeight: MIN_HEIGHT,
+              maxHeight: window.innerHeight * MAX_HEIGHT,
               display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
+              flexDirection: "column",
+              touchAction: "none",
+              transition: dragging.current
+                ? "none"
+                : "height 0.2s cubic-bezier(.4,1.3,.6,1)",
             }}
-            onMouseDown={onDragStart}
-            onTouchStart={onDragStart}
           >
             <div
               style={{
-                height: 6,
-                width: 40,
-                background: "#e5e7eb",
-                borderRadius: 3,
+                height: 24,
+                cursor: "grab",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
               }}
-            />
-          </div>
-          <div style={{ overflowY: "auto", flex: 1, padding: 12 }}>
-            {entities.length === 0 ? (
-              <div className="text-center text-gray-400 py-8">
-                No results in this area
-              </div>
-            ) : (
-              entities.map((entity) => (
-                <div
-                  key={entity.id}
-                  className="mb-3 p-3 rounded-lg shadow border border-gray-100 bg-white flex flex-col cursor-pointer hover:bg-emerald-50 transition"
-                  onClick={() => handlePanToEntity(entity)}
-                >
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="font-semibold capitalize text-emerald-600">
-                      {entity.type}
-                    </span>
-                    {entity.isVerified && (
-                      <span className="text-xs bg-green-100 text-green-800 px-1 py-0.5 rounded">
-                        Verified
-                      </span>
-                    )}
-                  </div>
-                  <div className="font-medium text-gray-900">{entity.name}</div>
-                  <div className="text-sm text-gray-500">{entity.location}</div>
-                  {entity.description && (
-                    <div className="text-xs text-gray-400 mt-1 line-clamp-2">
-                      {entity.description}
-                    </div>
-                  )}
+              onMouseDown={onDragStart}
+              onTouchStart={onDragStart}
+            >
+              <div
+                style={{
+                  height: 6,
+                  width: 40,
+                  background: "#e5e7eb",
+                  borderRadius: 3,
+                }}
+              />
+            </div>
+            <div style={{ overflowY: "auto", flex: 1, padding: 12 }}>
+              {entities.length === 0 ? (
+                <div className="text-center text-gray-400 py-8">
+                  No results in this area
                 </div>
-              ))
-            )}
+              ) : (
+                entities.map((entity) => (
+                  <EntityInfo
+                    key={entity.id}
+                    entity={entity}
+                    onClick={handlePanToEntity}
+                    variant="mobile"
+                  />
+                ))
+              )}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

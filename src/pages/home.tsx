@@ -59,10 +59,7 @@ const Home = () => {
             Near Me
           </button>
         )}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">
-            Shuttleverse
-          </h1>
+        <div className="bg-white rounded-lg shadow-md p-6 mt-4 mb-6">
           <p className="text-gray-600 mb-4">
             Your comprehensive badminton resource hub
           </p>
@@ -118,10 +115,10 @@ const Home = () => {
         </div>
 
         {!isMobile && (
-          <div className="mb-6">
+          <div className="mb-12">
             <div
               className="responsive-map-container"
-              style={{ width: "100%", height: "75vh", position: "relative" }}
+              style={{ width: "100%", height: "60vh", position: "relative" }}
             >
               <InteractiveMap />
             </div>

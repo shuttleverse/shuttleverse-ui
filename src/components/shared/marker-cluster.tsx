@@ -164,7 +164,7 @@ const createMarkerContent = (
 
   const svgNS = "http://www.w3.org/2000/svg";
   const svg = document.createElementNS(svgNS, "svg");
-  svg.setAttribute("width", "");
+  svg.setAttribute("width", "36");
   svg.setAttribute("height", "36");
   svg.setAttribute("viewBox", "0 0 36 36");
 

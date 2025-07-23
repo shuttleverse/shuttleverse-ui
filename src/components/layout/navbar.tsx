@@ -100,9 +100,6 @@ const Navbar = () => {
                   <Button variant="outline" asChild>
                     <Link to="/login">Log In</Link>
                   </Button>
-                  <Button asChild>
-                    <Link to="/signup">Sign Up</Link>
-                  </Button>
                 </div>
               )}
             </div>
@@ -186,9 +183,6 @@ const Navbar = () => {
                     asChild
                   >
                     <Link to="/login">Log In</Link>
-                  </Button>
-                  <Button className="w-full" asChild>
-                    <Link to="/signup">Sign Up</Link>
                   </Button>
                 </div>
               )}

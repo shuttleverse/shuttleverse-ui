@@ -1,7 +1,10 @@
 import { useParams, useLocation } from "react-router-dom";
+import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { EntityDetails } from "@/components/shared/entity-details";
 import Layout from "@/components/layout/layout";
+import AuthPrompt from "@/components/shared/auth-prompt";
+import { useAuth } from "@/hooks/useAuth";
 import {
   useCourt,
   useUpvoteCourtSchedule,
@@ -34,6 +37,11 @@ export default function EntityDetailsPage() {
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
   const { toast } = useToast();
+  const { isAuthenticated } = useAuth();
+  const [showAuthPrompt, setShowAuthPrompt] = useState(false);
+  const [authPromptType, setAuthPromptType] = useState<"schedule" | "price">(
+    "schedule"
+  );
 
   const urlPath = location.pathname.split("/")[1] as URLPath;
   const type = URL_TO_API_TYPE[urlPath];
@@ -41,15 +49,21 @@ export default function EntityDetailsPage() {
   const useEntity = ENTITY_HOOKS[type];
   const activeQuery = useEntity(id!);
 
-  const userUpvotesQuery = useUpvotes({
-    entityType: type === "court" ? 0 : type === "stringer" ? 1 : 2,
-    infoType: 0,
-  });
+  const userUpvotesQuery = useUpvotes(
+    {
+      entityType: type === "court" ? 0 : type === "stringer" ? 1 : 2,
+      infoType: 0,
+    },
+    isAuthenticated
+  );
 
-  const userPriceUpvotesQuery = useUpvotes({
-    entityType: type === "court" ? 0 : type === "stringer" ? 1 : 2,
-    infoType: 1,
-  });
+  const userPriceUpvotesQuery = useUpvotes(
+    {
+      entityType: type === "court" ? 0 : type === "stringer" ? 1 : 2,
+      infoType: 1,
+    },
+    isAuthenticated
+  );
 
   const hasUpvotedSchedule = (scheduleId: string) => {
     if (!userUpvotesQuery.data?.pages) return false;
@@ -83,6 +97,12 @@ export default function EntityDetailsPage() {
   }[type];
 
   const handleUpvoteSchedule = async (scheduleId: string) => {
+    if (!isAuthenticated) {
+      setAuthPromptType("schedule");
+      setShowAuthPrompt(true);
+      return;
+    }
+
     try {
       if (type === "court") {
         await (
@@ -114,6 +134,12 @@ export default function EntityDetailsPage() {
   };
 
   const handleUpvotePrice = async (priceId: string) => {
+    if (!isAuthenticated) {
+      setAuthPromptType("price");
+      setShowAuthPrompt(true);
+      return;
+    }
+
     try {
       if (type === "court") {
         await (
@@ -197,6 +223,18 @@ export default function EntityDetailsPage() {
 
   return (
     <Layout>
+      {showAuthPrompt && (
+        <AuthPrompt
+          title="Sign in to Upvote"
+          description={`You need to be signed in to upvote ${
+            authPromptType === "schedule" ? "schedules" : "prices"
+          }.`}
+          action={`Sign in to upvote ${
+            authPromptType === "schedule" ? "schedule" : "price"
+          }`}
+          onClose={() => setShowAuthPrompt(false)}
+        />
+      )}
       <EntityDetails
         entity={activeQuery.data}
         onUpvoteSchedule={
