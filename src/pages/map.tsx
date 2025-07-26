@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import InteractiveMap from "@/components/shared/interactive-map";
 import { MapEntity, BoundingBox } from "@/services/map";
@@ -22,36 +22,49 @@ const MapPage = () => {
   const startY = useRef(0);
   const startHeight = useRef(0);
 
-  const handleEntitiesChange = (
-    entities: MapEntity[],
-    bbox: BoundingBox | null
-  ) => {
-    setEntities(entities);
-    setBoundingBox(bbox);
-  };
+  const handleEntitiesChange = useCallback(
+    (entities: MapEntity[], bbox: BoundingBox | null) => {
+      setEntities(entities);
+      setBoundingBox(bbox);
+    },
+    []
+  );
 
-  const handlePanToEntity = (entity: MapEntity) => {
-    if (mapRef.current && entity.locationPoint) {
-      mapRef.current.panTo({
-        lat: parseFloat(entity.locationPoint.latitude),
-        lng: parseFloat(entity.locationPoint.longitude),
-      });
-      mapRef.current.setZoom(14);
-      setTimeout(() => {
-        mapRef.current?.panBy(0, sheetHeight / 2);
-      }, 400);
-      setSheetHeight(window.innerHeight * 0.4);
-    }
-  };
+  const handlePanToEntity = useCallback(
+    (entity: MapEntity) => {
+      if (mapRef.current && entity.locationPoint) {
+        mapRef.current.panTo({
+          lat: parseFloat(entity.locationPoint.latitude),
+          lng: parseFloat(entity.locationPoint.longitude),
+        });
+        mapRef.current.setZoom(14);
+        setTimeout(() => {
+          mapRef.current?.panBy(0, sheetHeight / 2);
+        }, 400);
+        setSheetHeight(window.innerHeight * 0.4);
+      }
+    },
+    [sheetHeight]
+  );
 
-  const onDragStart = (e: React.TouchEvent | React.MouseEvent) => {
-    dragging.current = true;
-    startY.current = "touches" in e ? e.touches[0].clientY : e.clientY;
-    startHeight.current = sheetHeight;
-    document.body.style.userSelect = "none";
-  };
-  const onDragMove = (e: TouchEvent | MouseEvent) => {
+  const onDragStart = useCallback(
+    (e: React.TouchEvent | React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      e.nativeEvent.stopImmediatePropagation();
+      dragging.current = true;
+      startY.current = "touches" in e ? e.touches[0].clientY : e.clientY;
+      startHeight.current = sheetHeight;
+      document.body.style.userSelect = "none";
+    },
+    [sheetHeight]
+  );
+
+  const onDragMove = useCallback((e: TouchEvent | MouseEvent) => {
     if (!dragging.current) return;
+    e.preventDefault();
+    e.stopPropagation();
+    e.stopImmediatePropagation();
     const clientY =
       "touches" in e ? e.touches[0].clientY : (e as MouseEvent).clientY;
     const delta = startY.current - clientY;
@@ -60,27 +73,37 @@ const MapPage = () => {
     if (newHeight < MIN_HEIGHT) newHeight = MIN_HEIGHT;
     if (newHeight > maxH) newHeight = maxH;
     setSheetHeight(newHeight);
-  };
-  const onDragEnd = () => {
+  }, []);
+
+  const onDragEnd = useCallback(() => {
     dragging.current = false;
     document.body.style.userSelect = "";
-  };
-  React.useEffect(() => {
+  }, []);
+
+  useEffect(() => {
     const move = (e: MouseEvent | TouchEvent) => onDragMove(e);
     const up = () => onDragEnd();
+
     if (dragging.current) {
-      window.addEventListener("mousemove", move);
-      window.addEventListener("mouseup", up);
-      window.addEventListener("touchmove", move);
-      window.addEventListener("touchend", up);
+      window.addEventListener("mousemove", move, {
+        passive: false,
+        capture: true,
+      });
+      window.addEventListener("mouseup", up, { capture: true });
+      window.addEventListener("touchmove", move, {
+        passive: false,
+        capture: true,
+      });
+      window.addEventListener("touchend", up, { capture: true });
     }
+
     return () => {
-      window.removeEventListener("mousemove", move);
-      window.removeEventListener("mouseup", up);
-      window.removeEventListener("touchmove", move);
-      window.removeEventListener("touchend", up);
+      window.removeEventListener("mousemove", move, { capture: true });
+      window.removeEventListener("mouseup", up, { capture: true });
+      window.removeEventListener("touchmove", move, { capture: true });
+      window.removeEventListener("touchend", up, { capture: true });
     };
-  }, []);
+  }, [onDragMove, onDragEnd]);
 
   const defaultZoom = isMobile ? 11 : 12;
 
@@ -89,10 +112,25 @@ const MapPage = () => {
       className="min-h-screen bg-white flex flex-col"
       style={{ height: "100vh", overflow: "hidden" }}
     >
-      <div className="p-4 flex items-center gap-2 shadow-sm z-10 bg-white">
+      <div
+        style={{
+          flex: 1,
+          width: "100vw",
+          height: "100vh",
+          position: "relative",
+        }}
+      >
+        <InteractiveMap
+          fullScreen
+          mapRef={mapRef}
+          onEntitiesChange={handleEntitiesChange}
+          defaultZoom={defaultZoom}
+        />
+
+        {/* Back button overlay */}
         <button
           onClick={() => navigate(-1)}
-          className="rounded-full bg-gray-100 hover:bg-gray-200 p-2 text-gray-700"
+          className="absolute top-4 left-4 z-20 rounded-full bg-white/90 backdrop-blur-sm shadow-lg hover:bg-white hover:shadow-xl transition-all duration-300 p-3 text-gray-700 border border-white/40 hover:border-white/60"
           aria-label="Back"
         >
           <svg
@@ -108,22 +146,7 @@ const MapPage = () => {
             <path d="M15 18l-6-6 6-6" />
           </svg>
         </button>
-        <span className="font-semibold text-lg">Map</span>
-      </div>
-      <div
-        style={{
-          flex: 1,
-          width: "100vw",
-          height: "100vh",
-          position: "relative",
-        }}
-      >
-        <InteractiveMap
-          fullScreen
-          mapRef={mapRef}
-          onEntitiesChange={handleEntitiesChange}
-          defaultZoom={defaultZoom}
-        />
+
         {isMobile && (
           <div
             style={{
@@ -132,10 +155,12 @@ const MapPage = () => {
               right: 0,
               bottom: 0,
               zIndex: 1002,
-              background: "#fff",
-              borderTopLeftRadius: 18,
-              borderTopRightRadius: 18,
-              boxShadow: "0 -2px 16px rgba(0,0,0,0.08)",
+              background: "rgba(255, 255, 255, 0.6)",
+              backdropFilter: "blur(16px)",
+              borderTopLeftRadius: 24,
+              borderTopRightRadius: 24,
+              boxShadow: "0 -4px 32px rgba(0,0,0,0.08)",
+              border: "1px solid rgba(255, 255, 255, 0.2)",
               height: sheetHeight,
               minHeight: MIN_HEIGHT,
               maxHeight: window.innerHeight * MAX_HEIGHT,
@@ -146,6 +171,9 @@ const MapPage = () => {
                 ? "none"
                 : "height 0.2s cubic-bezier(.4,1.3,.6,1)",
             }}
+            onTouchStart={(e) => e.stopPropagation()}
+            onTouchMove={(e) => e.stopPropagation()}
+            onTouchEnd={(e) => e.stopPropagation()}
           >
             <div
               style={{
@@ -154,20 +182,35 @@ const MapPage = () => {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
+                touchAction: "none",
+                userSelect: "none",
+                WebkitUserSelect: "none",
               }}
               onMouseDown={onDragStart}
               onTouchStart={onDragStart}
+              onTouchMove={(e) => e.preventDefault()}
+              onTouchEnd={(e) => e.preventDefault()}
             >
               <div
                 style={{
                   height: 6,
                   width: 40,
-                  background: "#e5e7eb",
+                  background: "rgba(229, 231, 235, 0.8)",
                   borderRadius: 3,
                 }}
               />
             </div>
-            <div style={{ overflowY: "auto", flex: 1, padding: 12 }}>
+            <div
+              style={{
+                overflowY: "auto",
+                flex: 1,
+                padding: 24,
+                touchAction: "pan-y",
+              }}
+              onTouchStart={(e) => e.stopPropagation()}
+              onTouchMove={(e) => e.stopPropagation()}
+              onTouchEnd={(e) => e.stopPropagation()}
+            >
               {entities.length === 0 ? (
                 <div className="text-center text-gray-400 py-8">
                   No results in this area

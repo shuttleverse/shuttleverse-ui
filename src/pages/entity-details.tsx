@@ -1,5 +1,5 @@
 import { useParams, useLocation } from "react-router-dom";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { EntityDetails } from "@/components/shared/entity-details";
 import Layout from "@/components/layout/layout";
@@ -42,6 +42,12 @@ export default function EntityDetailsPage() {
   const [authPromptType, setAuthPromptType] = useState<"schedule" | "price">(
     "schedule"
   );
+  const [locallyUpvotedSchedules, setLocallyUpvotedSchedules] = useState<
+    string[]
+  >([]);
+  const [locallyUpvotedPrices, setLocallyUpvotedPrices] = useState<string[]>(
+    []
+  );
 
   const urlPath = location.pathname.split("/")[1] as URLPath;
   const type = URL_TO_API_TYPE[urlPath];
@@ -66,6 +72,7 @@ export default function EntityDetailsPage() {
   );
 
   const hasUpvotedSchedule = (scheduleId: string) => {
+    if (locallyUpvotedSchedules.includes(scheduleId)) return true;
     if (!userUpvotesQuery.data?.pages) return false;
     return userUpvotesQuery.data.pages.some((page) =>
       page.data?.content?.some(
@@ -76,6 +83,7 @@ export default function EntityDetailsPage() {
   };
 
   const hasUpvotedPrice = (priceId: string) => {
+    if (locallyUpvotedPrices.includes(priceId)) return true;
     if (!userPriceUpvotesQuery.data?.pages) return false;
     return userPriceUpvotesQuery.data.pages.some((page) =>
       page.data?.content?.some(
@@ -84,6 +92,38 @@ export default function EntityDetailsPage() {
       )
     );
   };
+
+  useEffect(() => {
+    if (locallyUpvotedSchedules.length === 0) return;
+    // If all locally upvoted schedules are now present in the server upvotes, clear local state
+    const allConfirmed = locallyUpvotedSchedules.every((scheduleId) =>
+      userUpvotesQuery.data?.pages?.some((page) =>
+        page.data?.content?.some(
+          (upvote: UpvoteData) =>
+            upvote.infoType === "SCHEDULE" && upvote.entity.id === scheduleId
+        )
+      )
+    );
+    if (allConfirmed) {
+      setLocallyUpvotedSchedules([]);
+    }
+  }, [userUpvotesQuery.data, locallyUpvotedSchedules]);
+
+  useEffect(() => {
+    if (locallyUpvotedPrices.length === 0) return;
+    // If all locally upvoted prices are now present in the server upvotes, clear local state
+    const allConfirmed = locallyUpvotedPrices.every((priceId) =>
+      userPriceUpvotesQuery.data?.pages?.some((page) =>
+        page.data?.content?.some(
+          (upvote: UpvoteData) =>
+            upvote.infoType === "PRICE" && upvote.entity.id === priceId
+        )
+      )
+    );
+    if (allConfirmed) {
+      setLocallyUpvotedPrices([]);
+    }
+  }, [userPriceUpvotesQuery.data, locallyUpvotedPrices]);
 
   const upvoteScheduleMutation = {
     court: useUpvoteCourtSchedule(),
@@ -120,10 +160,12 @@ export default function EntityDetailsPage() {
         });
       }
 
+      setLocallyUpvotedSchedules((prev) => [...prev, scheduleId]);
       toast({
         title: "Success",
         description: "Schedule upvoted successfully",
       });
+      if (activeQuery.refetch) activeQuery.refetch();
     } catch (error) {
       toast({
         title: "Error",
@@ -164,10 +206,12 @@ export default function EntityDetailsPage() {
         });
       }
 
+      setLocallyUpvotedPrices((prev) => [...prev, priceId]);
       toast({
         title: "Success",
         description: "Price upvoted successfully",
       });
+      if (activeQuery.refetch) activeQuery.refetch();
     } catch (error) {
       toast({
         title: "Error",
