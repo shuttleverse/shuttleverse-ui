@@ -181,7 +181,7 @@ export function ScheduleCalendar({
               </div>
             ))}
 
-            {schedules.length === 0 && (
+            {schedules.length === 0 && !showMobileForm && (
               <div className="text-center py-8 text-gray-500">
                 <p>No operating hours set</p>
                 <p className="text-sm">Tap the button below to add hours</p>

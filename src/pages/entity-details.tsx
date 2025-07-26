@@ -9,14 +9,33 @@ import {
   useCourt,
   useUpvoteCourtSchedule,
   useUpvoteCourtPrice,
+  useAddCourtSchedule,
+  useAddCourtPrice,
 } from "@/services/courts";
 import {
   useCoach,
   useUpvoteCoachSchedule,
   useUpvoteCoachPrice,
+  useAddCoachSchedule,
+  useAddCoachPrice,
 } from "@/services/coaches";
-import { useStringer, useUpvoteStringerPrice } from "@/services/stringers";
+import {
+  useStringer,
+  useUpvoteStringerPrice,
+  useAddStringerPrice,
+} from "@/services/stringers";
 import { useUpvotes, type UpvoteData } from "@/services/upvotes";
+import { AddInfoModal } from "@/components/shared/add-info-modal";
+import type { ScheduleData } from "@/components/forms/schedule-calendar";
+import type {
+  CourtFormScheduleData,
+  CourtFormPriceData,
+} from "@/services/courts";
+import type {
+  CoachFormScheduleData,
+  CoachFormPriceData,
+} from "@/services/coaches";
+import type { StringerFormPriceData } from "@/services/stringers";
 
 type URLPath = "courts" | "coaches" | "stringers";
 type APIType = "court" | "coach" | "stringer";
@@ -47,6 +66,10 @@ export default function EntityDetailsPage() {
   >([]);
   const [locallyUpvotedPrices, setLocallyUpvotedPrices] = useState<string[]>(
     []
+  );
+  const [showAddInfoModal, setShowAddInfoModal] = useState(false);
+  const [activeModalTab, setActiveModalTab] = useState<"schedule" | "pricing">(
+    "schedule"
   );
 
   const urlPath = location.pathname.split("/")[1] as URLPath;
@@ -136,6 +159,18 @@ export default function EntityDetailsPage() {
     stringer: useUpvoteStringerPrice(),
   }[type];
 
+  // Add info mutations
+  const addScheduleMutation = {
+    court: useAddCourtSchedule(),
+    coach: useAddCoachSchedule(),
+  }[type];
+
+  const addPriceMutation = {
+    court: useAddCourtPrice(),
+    coach: useAddCoachPrice(),
+    stringer: useAddStringerPrice(),
+  }[type];
+
   const handleUpvoteSchedule = async (scheduleId: string) => {
     if (!isAuthenticated) {
       setAuthPromptType("schedule");
@@ -221,6 +256,106 @@ export default function EntityDetailsPage() {
     }
   };
 
+  const handleAddSchedule = async (scheduleData: ScheduleData[]) => {
+    if (type === "court") {
+      const courtScheduleData: CourtFormScheduleData[] = scheduleData.map(
+        (schedule) => {
+          if ("openTime" in schedule) {
+            return schedule as CourtFormScheduleData;
+          } else {
+            return {
+              dayOfWeek: schedule.dayOfWeek,
+              openTime: schedule.startTime,
+              closeTime: schedule.endTime,
+            };
+          }
+        }
+      );
+      await (
+        addScheduleMutation as ReturnType<typeof useAddCourtSchedule>
+      ).mutateAsync({
+        courtId: id!,
+        scheduleData: courtScheduleData,
+      });
+    } else if (type === "coach") {
+      const coachScheduleData: CoachFormScheduleData[] = scheduleData.map(
+        (schedule) => {
+          if ("startTime" in schedule) {
+            return schedule as CoachFormScheduleData;
+          } else {
+            return {
+              dayOfWeek: schedule.dayOfWeek,
+              startTime: schedule.openTime,
+              endTime: schedule.closeTime,
+            };
+          }
+        }
+      );
+      await (
+        addScheduleMutation as ReturnType<typeof useAddCoachSchedule>
+      ).mutateAsync({
+        coachId: id!,
+        scheduleData: coachScheduleData,
+      });
+    }
+    toast({
+      title: "Success",
+      description: "Schedule added successfully",
+    });
+    if (activeQuery.refetch) activeQuery.refetch();
+  };
+
+  const handleAddPrice = async (
+    priceData: Array<{ price: number; stringName?: string; duration?: number }>
+  ) => {
+    if (type === "court") {
+      const courtPriceData: CourtFormPriceData[] = priceData.map((price) => ({
+        price: price.price,
+        duration: price.duration || 0,
+      }));
+      await (
+        addPriceMutation as ReturnType<typeof useAddCourtPrice>
+      ).mutateAsync({
+        courtId: id!,
+        priceData: courtPriceData,
+      });
+    } else if (type === "coach") {
+      const coachPriceData: CoachFormPriceData[] = priceData.map((price) => ({
+        price: price.price,
+        duration: price.duration || 0,
+      }));
+      await (
+        addPriceMutation as ReturnType<typeof useAddCoachPrice>
+      ).mutateAsync({
+        coachId: id!,
+        priceData: coachPriceData,
+      });
+    } else if (type === "stringer") {
+      const stringerPriceData: StringerFormPriceData[] = priceData.map(
+        (price) => ({
+          stringName: price.stringName || "Service Fee",
+          price: price.price,
+        })
+      );
+      await (
+        addPriceMutation as ReturnType<typeof useAddStringerPrice>
+      ).mutateAsync({
+        stringerId: id!,
+        priceData: stringerPriceData,
+      });
+    }
+    toast({
+      title: "Success",
+      description: "Pricing added successfully",
+    });
+    if (activeQuery.refetch) activeQuery.refetch();
+  };
+
+  const handleAddInfo = (tab?: "schedule" | "pricing") => {
+    setActiveModalTab(tab || "schedule");
+    setShowAddInfoModal(true);
+  };
+
   if (!activeQuery) {
     return (
       <Layout>
@@ -290,6 +425,16 @@ export default function EntityDetailsPage() {
         isUpvotesLoading={
           userUpvotesQuery.isLoading || userPriceUpvotesQuery.isLoading
         }
+        onAddInfo={handleAddInfo}
+      />
+      <AddInfoModal
+        isOpen={showAddInfoModal}
+        onClose={() => setShowAddInfoModal(false)}
+        entityType={type}
+        entityId={id!}
+        onAddSchedule={handleAddSchedule}
+        onAddPrice={handleAddPrice}
+        defaultTab={activeModalTab}
       />
     </Layout>
   );
