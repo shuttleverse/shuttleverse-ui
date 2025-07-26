@@ -298,13 +298,13 @@ export function EntityForm({
                         <span className="font-semibold text-gray-900">
                           {
                             [
-                              "Sunday",
                               "Monday",
                               "Tuesday",
                               "Wednesday",
                               "Thursday",
                               "Friday",
                               "Saturday",
+                              "Sunday",
                             ][
                               "dayOfWeek" in schedule
                                 ? schedule.dayOfWeek - 1
