@@ -4,6 +4,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -55,13 +56,15 @@ export function AddInfoModal({
 }: AddInfoModalProps) {
   const { isAuthenticated } = useAuth();
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
-  const [activeTab, setActiveTab] = useState(defaultTab);
+  const [activeTab, setActiveTab] = useState(
+    entityType === "stringer" ? "pricing" : defaultTab
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Update active tab when defaultTab changes
   useEffect(() => {
-    setActiveTab(defaultTab);
-  }, [defaultTab]);
+    setActiveTab(entityType === "stringer" ? "pricing" : defaultTab);
+  }, [defaultTab, entityType]);
 
   const scheduleForm = useForm<{ schedules: ScheduleData[] }>({
     defaultValues: {
@@ -71,10 +74,7 @@ export function AddInfoModal({
 
   const priceForm = useForm<{ prices: any[] }>({
     defaultValues: {
-      prices:
-        entityType === "stringer"
-          ? [{ price: 0, stringName: "" }]
-          : [{ price: 0, duration: 0 }],
+      prices: [],
     },
   });
 
@@ -164,52 +164,68 @@ export function AddInfoModal({
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Add Information to {getEntityTitle()}</DialogTitle>
+          <DialogDescription>
+            Add details about the {getEntityTitle().toLowerCase()} to help users
+            find and book them.
+          </DialogDescription>
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="schedule">Schedule</TabsTrigger>
+          <TabsList
+            className={`grid w-full ${
+              entityType === "stringer" ? "grid-cols-1" : "grid-cols-2"
+            }`}
+          >
+            {entityType !== "stringer" && (
+              <TabsTrigger value="schedule">Schedule</TabsTrigger>
+            )}
             <TabsTrigger value="pricing">Pricing</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="schedule" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Add Schedule</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Form {...scheduleForm}>
-                  <form
-                    onSubmit={scheduleForm.handleSubmit(handleScheduleSubmit)}
-                    className="space-y-4"
-                  >
-                    <FormField
-                      control={scheduleForm.control}
-                      name="schedules"
-                      render={({ field: { value, onChange } }) => (
-                        <FormItem>
-                          <ScheduleCalendar
-                            schedules={value}
-                            onChange={onChange}
-                            entityType={entityType}
-                          />
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <div className="flex justify-end space-x-2">
-                      <Button type="button" variant="outline" onClick={onClose}>
-                        Cancel
-                      </Button>
-                      <Button type="submit" disabled={isSubmitting}>
-                        {isSubmitting ? "Adding..." : "Add Schedule"}
-                      </Button>
-                    </div>
-                  </form>
-                </Form>
-              </CardContent>
-            </Card>
-          </TabsContent>
+          {entityType !== "stringer" && (
+            <TabsContent value="schedule" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Add Schedule</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Form {...scheduleForm}>
+                    <form
+                      onSubmit={scheduleForm.handleSubmit(handleScheduleSubmit)}
+                      className="space-y-4"
+                    >
+                      <FormField
+                        control={scheduleForm.control}
+                        name="schedules"
+                        render={({ field: { value, onChange } }) => (
+                          <FormItem>
+                            <ScheduleCalendar
+                              schedules={value}
+                              onChange={onChange}
+                              entityType={entityType}
+                            />
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <div className="flex justify-end space-x-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={onClose}
+                        >
+                          Cancel
+                        </Button>
+                        <Button type="submit" disabled={isSubmitting}>
+                          {isSubmitting ? "Adding..." : "Add Schedule"}
+                        </Button>
+                      </div>
+                    </form>
+                  </Form>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          )}
 
           <TabsContent value="pricing" className="space-y-4">
             <Card>
@@ -247,14 +263,8 @@ export function AddInfoModal({
                                 <FormLabel>String</FormLabel>
                                 <FormControl>
                                   <Input
-                                    placeholder={
-                                      index === 0 ? "" : "e.g. Yonex BG65"
-                                    }
+                                    placeholder="e.g. Yonex BG65"
                                     {...field}
-                                    value={
-                                      index === 0 ? "Service Fee" : field.value
-                                    }
-                                    disabled={index === 0}
                                     required
                                   />
                                 </FormControl>
