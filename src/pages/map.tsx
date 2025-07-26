@@ -84,18 +84,16 @@ const MapPage = () => {
     const move = (e: MouseEvent | TouchEvent) => onDragMove(e);
     const up = () => onDragEnd();
 
-    if (dragging.current) {
-      window.addEventListener("mousemove", move, {
-        passive: false,
-        capture: true,
-      });
-      window.addEventListener("mouseup", up, { capture: true });
-      window.addEventListener("touchmove", move, {
-        passive: false,
-        capture: true,
-      });
-      window.addEventListener("touchend", up, { capture: true });
-    }
+    window.addEventListener("mousemove", move, {
+      passive: false,
+      capture: true,
+    });
+    window.addEventListener("mouseup", up, { capture: true });
+    window.addEventListener("touchmove", move, {
+      passive: false,
+      capture: true,
+    });
+    window.addEventListener("touchend", up, { capture: true });
 
     return () => {
       window.removeEventListener("mousemove", move, { capture: true });

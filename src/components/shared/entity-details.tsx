@@ -17,6 +17,7 @@ interface EntityDetailsProps {
   hasUpvotedSchedule?: (scheduleId: string) => boolean;
   hasUpvotedPrice?: (priceId: string) => boolean;
   isUpvotesLoading?: boolean;
+  onAddInfo?: (tab?: "schedule" | "pricing" | "contact") => void;
 }
 
 export function EntityDetails({
@@ -26,6 +27,7 @@ export function EntityDetails({
   hasUpvotedSchedule,
   hasUpvotedPrice,
   isUpvotesLoading = false,
+  onAddInfo,
 }: EntityDetailsProps) {
   const renderPrices = () => {
     if (!entity.priceList || entity.priceList.length === 0) {
@@ -152,18 +154,20 @@ export function EntityDetails({
                       size="lg"
                       className="w-28 h-28 sm:w-36 sm:h-36 border-4 border-white/20 mb-4 sm:mb-6 shadow-lg"
                     />
-                    <div className="text-center md:text-left">
-                      <h1 className="text-2xl sm:text-4xl font-bold text-primary-indigo mb-2 sm:mb-3">
-                        {entity.name}
-                      </h1>
-                      {entity.isVerified && (
-                        <Badge
-                          variant="secondary"
-                          className="bg-sky-500/20 text-sky-600 hover:bg-sky-500/30 border border-sky-500/30 text-xs sm:text-sm px-2 sm:px-3 py-1"
-                        >
-                          Verified
-                        </Badge>
-                      )}
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-6">
+                      <div className="text-center md:text-left">
+                        <h1 className="text-2xl sm:text-4xl font-bold text-primary-indigo mb-2 sm:mb-3">
+                          {entity.name}
+                        </h1>
+                        {entity.isVerified && (
+                          <Badge
+                            variant="secondary"
+                            className="bg-sky-500/20 text-sky-600 hover:bg-sky-500/30 border border-sky-500/30 text-xs sm:text-sm px-2 sm:px-3 py-1"
+                          >
+                            Verified
+                          </Badge>
+                        )}
+                      </div>
                     </div>
                   </div>
 
@@ -223,9 +227,21 @@ export function EntityDetails({
                   entity.scheduleList &&
                   entity.scheduleList.length > 0 && (
                     <div className="bg-white/50 rounded-lg p-3 sm:p-6 shadow-sm xl:col-span-2 min-h-[700px]">
-                      <h2 className="text-lg sm:text-2xl font-semibold text-primary-indigo mb-4 sm:mb-6">
-                        Schedules
-                      </h2>
+                      <div className="flex justify-between items-center mb-4 sm:mb-6">
+                        <h2 className="text-lg sm:text-2xl font-semibold text-primary-indigo">
+                          Schedules
+                        </h2>
+                        {onAddInfo && (
+                          <Button
+                            onClick={() => onAddInfo("schedule")}
+                            variant="outline"
+                            size="sm"
+                            className="text-primary-indigo border-primary-indigo hover:bg-primary-indigo hover:text-white"
+                          >
+                            Add Schedule
+                          </Button>
+                        )}
+                      </div>
                       <ScheduleDisplay
                         schedules={entity.scheduleList}
                         onUpvote={onUpvoteSchedule}
@@ -239,9 +255,21 @@ export function EntityDetails({
           </div>
 
           <div className="p-4 sm:p-8 border-t border-primary/10">
-            <h2 className="text-lg sm:text-xl font-semibold text-primary-indigo mb-3 sm:mb-4">
-              Prices
-            </h2>
+            <div className="flex justify-between items-center mb-3 sm:mb-4">
+              <h2 className="text-lg sm:text-xl font-semibold text-primary-indigo">
+                Prices
+              </h2>
+              {onAddInfo && (
+                <Button
+                  onClick={() => onAddInfo("pricing")}
+                  variant="outline"
+                  size="sm"
+                  className="text-primary-indigo border-primary-indigo hover:bg-primary-indigo hover:text-white"
+                >
+                  Add Pricing
+                </Button>
+              )}
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
               {renderPrices()}
             </div>
