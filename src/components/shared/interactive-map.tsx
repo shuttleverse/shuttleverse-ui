@@ -12,14 +12,14 @@ import {
   Pin,
   InfoWindow,
 } from "@vis.gl/react-google-maps";
-import { MapPinIcon } from "lucide-react";
+import { MapPinIcon, Maximize2 } from "lucide-react";
 import { MapEntity, LocationPoint, BoundingBox } from "@/services/map";
 import {
   useCourtsByBoundingBox,
   useCoachesByBoundingBox,
   useStringersByBoundingBox,
 } from "@/services/map";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { CustomMarkerIcon } from "./custom-map-marker";
 import MarkerCluster from "./marker-cluster";
 import MapController from "./map-controller";
@@ -165,6 +165,7 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
   defaultZoom,
 }) => {
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
   const [center, setCenter] = useState(() => {
     if (typeof window !== "undefined") {
       try {
@@ -368,21 +369,31 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
         {!fullScreen && (
           <div className="flex justify-between items-center mb-4 flex-shrink-0">
             <h2 className="text-lg font-semibold">Near By</h2>
-            <div className="flex items-center gap-4 text-sm text-gray-500">
-              <div className="flex items-center gap-1">
-                <div className="w-3 h-3 bg-emerald-500 rounded-full"></div>
-                <span>Courts</span>
-              </div>
-              <div className="flex items-center gap-1">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-4 text-sm text-gray-500">
                 <div className="flex items-center gap-1">
-                  <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                  <span>Coaches</span>
+                  <div className="w-3 h-3 bg-emerald-500 rounded-full"></div>
+                  <span>Courts</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1">
+                    <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                    <span>Coaches</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1">
+                  <div className="w-3 h-3 bg-amber-500 rounded-full"></div>
+                  <span>Stringers</span>
                 </div>
               </div>
-              <div className="flex items-center gap-1">
-                <div className="w-3 h-3 bg-amber-500 rounded-full"></div>
-                <span>Stringers</span>
-              </div>
+              <button
+                onClick={() => navigate("/map")}
+                className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-colors"
+                title="Open fullscreen map"
+              >
+                <Maximize2 className="h-4 w-4" />
+                Fullscreen
+              </button>
             </div>
           </div>
         )}

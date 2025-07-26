@@ -41,7 +41,10 @@ interface EntityFormProps {
   onSubmit: (data: EntityFormData) => void;
   defaultValues?: Partial<EntityFormData>;
   isSubmitting?: boolean;
-  requiredFields: Record<keyof EntityFormData | "website", boolean>;
+  requiredFields: Record<
+    keyof EntityFormData | "website" | "schedules",
+    boolean
+  >;
 }
 
 export function EntityForm({
@@ -106,6 +109,19 @@ export function EntityForm({
 
   const handleNext = async () => {
     const isValid = await form.trigger();
+
+    if (currentStep === 2 && entityType === "court") {
+      const schedules = form.getValues("schedules");
+      if (requiredFields.schedules && (!schedules || schedules.length === 0)) {
+        form.setError("schedules", {
+          type: "required",
+          message:
+            "Operating hours are required. Please add at least one schedule.",
+        });
+        return;
+      }
+    }
+
     if (isValid) {
       if (currentStep < 3) {
         setCurrentStep(currentStep + 1);
@@ -380,14 +396,19 @@ export function EntityForm({
         </div>
 
         <div className="flex justify-between">
-          <Button type="button" variant="outline" onClick={handleCancel}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleCancel}
+            className="touch-manipulation relative z-10"
+          >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Edit
           </Button>
           <Button
             onClick={handleConfirm}
             disabled={isSubmitting}
-            className="bg-green-600 hover:bg-green-700"
+            className="bg-green-600 hover:bg-green-700 touch-manipulation relative z-10"
           >
             {isSubmitting ? "Creating..." : `Create ${getEntityTitle()}`}
           </Button>
@@ -710,6 +731,7 @@ export function EntityForm({
                       onClick={addPrice}
                       variant="outline"
                       size="sm"
+                      className="touch-manipulation relative z-10"
                     >
                       <Plus className="h-4 w-4 mr-2" />
                       Add Price
@@ -787,7 +809,7 @@ export function EntityForm({
                             onClick={() => removePrice(index)}
                             variant="ghost"
                             size="sm"
-                            className="text-red-500 hover:text-red-700"
+                            className="text-red-500 hover:text-red-700 touch-manipulation relative z-10"
                           >
                             <Trash2 className="h-4 w-4 mr-2" />
                             Remove Price
@@ -819,6 +841,7 @@ export function EntityForm({
                       onClick={addPrice}
                       variant="outline"
                       size="sm"
+                      className="touch-manipulation relative z-10"
                     >
                       <Plus className="h-4 w-4 mr-2" />
                       Add Price
@@ -998,6 +1021,7 @@ export function EntityForm({
               variant="outline"
               onClick={handleBack}
               disabled={currentStep === 1}
+              className="touch-manipulation relative z-10"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back
@@ -1005,7 +1029,7 @@ export function EntityForm({
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="bg-green-600 hover:bg-green-700"
+              className="bg-green-600 hover:bg-green-700 touch-manipulation relative z-10"
             >
               {currentStep === 3 ? (
                 <>
