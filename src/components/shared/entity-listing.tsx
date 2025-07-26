@@ -114,6 +114,10 @@ const EntityListing: React.FC<EntityListingProps> = ({
     }
   };
 
+  const getPluralForm = (type: string) => {
+    return type === "coach" ? "coaches" : `${type}s`;
+  };
+
   return (
     <Layout>
       {showAuthPrompt && (
@@ -155,7 +159,7 @@ const EntityListing: React.FC<EntityListingProps> = ({
             </div>
             <Input
               type="text"
-              placeholder={`Search for ${entityType}s...`}
+              placeholder={`Search for ${getPluralForm(entityType)}...`}
               className="pl-10 w-full"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -179,13 +183,15 @@ const EntityListing: React.FC<EntityListingProps> = ({
 
           <div className="md:col-span-3">
             {isLoading && (
-              <div className="text-center py-8">Loading {entityType}s...</div>
+              <div className="text-center py-8">
+                Loading {getPluralForm(entityType)}...
+              </div>
             )}
 
             {!isLoading && filteredEntities.length === 0 && (
               <div className="bg-white rounded-lg p-8 text-center">
                 <h2 className="text-xl font-semibold mb-2">
-                  No {entityType}s found
+                  No {getPluralForm(entityType)} found
                 </h2>
                 <p className="text-gray-600 mb-4">
                   Try adjusting your search or filters
@@ -219,10 +225,12 @@ const EntityListing: React.FC<EntityListingProps> = ({
             )}
 
             <div ref={loadMoreRef} className="py-4 text-center">
-              {isFetchingNextPage && <p>Loading more {entityType}s...</p>}
+              {isFetchingNextPage && (
+                <p>Loading more {getPluralForm(entityType)}...</p>
+              )}
               {!hasNextPage && filteredEntities.length > 0 && (
                 <p className="text-sm text-gray-500">
-                  No more {entityType}s to load
+                  No more {getPluralForm(entityType)} to load
                 </p>
               )}
             </div>

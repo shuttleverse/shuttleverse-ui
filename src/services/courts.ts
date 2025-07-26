@@ -100,7 +100,6 @@ export function useCreateCourt() {
 
   return useMutation({
     mutationFn: async (courtData: CourtFormData) => {
-
       const courtAPIData: CourtCreationAPIData = {
         name: courtData.name,
         location: courtData.location,

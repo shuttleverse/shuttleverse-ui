@@ -24,7 +24,7 @@ import { ScheduleCalendar, type ScheduleData } from "./schedule-calendar";
 import { type CoachFormData } from "@/services/coaches";
 import { type StringerFormData } from "@/services/stringers";
 import { type CourtFormData } from "@/services/courts";
-import GeoapifyInput from "@/components/shared/geoapify-input";
+import GoogleAutoComplete from "@/components/shared/google-autocomplete";
 
 type EntityType = "court" | "coach" | "stringer";
 type EntityFormData = CourtFormData | CoachFormData | StringerFormData;
@@ -125,13 +125,7 @@ export function EntityForm({
                     )}
                   </FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder={
-                        defaultValues?.name || getEntityNamePlaceholder()
-                      }
-                      {...field}
-                      required={requiredFields.name}
-                    />
+                    <Input {...field} required={requiredFields.name} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -150,34 +144,47 @@ export function EntityForm({
                     )}
                   </FormLabel>
                   <FormControl>
-                    <GeoapifyInput
+                    <GoogleAutoComplete
                       value={field.value}
-                      type="amenity"
-                      language="en"
-                      limit={5}
-                      filterByCountryCode={[]}
-                      filterByCircle={[]}
-                      filterByRect={[]}
-                      filterByPlace=""
-                      biasByCountryCode={[]}
-                      biasByCircle=""
-                      biasByRect=""
-                      biasByProximity=""
-                      placeSelect={(place) => {
-                        if (place.properties.name) {
-                          form.setValue(
-                            "location",
-                            place.properties.name as string
-                          );
+                      onSelect={(place) => {
+                        if (place) {
+                          form.setValue("location", place.name || "");
                           form.setValue(
                             "longitude",
-                            place.properties.lon?.toString() || ""
+                            place.longitude?.toString() || ""
                           );
                           form.setValue(
                             "latitude",
-                            place.properties.lat?.toString() || ""
+                            place.latitude?.toString() || ""
                           );
                         }
+                      }}
+                      onClear={() => {
+                        form.setValue("location", "");
+                        form.setValue("longitude", "");
+                        form.setValue("latitude", "");
+                      }}
+                      inputProps={{
+                        required: requiredFields.location,
+                        style: {
+                          width: "100%",
+                          padding: "12px 16px",
+                          border: "1px solid #e5e7eb",
+                          borderRadius: "8px",
+                          fontSize: "14px",
+                          backgroundColor: "#ffffff",
+                          transition: "all 0.2s ease-in-out",
+                          outline: "none",
+                        },
+                        onFocus: (e) => {
+                          e.target.style.borderColor = "#3b82f6";
+                          e.target.style.boxShadow =
+                            "0 0 0 3px rgba(59, 130, 246, 0.1)";
+                        },
+                        onBlur: (e) => {
+                          e.target.style.borderColor = "#e5e7eb";
+                          e.target.style.boxShadow = "none";
+                        },
                       }}
                     />
                   </FormControl>
@@ -199,10 +206,6 @@ export function EntityForm({
                   </FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder={
-                        defaultValues?.description ||
-                        `Describe the ${entityType.toLowerCase()}...`
-                      }
                       {...field}
                       required={requiredFields.description}
                       maxLength={400}
@@ -228,11 +231,6 @@ export function EntityForm({
                       <Input
                         type="number"
                         min="0"
-                        placeholder={
-                          (
-                            defaultValues as CoachFormData
-                          )?.experience_years?.toString() || "e.g. 5"
-                        }
                         {...field}
                         onChange={(e) => field.onChange(Number(e.target.value))}
                         required
@@ -258,10 +256,6 @@ export function EntityForm({
                     </FormLabel>
                     <FormControl>
                       <Input
-                        placeholder={
-                          (defaultValues as CourtFormData)?.website ||
-                          "https://example.com"
-                        }
                         {...field}
                         required={requiredFields.website}
                         type="url"
@@ -286,9 +280,6 @@ export function EntityForm({
                   </FormLabel>
                   <FormControl>
                     <Input
-                      placeholder={
-                        defaultValues?.phoneNumber || "(123) 456-7890"
-                      }
                       {...field}
                       required={requiredFields.phoneNumber}
                       type="tel"
@@ -308,9 +299,6 @@ export function EntityForm({
                     <FormLabel>Additional Details</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder={
-                          (defaultValues as StringerFormData)?.additionalDetails
-                        }
                         {...field}
                         maxLength={255}
                         className="resize-none"
@@ -335,10 +323,6 @@ export function EntityForm({
                   </FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder={
-                        defaultValues?.otherContacts ||
-                        "e.g. WeChat, Facebook, Instagram, etc."
-                      }
                       {...field}
                       required={requiredFields.otherContacts}
                       maxLength={255}
