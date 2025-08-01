@@ -175,9 +175,16 @@ export function EntityDetails({
                     {entity.location && (
                       <div className="flex items-center gap-2 sm:gap-3 text-muted-foreground group">
                         <MapPin className="w-5 h-5 text-primary group-hover:text-primary-indigo transition-colors" />
-                        <span className="text-sm sm:text-base group-hover:text-primary-indigo transition-colors">
+                        <a
+                          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                            entity.location
+                          )}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-sm sm:text-base text-primary hover:text-primary-indigo transition-colors cursor-pointer"
+                        >
                           {entity.location}
-                        </span>
+                        </a>
                       </div>
                     )}
                     {entity.type === "court" && entity.website && (
@@ -196,9 +203,12 @@ export function EntityDetails({
                     {entity.phoneNumber && (
                       <div className="flex items-center gap-2 sm:gap-3 text-muted-foreground group">
                         <Phone className="w-5 h-5 text-primary group-hover:text-primary-indigo transition-colors" />
-                        <span className="text-sm sm:text-base group-hover:text-primary-indigo transition-colors">
+                        <a
+                          href={`tel:${entity.phoneNumber}`}
+                          className="text-sm sm:text-base text-primary hover:text-primary-indigo transition-colors cursor-pointer"
+                        >
                           {entity.phoneNumber}
-                        </span>
+                        </a>
                       </div>
                     )}
                   </div>

@@ -37,8 +37,8 @@ const GoogleAutoCompleteInner = ({
     const parts = fullText.split(", ");
     let displayText = fullText;
 
-    if (parts.length >= 3) {
-      displayText = parts.slice(0, 3).join(", ");
+    if (parts.length > 1) {
+      displayText = parts.slice(0, -1).join(", ");
     }
 
     setDisplayValue(displayText);
