@@ -8,7 +8,6 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { EntityForm } from "@/components/forms/entity-form";
 import {
   ScheduleCalendar,
   type ScheduleData,
@@ -35,13 +34,25 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import AuthPrompt from "./auth-prompt";
 
+type CoachCourtPriceData = {
+  price: number;
+  duration: number;
+};
+
+type StringerPriceData = {
+  price: number;
+  stringName: string;
+};
+
+type PriceData = CoachCourtPriceData | StringerPriceData;
+
 interface AddInfoModalProps {
   isOpen: boolean;
   onClose: () => void;
   entityType: "court" | "coach" | "stringer";
   entityId: string;
   onAddSchedule?: (scheduleData: ScheduleData[]) => Promise<void>;
-  onAddPrice?: (priceData: any[]) => Promise<void>;
+  onAddPrice?: (priceData: PriceData[]) => Promise<void>;
   defaultTab?: "schedule" | "pricing";
 }
 
@@ -60,6 +71,11 @@ export function AddInfoModal({
     entityType === "stringer" ? "pricing" : defaultTab
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [confirmationData, setConfirmationData] = useState<{
+    type: "schedule" | "pricing";
+    data: ScheduleData[] | PriceData[];
+  } | null>(null);
 
   // Update active tab when defaultTab changes
   useEffect(() => {
@@ -72,7 +88,7 @@ export function AddInfoModal({
     },
   });
 
-  const priceForm = useForm<{ prices: any[] }>({
+  const priceForm = useForm<{ prices: PriceData[] }>({
     defaultValues: {
       prices: [],
     },
@@ -103,19 +119,11 @@ export function AddInfoModal({
 
     if (!onAddSchedule) return;
 
-    setIsSubmitting(true);
-    try {
-      await onAddSchedule(data.schedules);
-      scheduleForm.reset();
-      onClose();
-    } catch (error) {
-      console.error("Failed to add schedule:", error);
-    } finally {
-      setIsSubmitting(false);
-    }
+    setConfirmationData({ type: "schedule", data: data.schedules });
+    setShowConfirmation(true);
   };
 
-  const handlePriceSubmit = async (data: { prices: any[] }) => {
+  const handlePriceSubmit = async (data: { prices: PriceData[] }) => {
     if (!isAuthenticated) {
       setShowAuthPrompt(true);
       return;
@@ -123,16 +131,35 @@ export function AddInfoModal({
 
     if (!onAddPrice) return;
 
+    setConfirmationData({ type: "pricing", data: data.prices });
+    setShowConfirmation(true);
+  };
+
+  const handleConfirm = async () => {
+    if (!confirmationData) return;
+
     setIsSubmitting(true);
     try {
-      await onAddPrice(data.prices);
-      priceForm.reset();
+      if (confirmationData.type === "schedule" && onAddSchedule) {
+        await onAddSchedule(confirmationData.data as ScheduleData[]);
+        scheduleForm.reset();
+      } else if (confirmationData.type === "pricing" && onAddPrice) {
+        await onAddPrice(confirmationData.data as PriceData[]);
+        priceForm.reset();
+      }
+      setShowConfirmation(false);
+      setConfirmationData(null);
       onClose();
     } catch (error) {
-      console.error("Failed to add price:", error);
+      console.error("Failed to add information:", error);
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleCancel = () => {
+    setShowConfirmation(false);
+    setConfirmationData(null);
   };
 
   const getEntityTitle = () => {
@@ -159,6 +186,114 @@ export function AddInfoModal({
     );
   }
 
+  if (showConfirmation && confirmationData) {
+    return (
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              Confirm{" "}
+              {confirmationData.type === "schedule" ? "Schedule" : "Pricing"}{" "}
+              Information
+            </DialogTitle>
+            <DialogDescription>
+              Please review the{" "}
+              {confirmationData.type === "schedule" ? "schedule" : "pricing"}{" "}
+              information before adding it to the{" "}
+              {getEntityTitle().toLowerCase()}.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {confirmationData.type === "schedule" ? (
+              <div className="space-y-3">
+                {(confirmationData.data as ScheduleData[]).map(
+                  (schedule, index) => (
+                    <div
+                      key={index}
+                      className="bg-gray-50 rounded-lg p-4 border-l-4 border-blue-500"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-semibold text-gray-900">
+                          {
+                            [
+                              "Monday",
+                              "Tuesday",
+                              "Wednesday",
+                              "Thursday",
+                              "Friday",
+                              "Saturday",
+                              "Sunday",
+                            ][schedule.dayOfWeek - 1]
+                          }
+                        </span>
+                        <span className="text-sm font-medium text-gray-600 bg-white px-3 py-1 rounded-full">
+                          {"startTime" in schedule
+                            ? `${schedule.startTime} - ${schedule.endTime}`
+                            : `${schedule.openTime} - ${schedule.closeTime}`}
+                        </span>
+                      </div>
+                    </div>
+                  )
+                )}
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {(confirmationData.data as PriceData[]).map((price, index) => (
+                  <div
+                    key={index}
+                    className="bg-gray-50 rounded-lg p-4 border-l-4 border-purple-500"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <span className="font-semibold text-gray-900">
+                          {entityType === "stringer" && "stringName" in price
+                            ? price.stringName
+                            : `$${price.price}${
+                                "duration" in price && price.duration > 0
+                                  ? ` / ${price.duration} minutes`
+                                  : ""
+                              }`}
+                        </span>
+                        {entityType !== "stringer" &&
+                          "duration" in price &&
+                          price.duration > 0 && (
+                            <p className="text-sm text-gray-600 mt-1">
+                              Duration: {price.duration} minutes
+                            </p>
+                          )}
+                      </div>
+                      {entityType === "stringer" && "stringName" in price && (
+                        <span className="text-lg font-bold text-green-600 bg-white px-4 py-2 rounded-lg">
+                          ${price.price}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="flex justify-end space-x-2 pt-4">
+            <Button type="button" variant="outline" onClick={handleCancel}>
+              Back to Edit
+            </Button>
+            <Button onClick={handleConfirm} disabled={isSubmitting}>
+              {isSubmitting
+                ? "Adding..."
+                : `Add ${
+                    confirmationData.type === "schedule"
+                      ? "Schedule"
+                      : "Pricing"
+                  }`}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -170,7 +305,13 @@ export function AddInfoModal({
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <Tabs
+          value={activeTab}
+          onValueChange={(value) =>
+            setActiveTab(value as "schedule" | "pricing")
+          }
+          className="w-full"
+        >
           <TabsList
             className={`grid w-full ${
               entityType === "stringer" ? "grid-cols-1" : "grid-cols-2"

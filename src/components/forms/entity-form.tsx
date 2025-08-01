@@ -631,12 +631,53 @@ export function EntityForm({
                         type="tel"
                         autoComplete="off"
                         {...field}
+                        value={field.value}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          const digitsOnly = value.replace(/\D/g, "");
+
+                          let formatted = "";
+                          if (digitsOnly.length <= 3) {
+                            formatted = digitsOnly;
+                          } else if (digitsOnly.length <= 6) {
+                            formatted = `(${digitsOnly.slice(
+                              0,
+                              3
+                            )}) ${digitsOnly.slice(3)}`;
+                          } else {
+                            formatted = `(${digitsOnly.slice(
+                              0,
+                              3
+                            )}) ${digitsOnly.slice(3, 6)}-${digitsOnly.slice(
+                              6,
+                              10
+                            )}`;
+                          }
+
+                          field.onChange(formatted);
+                        }}
                         required={requiredFields.phoneNumber}
+                        pattern="\(\d{3}\) \d{3}-\d{4}"
+                        maxLength={14}
                       />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
+                rules={{
+                  validate: (value) => {
+                    if (!value && requiredFields.phoneNumber) {
+                      return "Phone number is required";
+                    }
+                    if (value) {
+                      const phoneRegex = /^\(\d{3}\) \d{3}-\d{4}$/;
+                      if (!phoneRegex.test(value)) {
+                        return "Please enter a valid phone number in format (555) 123-4567";
+                      }
+                    }
+                    return true;
+                  },
+                }}
               />
 
               {entityType === "stringer" && (

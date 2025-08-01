@@ -19,7 +19,9 @@ export type UseAutocompleteSuggestionsReturn = {
 
 export function useAutocompleteSuggestions(
   inputString: string,
-  requestOptions: Partial<google.maps.places.AutocompleteRequest> = {}
+  requestOptions: Partial<google.maps.places.AutocompleteRequest> = {
+    includedPrimaryTypes: ["establishment", "street_address"],
+  }
 ): UseAutocompleteSuggestionsReturn {
   const placesLib = useMapsLibrary("places");
 

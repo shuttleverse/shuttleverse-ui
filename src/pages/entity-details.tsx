@@ -204,7 +204,7 @@ export default function EntityDetailsPage() {
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to upvote schedule",
+        description: error instanceof Error ? error.message : "Unknown error",
         variant: "destructive",
       });
     }
@@ -250,7 +250,7 @@ export default function EntityDetailsPage() {
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to upvote price",
+        description: error instanceof Error ? error.message : "Unknown error",
         variant: "destructive",
       });
     }
