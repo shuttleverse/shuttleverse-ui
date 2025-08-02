@@ -49,7 +49,7 @@ const EntityListing: React.FC<EntityListingProps> = ({
   onAddEntity,
 }) => {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } =
     useEntityData();
   const [searchTerm, setSearchTerm] = useState("");
@@ -102,7 +102,7 @@ const EntityListing: React.FC<EntityListingProps> = ({
   };
 
   const handleAddEntityClick = () => {
-    if (!isAuthenticated) {
+    if (!isAuthenticated || !user) {
       setShowAuthPrompt(true);
       return;
     }

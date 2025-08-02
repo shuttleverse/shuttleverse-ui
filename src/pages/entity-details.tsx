@@ -56,7 +56,7 @@ export default function EntityDetailsPage() {
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
   const { toast } = useToast();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
   const [authPromptType, setAuthPromptType] = useState<"schedule" | "price">(
     "schedule"
@@ -172,7 +172,7 @@ export default function EntityDetailsPage() {
   }[type];
 
   const handleUpvoteSchedule = async (scheduleId: string) => {
-    if (!isAuthenticated) {
+    if (!isAuthenticated || !user) {
       setAuthPromptType("schedule");
       setShowAuthPrompt(true);
       return;
@@ -211,7 +211,7 @@ export default function EntityDetailsPage() {
   };
 
   const handleUpvotePrice = async (priceId: string) => {
-    if (!isAuthenticated) {
+    if (!isAuthenticated || !user) {
       setAuthPromptType("price");
       setShowAuthPrompt(true);
       return;

@@ -1,4 +1,4 @@
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/api/axios";
 
 export function useUserProfile(enabled: boolean) {
@@ -14,10 +14,15 @@ export function useUserProfile(enabled: boolean) {
 }
 
 export function useUpdateProfile() {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: async (profile: { username: string; bio: string }) => {
       const { data } = await api.post("/api/community/v1/user/me", profile);
       return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["userProfile"] });
     },
   });
 }

@@ -65,7 +65,7 @@ export function AddInfoModal({
   onAddPrice,
   defaultTab = "schedule",
 }: AddInfoModalProps) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
   const [activeTab, setActiveTab] = useState(
     entityType === "stringer" ? "pricing" : defaultTab
@@ -112,7 +112,7 @@ export function AddInfoModal({
   };
 
   const handleScheduleSubmit = async (data: { schedules: ScheduleData[] }) => {
-    if (!isAuthenticated) {
+    if (!isAuthenticated || !user) {
       setShowAuthPrompt(true);
       return;
     }
@@ -124,7 +124,7 @@ export function AddInfoModal({
   };
 
   const handlePriceSubmit = async (data: { prices: PriceData[] }) => {
-    if (!isAuthenticated) {
+    if (!isAuthenticated || !user) {
       setShowAuthPrompt(true);
       return;
     }
@@ -176,14 +176,7 @@ export function AddInfoModal({
   };
 
   if (showAuthPrompt) {
-    return (
-      <AuthPrompt
-        title="Sign in to Add Information"
-        description="You need to be signed in to add information to this entity."
-        action="Sign in to continue"
-        onClose={() => setShowAuthPrompt(false)}
-      />
-    );
+    return <AuthPrompt onClose={() => setShowAuthPrompt(false)} />;
   }
 
   if (showConfirmation && confirmationData) {

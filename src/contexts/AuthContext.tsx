@@ -1,22 +1,34 @@
 import { ReactNode } from "react";
-import { useAuthStatus } from "@/services/auth";
 import { useUserProfile } from "@/services/user";
 import { AuthContext } from "@/contexts/AuthContext.context";
+import { useAuthStatus } from "@/services/auth";
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const { data: authData, isLoading: isAuthLoading } = useAuthStatus();
+  const {
+    data: authStatus,
+    isLoading: isAuthLoading,
+    isError: isAuthError,
+  } = useAuthStatus();
 
-  const isAuthenticated = authData?.authenticated || false;
+  const {
+    data: userData,
+    isLoading: isUserLoading,
+    isError: isUserError,
+  } = useUserProfile(authStatus?.authenticated === true);
 
-  const { data: userData, isLoading: isUserLoading } =
-    useUserProfile(isAuthenticated);
-
-  const isLoading = isAuthLoading || (isAuthenticated && isUserLoading);
-
+  const isAuthenticated = !isAuthError && authStatus?.authenticated;
   const user = userData?.data || null;
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, isLoading, user }}>
+    <AuthContext.Provider
+      value={{
+        isAuthenticated,
+        isAuthLoading,
+        isUserLoading,
+        isUserError,
+        user,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

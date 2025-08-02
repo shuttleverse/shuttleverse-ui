@@ -1,20 +1,26 @@
 import React, { useState, useEffect } from "react";
-import { useUpdateProfile, useUserProfile } from "@/services/user";
+import { useUpdateProfile } from "@/services/user";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/components/ui/sonner-utils";
+import { useAuth } from "@/hooks/useAuth";
 
 const Onboarding = () => {
   const [username, setUsername] = useState("");
   const [bio, setBio] = useState("");
   const updateProfile = useUpdateProfile();
-  const { refetch: refetchProfile } = useUserProfile(true);
+  const { user } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user) {
+      navigate("/home");
+    }
+  }, [user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       await updateProfile.mutateAsync({ username, bio });
-      await refetchProfile();
       navigate("/home");
     } catch (error) {
       toast.error("Failed to create profile. Please try again.");
