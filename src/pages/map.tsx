@@ -60,6 +60,17 @@ const MapPage = () => {
     [sheetHeight]
   );
 
+  const onContentTouchStart = useCallback(
+    (e: React.TouchEvent) => {
+      const target = e.currentTarget as HTMLElement;
+      // If we're at the top of the scroll and trying to scroll up, allow dragging
+      if (target.scrollTop === 0) {
+        onDragStart(e);
+      }
+    },
+    [onDragStart]
+  );
+
   const onDragMove = useCallback((e: TouchEvent | MouseEvent) => {
     if (!dragging.current) return;
     e.preventDefault();
@@ -169,7 +180,8 @@ const MapPage = () => {
                 ? "none"
                 : "height 0.2s cubic-bezier(.4,1.3,.6,1)",
             }}
-            onTouchStart={(e) => e.stopPropagation()}
+            onMouseDown={onDragStart}
+            onTouchStart={onDragStart}
             onTouchMove={(e) => e.stopPropagation()}
             onTouchEnd={(e) => e.stopPropagation()}
           >
@@ -184,10 +196,6 @@ const MapPage = () => {
                 userSelect: "none",
                 WebkitUserSelect: "none",
               }}
-              onMouseDown={onDragStart}
-              onTouchStart={onDragStart}
-              onTouchMove={(e) => e.preventDefault()}
-              onTouchEnd={(e) => e.preventDefault()}
             >
               <div
                 style={{
@@ -205,9 +213,7 @@ const MapPage = () => {
                 padding: 24,
                 touchAction: "pan-y",
               }}
-              onTouchStart={(e) => e.stopPropagation()}
-              onTouchMove={(e) => e.stopPropagation()}
-              onTouchEnd={(e) => e.stopPropagation()}
+              onTouchStart={onContentTouchStart}
             >
               {entities.length === 0 ? (
                 <div className="text-center text-gray-400 py-8">

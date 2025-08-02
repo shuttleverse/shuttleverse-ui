@@ -5,16 +5,21 @@ export type User = {
   username: string;
   email: string;
   bio?: string;
+  createdAt?: string;
 };
 
 export type AuthContextType = {
   isAuthenticated: boolean;
-  isLoading: boolean;
+  isAuthLoading: boolean;
+  isUserLoading: boolean;
+  isUserError: boolean;
   user: User | null;
 };
 
 export const AuthContext = createContext<AuthContextType>({
   isAuthenticated: false,
-  isLoading: true,
+  isAuthLoading: true,
+  isUserLoading: true,
+  isUserError: false,
   user: null,
 });

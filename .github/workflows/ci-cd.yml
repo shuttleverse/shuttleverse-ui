@@ -66,6 +66,9 @@ jobs:
             VITE_API_URL=${{ secrets.VITE_API_URL }}
             VITE_GEOAPIFY_API_KEY=${{ secrets.VITE_GEOAPIFY_API_KEY }}
             VITE_GOOGLE_MAPS_API_KEY=${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}
+            VITE_EMAIL_SERVICE_ID=${{ secrets.VITE_EMAIL_SERVICE_ID }}
+            VITE_EMAIL_TEMPLATE_ID=${{ secrets.VITE_EMAIL_TEMPLATE_ID }}
+            VITE_EMAIL_PRIVATE_KEY=${{ secrets.VITE_EMAIL_PRIVATE_KEY }}
 
       - name: Configure Kubectl
         uses: oracle-actions/configure-kubectl-oke@v1.5.0

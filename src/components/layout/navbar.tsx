@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Search, User, LogOut, Menu, X } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useLogout } from "@/services/auth";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,7 +18,12 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 const Navbar = () => {
   const { isAuthenticated, user } = useAuth();
+  const logout = useLogout();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const handleLogout = () => {
+    logout.mutate();
+  };
 
   const navLinkStyle =
     "px-4 py-2 text-sm font-medium text-gray-700 rounded-md hover:bg-gray-100 hover:text-primary hover:underline decoration-primary decoration-2 underline-offset-4 transition-colors";
@@ -79,19 +85,12 @@ const Navbar = () => {
                         Profile
                       </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link to="/settings" className="cursor-pointer">
-                        Settings
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link
-                        to="/logout"
-                        className="flex items-center cursor-pointer"
-                      >
-                        <LogOut size={16} className="mr-2" />
-                        Log out
-                      </Link>
+                    <DropdownMenuItem
+                      onClick={handleLogout}
+                      className="cursor-pointer"
+                    >
+                      <LogOut size={16} className="mr-2" />
+                      {logout.isPending ? "Logging out..." : "Log out"}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -161,19 +160,14 @@ const Navbar = () => {
                     </Avatar>
                     <span>Profile</span>
                   </Link>
-                  <Link
-                    to="/settings"
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-primary rounded-md transition-colors"
-                  >
-                    Settings
-                  </Link>
-                  <Link
-                    to="/logout"
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-primary rounded-md transition-colors flex items-center"
+                  <button
+                    onClick={handleLogout}
+                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-primary rounded-md transition-colors flex items-center"
+                    disabled={logout.isPending}
                   >
                     <LogOut size={16} className="mr-2" />
-                    Log out
-                  </Link>
+                    {logout.isPending ? "Logging out..." : "Log out"}
+                  </button>
                 </div>
               ) : (
                 <div className="space-y-2 pt-2 border-t">

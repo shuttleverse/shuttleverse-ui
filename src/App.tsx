@@ -18,8 +18,45 @@ import Onboarding from "@/pages/onboarding";
 import EntityDetailsPage from "@/pages/entity-details";
 import { AuthProvider } from "@/contexts/AuthContext";
 import MapPage from "@/pages/map";
+import Profile from "@/pages/profile";
+import About from "@/pages/about";
+import Contact from "@/pages/contact";
+import PrivacyPolicy from "@/pages/privacy-policy";
+import TermsOfService from "@/pages/terms-of-service";
+import { useScrollToTop } from "@/hooks/useScrollToTop";
 
 const queryClient = new QueryClient();
+
+const AppContent = () => {
+  useScrollToTop();
+
+  return (
+    <Routes>
+      <Route path="/" element={<Index />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/map" element={<MapPage />} />
+      <Route path="/home" element={<Home />} />
+      <Route path="/courts" element={<Courts />} />
+      <Route path="/courts/:id" element={<EntityDetailsPage />} />
+      <Route path="/coaches" element={<Coaches />} />
+      <Route path="/coaches/:id" element={<EntityDetailsPage />} />
+      <Route path="/stringers" element={<Stringers />} />
+      <Route path="/stringers/:id" element={<EntityDetailsPage />} />
+      <Route path="/about" element={<About />} />
+      <Route path="/contact" element={<Contact />} />
+      <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+      <Route path="/terms-of-service" element={<TermsOfService />} />
+      <Route element={<ProtectedRoute />}>
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/onboarding" element={<Onboarding />} />
+        <Route path="/courts/add" element={<AddCourt />} />
+        <Route path="/coaches/add" element={<AddCoach />} />
+        <Route path="/stringers/add" element={<AddStringer />} />
+      </Route>
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+  );
+};
 
 const App = () => {
   return (
@@ -29,25 +66,7 @@ const App = () => {
           <Toaster />
           <Sonner />
           <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/onboarding" element={<Onboarding />} />
-              <Route path="/map" element={<MapPage />} />
-              <Route path="/home" element={<Home />} />
-              <Route path="/courts" element={<Courts />} />
-              <Route path="/courts/:id" element={<EntityDetailsPage />} />
-              <Route path="/coaches" element={<Coaches />} />
-              <Route path="/coaches/:id" element={<EntityDetailsPage />} />
-              <Route path="/stringers" element={<Stringers />} />
-              <Route path="/stringers/:id" element={<EntityDetailsPage />} />
-              <Route element={<ProtectedRoute />}>
-                <Route path="/courts/add" element={<AddCourt />} />
-                <Route path="/coaches/add" element={<AddCoach />} />
-                <Route path="/stringers/add" element={<AddStringer />} />
-              </Route>
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+            <AppContent />
           </BrowserRouter>
         </TooltipProvider>
       </AuthProvider>
