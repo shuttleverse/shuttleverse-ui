@@ -23,7 +23,6 @@ const MarkerCluster: React.FC<MarkerClusterProps> = ({
 
     const loadAdvancedMarkers = async () => {
       try {
-        // Load the advanced markers library dynamically
         const { AdvancedMarkerElement } = (await google.maps.importLibrary(
           "marker"
         )) as google.maps.MarkerLibrary;
@@ -99,7 +98,6 @@ const MarkerCluster: React.FC<MarkerClusterProps> = ({
     };
   }, [entities, map, onMarkerClick]);
 
-  // Update marker selection
   useEffect(() => {
     const updateMarkers = async () => {
       try {

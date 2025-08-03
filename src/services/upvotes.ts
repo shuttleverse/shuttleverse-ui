@@ -51,8 +51,8 @@ export function useUpvotes(filters: UpvoteQueryData, enabled: boolean = true) {
     },
     initialPageParam: 0,
     enabled,
-    staleTime: 60 * 60 * 1000, // an hour
-    gcTime: 60 * 60 * 1000, // an hour
+    staleTime: 60 * 60 * 1000,
+    gcTime: 60 * 60 * 1000,
     refetchOnWindowFocus: true,
     refetchOnMount: true,
     refetchOnReconnect: true,

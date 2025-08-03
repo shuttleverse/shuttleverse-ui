@@ -50,6 +50,10 @@ export type CourtScheduleData = {
   openTime: string;
   closeTime: string;
   upvotes: number;
+  submittedBy?: {
+    username: string;
+  };
+  updatedAt?: string;
 };
 
 export type CourtPriceData = {
@@ -57,6 +61,10 @@ export type CourtPriceData = {
   price: number;
   duration: number;
   upvotes: number;
+  submittedBy?: {
+    username: string;
+  };
+  updatedAt?: string;
 };
 
 export type CourtData = {

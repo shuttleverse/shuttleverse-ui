@@ -25,7 +25,8 @@ import MarkerCluster from "./marker-cluster";
 import MapController from "./map-controller";
 import { useIsMobile } from "@/hooks/use-mobile";
 import MapSidePanel from "./map-side-panel";
-import { useLocationCoordinates } from "@/hooks/use-location-coordinates";
+import SelectedEntityDetails from "./selected-entity-details";
+import { useLocationContext } from "@/hooks/use-location-context";
 import "./interactive-map.css";
 
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
@@ -83,26 +84,11 @@ const EntityInfoWindow: React.FC<{
   entity: MapEntity;
   onClose: () => void;
 }> = ({ entity, onClose }) => {
-  const getEntityIcon = (type: string) => {
-    return (
-      <CustomMarkerIcon
-        type={type as "court" | "coach" | "stringer"}
-        size={16}
-      />
-    );
-  };
+  const navigate = useNavigate();
 
-  const getEntityColor = (type: string) => {
-    switch (type) {
-      case "court":
-        return "text-emerald-600";
-      case "coach":
-        return "text-blue-600";
-      case "stringer":
-        return "text-amber-600";
-      default:
-        return "text-gray-600";
-    }
+  const handleViewDetails = () => {
+    const path = `/${entity.type}s/${entity.id}`;
+    navigate(path);
   };
 
   return (
@@ -113,37 +99,15 @@ const EntityInfoWindow: React.FC<{
       }}
       onCloseClick={onClose}
     >
-      <div className="p-2 max-w-xs">
-        <div className="flex items-center gap-2 mb-2">
-          {getEntityIcon(entity.type)}
-          <span
-            className={`font-semibold capitalize ${getEntityColor(
-              entity.type
-            )}`}
-          >
-            {entity.type}
-          </span>
-          {entity.isVerified && (
-            <span className="text-xs bg-green-100 text-green-800 px-1 py-0.5 rounded">
-              Verified
-            </span>
-          )}
-        </div>
-        <h3 className="font-medium text-gray-900 mb-1">{entity.name}</h3>
+      <div className="p-2">
+        <h3 className="font-semibold text-gray-900 mb-1">{entity.name}</h3>
         <p className="text-sm text-gray-600 mb-2">{entity.location}</p>
-        {entity.description && (
-          <p className="text-sm text-gray-500 mb-3 line-clamp-2">
-            {entity.description}
-          </p>
-        )}
-        <Link
-          to={`/${entity.type === "coach" ? "coaches" : entity.type + "s"}/${
-            entity.id
-          }`}
-          className="inline-block bg-emerald-600 text-white text-sm px-3 py-1 rounded hover:bg-emerald-700 transition-colors"
+        <button
+          onClick={handleViewDetails}
+          className="text-sm text-emerald-600 hover:text-emerald-700 font-medium"
         >
-          View Details
-        </Link>
+          View Details →
+        </button>
       </div>
     </InfoWindow>
   );
@@ -156,6 +120,8 @@ interface InteractiveMapProps {
   defaultZoom?: number;
   selectedEntity?: MapEntity | null;
   onEntitySelect?: (entity: MapEntity | null) => void;
+  showSidePanel?: boolean;
+  canShowDualPanels?: boolean;
 }
 
 const InteractiveMap: React.FC<InteractiveMapProps> = ({
@@ -165,10 +131,12 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
   defaultZoom,
   selectedEntity: externalSelectedEntity,
   onEntitySelect,
+  showSidePanel = true,
+  canShowDualPanels = true,
 }) => {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
-  const [center, setCenter] = useState(DEFAULT_LOCATION);
+  const { locationData } = useLocationContext();
   const [internalSelectedEntity, setInternalSelectedEntity] =
     useState<MapEntity | null>(null);
   const selectedEntity =
@@ -182,20 +150,47 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
         : setInternalSelectedEntity,
     [externalSelectedEntity, onEntitySelect, setInternalSelectedEntity]
   );
-  const { coordinates: userLocation, isLoading: isLoadingLocation } =
-    useLocationCoordinates();
+
   const [boundingBox, setBoundingBox] = useState<BoundingBox | null>(null);
   const internalMapRef = useRef<google.maps.Map | null>(null);
   const mapRef = externalMapRef || internalMapRef;
 
-  useEffect(() => {
-    if (userLocation) {
-      setCenter({
-        lat: parseFloat(userLocation.latitude),
-        lng: parseFloat(userLocation.longitude),
-      });
+  const getInitialCenter = () => {
+    if (locationData.coordinates) {
+      return {
+        lat: parseFloat(locationData.coordinates.latitude),
+        lng: parseFloat(locationData.coordinates.longitude),
+      };
     }
-  }, [userLocation]);
+    return DEFAULT_LOCATION;
+  };
+
+  const [center, setCenter] = useState(getInitialCenter());
+
+  useEffect(() => {
+    if (locationData.coordinates) {
+      const newCenter = {
+        lat: parseFloat(locationData.coordinates.latitude),
+        lng: parseFloat(locationData.coordinates.longitude),
+      };
+      setCenter(newCenter);
+    }
+  }, [locationData.coordinates]);
+
+  useEffect(() => {
+    if (locationData.coordinates) {
+      const newCenter = {
+        lat: parseFloat(locationData.coordinates.latitude),
+        lng: parseFloat(locationData.coordinates.longitude),
+      };
+      setCenter(newCenter);
+
+      if (mapRef.current) {
+        mapRef.current.panTo(newCenter);
+        mapRef.current.setZoom(12);
+      }
+    }
+  }, [locationData.coordinates, mapRef]);
 
   const boundsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -255,6 +250,64 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
     setSelectedEntity(null);
   }, [setSelectedEntity]);
 
+  const renderRightPanel = () => {
+    if (!selectedEntity) {
+      return null;
+    }
+
+    return (
+      <div className="absolute top-4 left-4 w-96 h-[calc(100%-5rem)] bg-transparent overflow-hidden flex flex-col z-10">
+        <div className="bg-white/95 backdrop-blur-xl shadow-2xl rounded-3xl border border-white/30 overflow-hidden flex flex-col h-full">
+          <div className="p-4 border-b border-gray-200 bg-white/90 backdrop-blur-sm">
+            <div className="flex justify-between items-center">
+              <div className="flex-1 min-w-0">
+                <h3 className="font-semibold text-lg text-gray-900 truncate">
+                  {selectedEntity.name}
+                </h3>
+              </div>
+            </div>
+          </div>
+          <div className="flex-1 overflow-y-auto">
+            <SelectedEntityDetails
+              entity={
+                selectedEntity as MapEntity & {
+                  phoneNumber?: string;
+                  website?: string;
+                  otherContacts?: string;
+                  additionalDetails?: string;
+                  experience_years?: number;
+                  scheduleList?: unknown[];
+                  priceList?: unknown[];
+                  upvotes?: number;
+                }
+              }
+              fullEntityData={
+                selectedEntity as MapEntity & {
+                  phoneNumber?: string;
+                  website?: string;
+                  otherContacts?: string;
+                  additionalDetails?: string;
+                  experience_years?: number;
+                  scheduleList?: unknown[];
+                  priceList?: unknown[];
+                  upvotes?: number;
+                }
+              }
+              isLoading={false}
+              onBack={() => setSelectedEntity(null)}
+              onViewDetails={(entity) => {
+                const path = `/${entity.type}s/${entity.id}`;
+                navigate(path);
+              }}
+              showBackButton={!canShowDualPanels}
+              transparentBackground={true}
+            />
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const handlePanToEntity = useCallback(
     (entity: MapEntity) => {
       if (mapRef.current && entity.locationPoint) {
@@ -274,17 +327,6 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
       onEntitiesChange(allEntities);
     }
   }, [allEntities, onEntitiesChange]);
-
-  if (isLoadingLocation) {
-    return (
-      <div className="bg-gray-100 rounded-lg h-64 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600 mx-auto mb-2"></div>
-          <p className="text-gray-500">Getting your location...</p>
-        </div>
-      </div>
-    );
-  }
 
   if (!GOOGLE_MAPS_API_KEY) {
     return (
@@ -385,24 +427,17 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
                 map={mapRef.current}
               />
 
-              {selectedEntity && !isMobile && (
-                <EntityInfoWindow
-                  entity={selectedEntity}
-                  onClose={handleInfoWindowClose}
-                />
-              )}
-
-              {!isMobile && (
+              {showSidePanel && (
                 <MapSidePanel
                   entities={allEntities}
                   selectedEntity={selectedEntity}
                   onEntityClick={handlePanToEntity}
                   onLocationClick={() => {
                     if (mapRef.current) {
-                      if (userLocation) {
+                      if (locationData.coordinates) {
                         mapRef.current.panTo({
-                          lat: parseFloat(userLocation.latitude),
-                          lng: parseFloat(userLocation.longitude),
+                          lat: parseFloat(locationData.coordinates.latitude),
+                          lng: parseFloat(locationData.coordinates.longitude),
                         });
                       } else {
                         mapRef.current.panTo(DEFAULT_LOCATION);
@@ -414,6 +449,9 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
               )}
             </Map>
           </APIProvider>
+
+          {/* Right Panel - Entity Details */}
+          {selectedEntity && !isMobile && renderRightPanel()}
         </div>
       </div>
 

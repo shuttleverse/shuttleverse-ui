@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/select";
 import { useAuth } from "@/hooks/useAuth";
 import AuthPrompt from "./auth-prompt";
+import { useToast } from "@/hooks/use-toast";
 
 type CoachCourtPriceData = {
   price: number;
@@ -76,8 +77,8 @@ export function AddInfoModal({
     type: "schedule" | "pricing";
     data: ScheduleData[] | PriceData[];
   } | null>(null);
-
-  // Update active tab when defaultTab changes
+  const { toast } = useToast();
+  
   useEffect(() => {
     setActiveTab(entityType === "stringer" ? "pricing" : defaultTab);
   }, [defaultTab, entityType]);
@@ -151,7 +152,11 @@ export function AddInfoModal({
       setConfirmationData(null);
       onClose();
     } catch (error) {
-      console.error("Failed to add information:", error);
+      toast({
+        title: "Error",
+        description: "Failed to add information. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setIsSubmitting(false);
     }

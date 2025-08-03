@@ -49,7 +49,6 @@ const Contact = () => {
         throw new Error("Failed to send email");
       }
     } catch (error) {
-      console.error("Error sending email:", error);
       toast({
         title: "Error",
         description: "Failed to send message. Please try again.",

@@ -16,7 +16,7 @@ const MapSidePanel: React.FC<MapSidePanelProps> = ({
   onLocationClick,
 }) => {
   return (
-    <div className="absolute top-4 right-4 w-80 h-[calc(100%-5rem)] bg-white/80 backdrop-blur-xl shadow-2xl rounded-3xl border border-white/30 overflow-hidden flex flex-col z-10">
+    <div className="absolute top-4 left-4 w-80 h-[calc(100%-5rem)] bg-white/80 backdrop-blur-xl shadow-2xl rounded-3xl border border-white/30 overflow-hidden flex flex-col z-10">
       <div className="p-3 border-b border-white/20 bg-white/40 backdrop-blur-sm">
         <div className="flex justify-between items-center">
           <div>

@@ -512,12 +512,6 @@ export function EntityForm({
                           name: "location",
                           autoComplete: "off",
                           required: requiredFields.location,
-                          style: {
-                            width: "100%",
-                            padding: "12px",
-                            border: "1px solid #e5e7eb",
-                            borderRadius: "8px",
-                          },
                           placeholder: "Search for a location...",
                         }}
                       />

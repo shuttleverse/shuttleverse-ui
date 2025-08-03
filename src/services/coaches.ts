@@ -51,6 +51,11 @@ export type CoachScheduleData = {
   startTime: string;
   endTime: string;
   upvotes: number;
+  submittedBy: {
+    id: string;
+    username: string;
+  };
+  updatedAt: string;
 };
 
 export type CoachPriceData = {
@@ -58,6 +63,11 @@ export type CoachPriceData = {
   price: number;
   duration: number;
   upvotes: number;
+  submittedBy: {
+    id: string;
+    username: string;
+  };
+  updatedAt: string;
 };
 
 export type CoachData = {

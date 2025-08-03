@@ -118,7 +118,6 @@ export default function EntityDetailsPage() {
 
   useEffect(() => {
     if (locallyUpvotedSchedules.length === 0) return;
-    // If all locally upvoted schedules are now present in the server upvotes, clear local state
     const allConfirmed = locallyUpvotedSchedules.every((scheduleId) =>
       userUpvotesQuery.data?.pages?.some((page) =>
         page.data?.content?.some(
@@ -134,7 +133,6 @@ export default function EntityDetailsPage() {
 
   useEffect(() => {
     if (locallyUpvotedPrices.length === 0) return;
-    // If all locally upvoted prices are now present in the server upvotes, clear local state
     const allConfirmed = locallyUpvotedPrices.every((priceId) =>
       userPriceUpvotesQuery.data?.pages?.some((page) =>
         page.data?.content?.some(
@@ -159,7 +157,6 @@ export default function EntityDetailsPage() {
     stringer: useUpvoteStringerPrice(),
   }[type];
 
-  // Add info mutations
   const addScheduleMutation = {
     court: useAddCourtSchedule(),
     coach: useAddCoachSchedule(),
