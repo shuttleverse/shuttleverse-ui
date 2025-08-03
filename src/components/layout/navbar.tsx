@@ -15,6 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import LocationDisplay from "@/components/shared/location-display";
 
 const Navbar = () => {
   const { isAuthenticated, user } = useAuth();
@@ -33,7 +34,7 @@ const Navbar = () => {
       <div className="w-full px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           <div className="flex items-center">
-            <Link to="/home" className="text-2xl font-bold text-primary mr-4">
+            <Link to="/" className="text-2xl font-bold text-primary mr-4">
               Shuttleverse
             </Link>
             <div className="hidden md:flex items-center space-x-1">
@@ -115,6 +116,9 @@ const Navbar = () => {
         {isMenuOpen && (
           <div className="md:hidden py-4 border-t">
             <div className="flex flex-col space-y-4">
+              <div className="px-4 pb-2">
+                <LocationDisplay variant="full" />
+              </div>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Search className="h-4 w-4 text-gray-400" />

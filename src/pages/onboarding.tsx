@@ -13,7 +13,7 @@ const Onboarding = () => {
 
   useEffect(() => {
     if (user) {
-      navigate("/home");
+      navigate("/");
     }
   }, [user, navigate]);
 
@@ -21,7 +21,7 @@ const Onboarding = () => {
     e.preventDefault();
     try {
       await updateProfile.mutateAsync({ username, bio });
-      navigate("/home");
+      navigate("/");
     } catch (error) {
       toast.error("Failed to create profile. Please try again.");
     }

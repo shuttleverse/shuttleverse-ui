@@ -2,8 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "@/pages/index";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login from "@/pages/login";
 import Courts from "@/pages/courts";
 import AddCourt from "@/pages/add-court";
@@ -32,10 +31,10 @@ const AppContent = () => {
 
   return (
     <Routes>
-      <Route path="/" element={<Index />} />
+      <Route path="/" element={<Home />} />
+      <Route path="/home" element={<Navigate to="/" replace />} />
       <Route path="/login" element={<Login />} />
       <Route path="/map" element={<MapPage />} />
-      <Route path="/home" element={<Home />} />
       <Route path="/courts" element={<Courts />} />
       <Route path="/courts/:id" element={<EntityDetailsPage />} />
       <Route path="/coaches" element={<Coaches />} />
