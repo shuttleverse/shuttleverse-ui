@@ -10,3 +10,15 @@
     min-height: 220px;
   }
 }
+
+/* Prevent map touch events when bottom sheet is being dragged */
+body.map-dragging .responsive-map-container,
+body.map-dragging [data-testid="map"] {
+  pointer-events: none !important;
+  touch-action: none !important;
+}
+
+body.map-dragging .gm-style {
+  pointer-events: none !important;
+  touch-action: none !important;
+}

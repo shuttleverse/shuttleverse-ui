@@ -13,7 +13,7 @@ import {
   InfoWindow,
 } from "@vis.gl/react-google-maps";
 import { MapPinIcon, Maximize2 } from "lucide-react";
-import { MapEntity, LocationPoint, BoundingBox } from "@/services/map";
+import { MapEntity, BoundingBox } from "@/services/map";
 import {
   useCourtsByBoundingBox,
   useCoachesByBoundingBox,
@@ -25,6 +25,7 @@ import MarkerCluster from "./marker-cluster";
 import MapController from "./map-controller";
 import { useIsMobile } from "@/hooks/use-mobile";
 import MapSidePanel from "./map-side-panel";
+import { useLocationCoordinates } from "@/hooks/use-location-coordinates";
 import "./interactive-map.css";
 
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
@@ -33,9 +34,6 @@ const DEFAULT_LOCATION = {
   lat: 42.3601,
   lng: -71.0589,
 };
-
-const LOCAL_STORAGE_KEY = "shuttleverse_user_location";
-const LOCATION_EXPIRY_MS = 24 * 60 * 60 * 1000;
 
 const mapContainerStyle = {
   width: "100%",
@@ -153,9 +151,11 @@ const EntityInfoWindow: React.FC<{
 
 interface InteractiveMapProps {
   mapRef?: React.MutableRefObject<google.maps.Map | null>;
-  onEntitiesChange?: (entities: MapEntity[], bbox: BoundingBox | null) => void;
+  onEntitiesChange?: (entities: MapEntity[]) => void;
   fullScreen?: boolean;
   defaultZoom?: number;
+  selectedEntity?: MapEntity | null;
+  onEntitySelect?: (entity: MapEntity | null) => void;
 }
 
 const InteractiveMap: React.FC<InteractiveMapProps> = ({
@@ -163,81 +163,39 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
   onEntitiesChange,
   fullScreen,
   defaultZoom,
+  selectedEntity: externalSelectedEntity,
+  onEntitySelect,
 }) => {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
-  const [center, setCenter] = useState(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          if (
-            parsed &&
-            parsed.latitude &&
-            parsed.longitude &&
-            parsed.timestamp &&
-            Date.now() - parsed.timestamp < LOCATION_EXPIRY_MS
-          ) {
-            return {
-              lat: parseFloat(parsed.latitude),
-              lng: parseFloat(parsed.longitude),
-            };
-          }
-        }
-      } catch (e) {
-        // Ignore JSON parse error
-      }
-    }
-    return DEFAULT_LOCATION;
-  });
-  const [selectedEntity, setSelectedEntity] = useState<MapEntity | null>(null);
-  const [userLocation, setUserLocation] = useState<LocationPoint | null>(null);
+  const [center, setCenter] = useState(DEFAULT_LOCATION);
+  const [internalSelectedEntity, setInternalSelectedEntity] =
+    useState<MapEntity | null>(null);
+  const selectedEntity =
+    externalSelectedEntity !== undefined
+      ? externalSelectedEntity
+      : internalSelectedEntity;
+  const setSelectedEntity = useMemo(
+    () =>
+      externalSelectedEntity !== undefined
+        ? onEntitySelect || (() => {})
+        : setInternalSelectedEntity,
+    [externalSelectedEntity, onEntitySelect, setInternalSelectedEntity]
+  );
+  const { coordinates: userLocation, isLoading: isLoadingLocation } =
+    useLocationCoordinates();
   const [boundingBox, setBoundingBox] = useState<BoundingBox | null>(null);
-  const [isLoadingLocation, setIsLoadingLocation] = useState(true);
   const internalMapRef = useRef<google.maps.Map | null>(null);
   const mapRef = externalMapRef || internalMapRef;
 
   useEffect(() => {
-    const getUserLocation = () => {
-      if (!navigator.geolocation) {
-        setIsLoadingLocation(false);
-        return;
-      }
-
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const userLoc = {
-            latitude: position.coords.latitude.toString(),
-            longitude: position.coords.longitude.toString(),
-            timestamp: Date.now(),
-          };
-          setUserLocation(userLoc);
-          setCenter({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          });
-          setIsLoadingLocation(false);
-          // Save to localStorage
-          try {
-            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(userLoc));
-          } catch (e) {
-            // Ignore localStorage error
-          }
-        },
-        (error) => {
-          setIsLoadingLocation(false);
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 300000,
-        }
-      );
-    };
-
-    getUserLocation();
-  }, []);
+    if (userLocation) {
+      setCenter({
+        lat: parseFloat(userLocation.latitude),
+        lng: parseFloat(userLocation.longitude),
+      });
+    }
+  }, [userLocation]);
 
   const boundsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -259,9 +217,12 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
     []
   );
 
-  const onMapReady = useCallback((map: google.maps.Map) => {
-    mapRef.current = map;
-  }, []);
+  const onMapReady = useCallback(
+    (map: google.maps.Map) => {
+      mapRef.current = map;
+    },
+    [mapRef]
+  );
 
   useEffect(() => {
     return () => {
@@ -283,13 +244,16 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
     return [...courts, ...coaches, ...stringers];
   }, [courtsQuery.data, coachesQuery.data, stringersQuery.data]);
 
-  const handleMarkerClick = useCallback((entity: MapEntity) => {
-    setSelectedEntity(entity);
-  }, []);
+  const handleMarkerClick = useCallback(
+    (entity: MapEntity) => {
+      setSelectedEntity(entity);
+    },
+    [setSelectedEntity]
+  );
 
   const handleInfoWindowClose = useCallback(() => {
     setSelectedEntity(null);
-  }, []);
+  }, [setSelectedEntity]);
 
   const handlePanToEntity = useCallback(
     (entity: MapEntity) => {
@@ -302,14 +266,14 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
         setSelectedEntity(entity);
       }
     },
-    [mapRef]
+    [mapRef, setSelectedEntity]
   );
 
   useEffect(() => {
     if (onEntitiesChange) {
-      onEntitiesChange(allEntities, boundingBox);
+      onEntitiesChange(allEntities);
     }
-  }, [allEntities, boundingBox, onEntitiesChange]);
+  }, [allEntities, onEntitiesChange]);
 
   if (isLoadingLocation) {
     return (
@@ -407,6 +371,7 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
               disableDefaultUI={true}
               tilt={30}
               renderingType="VECTOR"
+              gestureHandling="greedy"
             >
               <MapController
                 onMapReady={onMapReady}
@@ -420,7 +385,7 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
                 map={mapRef.current}
               />
 
-              {selectedEntity && (
+              {selectedEntity && !isMobile && (
                 <EntityInfoWindow
                   entity={selectedEntity}
                   onClose={handleInfoWindowClose}
