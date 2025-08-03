@@ -1,12 +1,20 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ThumbsUp, MapPin, Globe, Phone, ArrowLeft } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { ThumbsUp, MapPin, Globe, Phone, ArrowLeft, Info } from "lucide-react";
 import { ScheduleDisplay } from "@/components/shared/schedule-display";
 import { EntityAvatar } from "@/components/shared/entity-avatar";
-import type { CourtData } from "@/services/courts";
-import type { CoachData } from "@/services/coaches";
+import type { CourtData, CourtPriceData } from "@/services/courts";
+import type { CoachData, CoachPriceData } from "@/services/coaches";
 import type { StringerData } from "@/services/stringers";
+import { useState } from "react";
 
 type EntityData = CourtData | CoachData | StringerData;
 
@@ -29,6 +37,29 @@ export function EntityDetails({
   isUpvotesLoading = false,
   onAddInfo,
 }: EntityDetailsProps) {
+  const [selectedPrice, setSelectedPrice] = useState<
+    CourtPriceData | CoachPriceData | null
+  >(null);
+  const [isPriceInfoDialogOpen, setIsPriceInfoDialogOpen] = useState(false);
+
+  const handlePriceClick = (price: CourtPriceData | CoachPriceData) => {
+    setSelectedPrice(price);
+    setIsPriceInfoDialogOpen(true);
+  };
+
+  const handlePriceUpvote = (priceId: string) => {
+    if (onUpvotePrice && !hasUpvotedPrice?.(priceId) && !isUpvotesLoading) {
+      onUpvotePrice(priceId);
+
+      if (selectedPrice && selectedPrice.id === priceId) {
+        setSelectedPrice({
+          ...selectedPrice,
+          upvotes: (selectedPrice.upvotes || 0) + 1,
+        });
+      }
+    }
+  };
+
   const renderPrices = () => {
     if (!entity.priceList || entity.priceList.length === 0) {
       return (
@@ -39,13 +70,12 @@ export function EntityDetails({
     }
 
     return entity.priceList.map((price) => {
-      const hasUpvoted = hasUpvotedPrice(price.id) || false;
-
       if ("stringName" in price) {
         return (
           <div
             key={price.id}
-            className="flex items-center justify-between p-4 bg-white/50 rounded-lg hover:bg-white/80 transition-colors"
+            className="flex items-center justify-between p-4 bg-white/50 rounded-lg hover:bg-white/80 transition-colors cursor-pointer"
+            onClick={() => handlePriceClick(price)}
           >
             <div>
               <p className="font-medium text-primary-indigo">
@@ -55,30 +85,9 @@ export function EntityDetails({
                 ${price.price.toFixed(2)}
               </p>
             </div>
-            <div
-              className={`flex items-center gap-2 ${
-                onUpvotePrice && !hasUpvoted && !isUpvotesLoading
-                  ? "cursor-pointer"
-                  : "cursor-default"
-              }`}
-              onClick={() =>
-                onUpvotePrice &&
-                !hasUpvoted &&
-                !isUpvotesLoading &&
-                onUpvotePrice(price.id)
-              }
-            >
-              <ThumbsUp
-                className={`w-5 h-5 p-1 rounded ${
-                  hasUpvoted ? "bg-green-100 text-green-600" : "text-gray-600"
-                }`}
-              />
+            <div className="flex items-center gap-2">
+              <Info className="w-4 h-4 text-gray-600" />
               <span className="text-sm font-medium">{price.upvotes || 0}</span>
-              {onUpvotePrice && (
-                <div className="w-16 px-2 py-0.5 text-xs rounded-full border bg-green-500/20 text-green-600 border-green-500/30 text-center">
-                  {hasUpvoted ? "Upvoted" : "Upvote"}
-                </div>
-              )}
             </div>
           </div>
         );
@@ -86,7 +95,8 @@ export function EntityDetails({
         return (
           <div
             key={price.id}
-            className="flex items-center justify-between p-4 bg-white/50 rounded-lg hover:bg-white/80 transition-colors"
+            className="flex items-center justify-between p-4 bg-white/50 rounded-lg hover:bg-white/80 transition-colors cursor-pointer"
+            onClick={() => handlePriceClick(price)}
           >
             <div>
               <p className="font-medium text-primary-indigo">
@@ -97,30 +107,9 @@ export function EntityDetails({
                 {price.duration && ` / ${price.duration} minutes`}
               </p>
             </div>
-            <div
-              className={`flex items-center gap-2 ${
-                onUpvotePrice && !hasUpvoted && !isUpvotesLoading
-                  ? "cursor-pointer"
-                  : "cursor-default"
-              }`}
-              onClick={() =>
-                onUpvotePrice &&
-                !hasUpvoted &&
-                !isUpvotesLoading &&
-                onUpvotePrice(price.id)
-              }
-            >
-              <ThumbsUp
-                className={`w-5 h-5 p-1 rounded ${
-                  hasUpvoted ? "bg-green-100 text-green-600" : "text-gray-600"
-                }`}
-              />
+            <div className="flex items-center gap-2">
+              <Info className="w-4 h-4 text-gray-600" />
               <span className="text-sm font-medium">{price.upvotes || 0}</span>
-              {onUpvotePrice && (
-                <div className="w-16 px-2 py-0.5 text-xs rounded-full border bg-green-500/20 text-green-600 border-green-500/30 text-center">
-                  {hasUpvoted ? "Upvoted" : "Upvote"}
-                </div>
-              )}
             </div>
           </div>
         );
@@ -286,6 +275,89 @@ export function EntityDetails({
           </div>
         </CardContent>
       </Card>
+
+      <Dialog
+        open={isPriceInfoDialogOpen}
+        onOpenChange={setIsPriceInfoDialogOpen}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Price Details</DialogTitle>
+            <DialogDescription>
+              Details about the price for this service.
+            </DialogDescription>
+          </DialogHeader>
+          {selectedPrice && (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <span className="font-medium">Service:</span>
+                  <span>
+                    {entity.type === "stringer" && "stringName" in selectedPrice
+                      ? (selectedPrice as { stringName: string }).stringName
+                      : entity.type === "court"
+                      ? "Open Court"
+                      : "Coaching Session"}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="font-medium">Price:</span>
+                  <span className="font-bold text-emerald-700">
+                    ${selectedPrice.price.toFixed(2)}
+                  </span>
+                </div>
+                {selectedPrice.duration && (
+                  <div className="flex justify-between">
+                    <span className="font-medium">Duration:</span>
+                    <span>{selectedPrice.duration} minutes</span>
+                  </div>
+                )}
+                {selectedPrice.submittedBy && (
+                  <div className="flex justify-between">
+                    <span className="font-medium">Submitted by:</span>
+                    <span>
+                      {(selectedPrice.submittedBy as { username: string })
+                        ?.username || "Unknown"}
+                    </span>
+                  </div>
+                )}
+                {selectedPrice.updatedAt && (
+                  <div className="flex justify-between">
+                    <span className="font-medium">Last updated:</span>
+                    <span>
+                      {new Date(selectedPrice.updatedAt).toLocaleDateString()}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex items-center justify-between pt-2 border-t">
+                <div className="flex items-center gap-2">
+                  <ThumbsUp className="w-5 h-5 text-gray-600" />
+                  <span className="font-medium">
+                    {selectedPrice.upvotes || 0} upvotes
+                  </span>
+                </div>
+                {onUpvotePrice && (
+                  <Button
+                    onClick={() => handlePriceUpvote(selectedPrice.id)}
+                    disabled={
+                      hasUpvotedPrice?.(selectedPrice.id) || isUpvotesLoading
+                    }
+                    className={`${
+                      hasUpvotedPrice?.(selectedPrice.id)
+                        ? "bg-green-600 hover:bg-green-700"
+                        : "bg-primary hover:bg-primary/90"
+                    }`}
+                  >
+                    {hasUpvotedPrice?.(selectedPrice.id) ? "Upvoted" : "Upvote"}
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

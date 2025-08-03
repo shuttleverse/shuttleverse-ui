@@ -21,6 +21,13 @@ export type MapEntity = {
   locationPoint: LocationPoint;
   description?: string;
   isVerified: boolean;
+  scheduleList?: unknown[];
+  priceList?: unknown[];
+  phoneNumber?: string;
+  website?: string;
+  otherContacts?: string;
+  additionalDetails?: string;
+  experience_years?: number;
 };
 
 export function useEntitiesByLocation(
@@ -50,6 +57,13 @@ export function useEntitiesByLocation(
           description: entityObj.description as string | undefined,
           isVerified: entityObj.isVerified as boolean,
           type: entityType,
+          scheduleList: entityObj.scheduleList as unknown[] | undefined,
+          priceList: entityObj.priceList as unknown[] | undefined,
+          phoneNumber: entityObj.phoneNumber as string | undefined,
+          website: entityObj.website as string | undefined,
+          otherContacts: entityObj.otherContacts as string | undefined,
+          additionalDetails: entityObj.additionalDetails as string | undefined,
+          experience_years: entityObj.experience_years as number | undefined,
         } as MapEntity;
       });
     },
@@ -57,7 +71,6 @@ export function useEntitiesByLocation(
   });
 }
 
-// Generic function to fetch entities by bounding box
 export function useEntitiesByBoundingBox(
   entityType: "court" | "coach" | "stringer",
   boundingBox: BoundingBox,
@@ -79,6 +92,13 @@ export function useEntitiesByBoundingBox(
           description: entityObj.description as string | undefined,
           isVerified: entityObj.isVerified as boolean,
           type: entityType,
+          scheduleList: entityObj.scheduleList as unknown[] | undefined,
+          priceList: entityObj.priceList as unknown[] | undefined,
+          phoneNumber: entityObj.phoneNumber as string | undefined,
+          website: entityObj.website as string | undefined,
+          otherContacts: entityObj.otherContacts as string | undefined,
+          additionalDetails: entityObj.additionalDetails as string | undefined,
+          experience_years: entityObj.experience_years as number | undefined,
         } as MapEntity;
       });
     },
@@ -86,7 +106,6 @@ export function useEntitiesByBoundingBox(
   });
 }
 
-// Specific hooks for each entity type by location
 export function useCourtsByLocation(
   location: LocationPoint,
   radiusInMeters: number,
@@ -111,7 +130,6 @@ export function useStringersByLocation(
   return useEntitiesByLocation("stringer", location, radiusInMeters, enabled);
 }
 
-// Specific hooks for each entity type by bounding box
 export function useCourtsByBoundingBox(
   boundingBox: BoundingBox,
   enabled: boolean = true

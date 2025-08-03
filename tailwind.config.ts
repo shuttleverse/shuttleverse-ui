@@ -62,7 +62,6 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
-        // Modern color scheme for the badminton platform
         "primary-blue": "#4361EE",
         "primary-indigo": "#3A0CA3",
         "primary-purple": "#7209B7",
@@ -71,7 +70,6 @@ export default {
         "neutral-light": "#F8F9FA",
         "neutral-medium": "#E9ECEF",
         "neutral-dark": "#212529",
-        // Keeping the badminton-specific colors for context
         "court-green": "#0B7A4A",
         shuttlecock: "#FFFFFF",
         "racquet-gray": "#6B7280",
@@ -118,5 +116,6 @@ export default {
       },
     },
   },
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   plugins: [require("tailwindcss-animate")],
 } satisfies Config;

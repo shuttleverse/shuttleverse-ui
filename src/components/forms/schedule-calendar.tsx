@@ -70,6 +70,18 @@ export function ScheduleCalendar({
   }, [schedules]);
 
   const handleEventAdd = (info: DateSelectArg) => {
+    const startDate = info.start;
+    const endDate = info.end;
+
+    if (
+      startDate.getDate() !== endDate.getDate() ||
+      startDate.getMonth() !== endDate.getMonth() ||
+      startDate.getFullYear() !== endDate.getFullYear()
+    ) {
+      info.view.calendar.unselect();
+      return;
+    }
+
     const jsDay = info.start.getDay();
     const apiDay = jsDay === 0 ? 7 : jsDay;
 
@@ -141,7 +153,6 @@ export function ScheduleCalendar({
     return times;
   };
 
-  // Mobile-friendly interface
   if (isMobile) {
     return (
       <Card className="w-full">
@@ -324,7 +335,6 @@ export function ScheduleCalendar({
     );
   }
 
-  // Desktop calendar interface
   return (
     <Card className="w-full">
       <CardHeader className="pb-3">

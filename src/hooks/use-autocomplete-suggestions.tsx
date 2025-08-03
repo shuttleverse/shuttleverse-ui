@@ -17,11 +17,12 @@ export type UseAutocompleteSuggestionsReturn = {
   };
 };
 
+export type SearchLevel = "city";
+
 export function useAutocompleteSuggestions(
   inputString: string,
-  requestOptions: Partial<google.maps.places.AutocompleteRequest> = {
-    includedPrimaryTypes: ["establishment", "street_address"],
-  }
+  searchLevel: SearchLevel | null = null,
+  requestOptions: Partial<google.maps.places.AutocompleteRequest> = {}
 ): UseAutocompleteSuggestionsReturn {
   const placesLib = useMapsLibrary("places");
 
@@ -69,7 +70,26 @@ export function useAutocompleteSuggestions(
       sessionTokenRef.current = new AutocompleteSessionToken();
     }
 
+    const levelSpecificOptions: Partial<google.maps.places.AutocompleteRequest> =
+      {};
+
+    switch (searchLevel) {
+      case "city":
+        levelSpecificOptions.includedPrimaryTypes = [
+          "locality",
+          "administrative_area_level_1",
+        ];
+        break;
+      default:
+        levelSpecificOptions.includedPrimaryTypes = [
+          "establishment",
+          "street_address",
+        ];
+        break;
+    }
+
     const request: google.maps.places.AutocompleteRequest = {
+      ...levelSpecificOptions,
       ...requestOptions,
       input: inputString,
       sessionToken: sessionTokenRef.current,
@@ -93,7 +113,7 @@ export function useAutocompleteSuggestions(
         setIsLoading(false);
       });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [placesLib, inputString]);
+  }, [placesLib, inputString, searchLevel]);
 
   return {
     suggestions,

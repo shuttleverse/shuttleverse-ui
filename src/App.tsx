@@ -16,6 +16,7 @@ import Home from "@/pages/home";
 import Onboarding from "@/pages/onboarding";
 import EntityDetailsPage from "@/pages/entity-details";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { LocationProvider } from "@/contexts/LocationContext";
 import MapPage from "@/pages/map";
 import Profile from "@/pages/profile";
 import About from "@/pages/about";
@@ -61,13 +62,15 @@ const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <AppContent />
-          </BrowserRouter>
-        </TooltipProvider>
+        <LocationProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <AppContent />
+            </BrowserRouter>
+          </TooltipProvider>
+        </LocationProvider>
       </AuthProvider>
     </QueryClientProvider>
   );

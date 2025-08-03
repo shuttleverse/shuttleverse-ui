@@ -6,9 +6,10 @@ import { useStringers } from "@/services/stringers";
 import { MapPin, Users, Wrench, Plus } from "lucide-react";
 import InteractiveMap from "@/components/shared/interactive-map";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useLocation } from "@/hooks/use-location";
+import { useLocationContext } from "@/hooks/use-location-context";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import LocationPicker from "@/components/shared/location-picker";
 
 const Home = () => {
   const isMobile = useIsMobile();
@@ -16,12 +17,8 @@ const Home = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const {
-    city,
-    state,
-    isLoading: locationLoading,
-    error: locationError,
-    refreshLocation,
-  } = useLocation();
+    locationData: { city, state, isLoading: locationLoading },
+  } = useLocationContext();
   const courtsQuery = useCourts();
   const coachesQuery = useCoaches();
   const stringersQuery = useStringers();
@@ -76,28 +73,18 @@ const Home = () => {
             </h1>
           </div>
           {!isMobile && (
-            <button
-              onClick={async () => {
-                localStorage.removeItem("shuttleverse_user_location");
-                localStorage.removeItem("shuttleverse_location_data");
-                const errorMessage = await refreshLocation();
-                if (errorMessage) {
-                  toast({
-                    title: "Location Error",
-                    description: String(errorMessage),
-                    variant: "destructive",
-                  });
-                }
-              }}
-              className="px-4 py-2 rounded-lg bg-gray-100 text-gray-700 font-medium text-sm shadow-sm hover:bg-gray-200 transition-colors flex items-center gap-2"
-            >
-              <MapPin className="h-4 w-4" />
-              {locationLoading
-                ? "Getting location..."
-                : city && state
-                ? `${city}, ${state}`
-                : "Set location"}
-            </button>
+            <LocationPicker
+              trigger={
+                <button className="px-4 py-2 rounded-lg bg-gray-100 text-gray-700 font-medium text-sm shadow-sm hover:bg-gray-200 transition-colors flex items-center gap-2">
+                  <MapPin className="h-4 w-4" />
+                  {locationLoading
+                    ? "Getting location..."
+                    : city && state
+                    ? `${city}, ${state}`
+                    : "Set location"}
+                </button>
+              }
+            />
           )}
         </div>
 
