@@ -71,7 +71,16 @@ export function ScheduleCalendar({
 
   const handleEventAdd = (info: DateSelectArg) => {
     const startDate = info.start;
-    const endDate = info.end;
+    let endDate = info.end;
+
+    if (
+      endDate.getHours() === 0 &&
+      endDate.getMinutes() === 0 &&
+      Math.abs(startDate.getDay() - endDate.getDay()) === 1
+    ) {
+      endDate = new Date(startDate);
+      endDate.setHours(23, 59, 0, 0);
+    }
 
     if (
       startDate.getDate() !== endDate.getDate() ||
@@ -89,13 +98,13 @@ export function ScheduleCalendar({
       entityType === "coach"
         ? ({
             dayOfWeek: apiDay,
-            startTime: info.start.toTimeString().slice(0, 5),
-            endTime: info.end.toTimeString().slice(0, 5),
+            startTime: startDate.toTimeString().slice(0, 5),
+            endTime: endDate.toTimeString().slice(0, 5),
           } as CoachFormScheduleData)
         : ({
             dayOfWeek: apiDay,
-            openTime: info.start.toTimeString().slice(0, 5),
-            closeTime: info.end.toTimeString().slice(0, 5),
+            openTime: startDate.toTimeString().slice(0, 5),
+            closeTime: endDate.toTimeString().slice(0, 5),
           } as CourtFormScheduleData);
 
     onChange([...schedules, newSchedule]);

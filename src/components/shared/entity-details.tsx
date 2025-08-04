@@ -177,13 +177,13 @@ export function EntityDetails({
                       </div>
                     )}
                     {entity.type === "court" && entity.website && (
-                      <div className="flex items-center gap-2 sm:gap-3 text-muted-foreground group">
-                        <Globe className="w-5 h-5 text-primary group-hover:text-primary-indigo transition-colors" />
+                      <div className="flex items-start gap-2 sm:gap-3 text-muted-foreground group">
+                        <Globe className="w-5 h-5 text-primary group-hover:text-primary-indigo transition-colors flex-shrink-0 mt-0.5" />
                         <a
                           href={entity.website}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-sm sm:text-base text-primary hover:text-primary-indigo transition-colors"
+                          className="text-sm sm:text-base text-primary hover:text-primary-indigo transition-colors break-all hover:break-words"
                         >
                           {entity.website}
                         </a>

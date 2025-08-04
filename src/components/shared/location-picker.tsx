@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { MapPin, Navigation } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,6 +19,8 @@ interface LocationPickerProps {
 
 const LocationPicker: React.FC<LocationPickerProps> = ({ trigger }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isUpdatingLocation, setIsUpdatingLocation] = useState(false);
+  const previousLocation = useRef<string>("");
   const { toast } = useToast();
   const {
     locationData,
@@ -27,11 +29,29 @@ const LocationPicker: React.FC<LocationPickerProps> = ({ trigger }) => {
     refreshLocation,
   } = useLocationContext();
 
+  useEffect(() => {
+    const currentLocation = `${locationData.city}, ${locationData.state}`;
+    if (
+      isUpdatingLocation &&
+      locationData.city &&
+      locationData.state &&
+      currentLocation !== previousLocation.current
+    ) {
+      setIsUpdatingLocation(false);
+      previousLocation.current = currentLocation;
+      toast({
+        title: "Location Updated",
+        description: `Set to ${locationData.city}, ${locationData.state}`,
+      });
+    }
+  }, [locationData.city, locationData.state, isUpdatingLocation, toast]);
+
   const handleLocationSelect = (place: {
     name: string;
     longitude?: number;
     latitude?: number;
   }) => {
+    setIsUpdatingLocation(true);
     const description = place.name;
     const parts = description.split(", ");
 
@@ -61,111 +81,42 @@ const LocationPicker: React.FC<LocationPickerProps> = ({ trigger }) => {
     }
 
     setIsOpen(false);
-    toast({
-      title: "Location Updated",
-      description: `Set to ${city}, ${state}`,
-    });
   };
 
-  const handleCurrentLocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          const { latitude, longitude } = position.coords;
-
-          try {
-            const response = await fetch(
-              `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${
-                import.meta.env.VITE_GOOGLE_MAPS_API_KEY
-              }`
-            );
-            const data = await response.json();
-
-            if (data.results && data.results.length > 0) {
-              const addressComponents = data.results[0].address_components;
-              let city = "";
-              let state = "";
-              let country = "US";
-
-              for (const component of addressComponents) {
-                if (component.types.includes("locality")) {
-                  city = component.long_name;
-                } else if (
-                  component.types.includes("administrative_area_level_1")
-                ) {
-                  state = component.short_name;
-                } else if (component.types.includes("country")) {
-                  country = component.short_name;
-                }
-              }
-
-              if (city && state) {
-                setLocationWithCoordinates(
-                  city,
-                  state,
-                  country,
-                  latitude,
-                  longitude
-                );
-                setIsOpen(false);
-                toast({
-                  title: "Location Updated",
-                  description: `Set to ${city}, ${state}`,
-                });
-              } else {
-                toast({
-                  title: "Location Error",
-                  description:
-                    "Could not determine city and state from your location",
-                  variant: "destructive",
-                });
-              }
-            } else {
-              toast({
-                title: "Location Error",
-                description: "No location data found for your coordinates",
-                variant: "destructive",
-              });
-            }
-          } catch (error) {
-            console.error("Error getting location details:", error);
-            toast({
-              title: "Location Error",
-              description: "Failed to get location details. Please try again.",
-              variant: "destructive",
-            });
-          }
-        },
-        (error) => {
-          console.error("Error getting current location:", error);
-          let errorMessage = "Failed to get your current location.";
-
-          switch (error.code) {
-            case error.PERMISSION_DENIED:
-              errorMessage =
-                "Location access denied. Please enable location permissions.";
-              break;
-            case error.POSITION_UNAVAILABLE:
-              errorMessage = "Location information is unavailable.";
-              break;
-            case error.TIMEOUT:
-              errorMessage = "Location request timed out. Please try again.";
-              break;
-          }
-
-          toast({
-            title: "Location Error",
-            description: errorMessage,
-            variant: "destructive",
-          });
-        }
-      );
-    } else {
+  const handleCurrentLocation = async () => {
+    if (!navigator.geolocation) {
       toast({
         title: "Location Not Supported",
         description: "Geolocation is not supported by your browser.",
         variant: "destructive",
       });
+      return;
+    }
+    const userConsent = window.confirm(
+      "This app would like to access your location to show nearby places. Allow location access?"
+    );
+
+    if (!userConsent) {
+      toast({
+        title: "Location Access Cancelled",
+        description:
+          "Location access was cancelled. You can still search for locations manually.",
+      });
+      return;
+    }
+
+    setIsUpdatingLocation(true);
+    const errorMessage = await refreshLocation();
+
+    if (errorMessage) {
+      setIsUpdatingLocation(false);
+      toast({
+        title: "Location Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } else {
+      setIsOpen(false);
     }
   };
 
@@ -208,7 +159,6 @@ const LocationPicker: React.FC<LocationPickerProps> = ({ trigger }) => {
             </span>
           </button>
 
-          {/* Divider */}
           <div className="flex-shrink-0 relative">
             <div className="absolute inset-0 flex items-center">
               <span className="w-full border-t border-gray-200" />
@@ -220,7 +170,6 @@ const LocationPicker: React.FC<LocationPickerProps> = ({ trigger }) => {
             </div>
           </div>
 
-          {/* Search Input with Flexible Container */}
           <div className="flex-1 flex flex-col min-h-0">
             <GoogleAutoComplete
               searchLevel="city"

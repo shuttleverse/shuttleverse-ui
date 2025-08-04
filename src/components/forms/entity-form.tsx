@@ -204,7 +204,7 @@ export function EntityForm({
                   <span className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
                     Name
                   </span>
-                  <p className="text-base font-medium text-gray-900 mt-1">
+                  <p className="text-base font-medium text-gray-900 mt-1 break-words">
                     {formData.name}
                   </p>
                 </div>
@@ -214,7 +214,7 @@ export function EntityForm({
                   <span className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
                     Location
                   </span>
-                  <p className="text-base font-medium text-gray-900 mt-1">
+                  <p className="text-base font-medium text-gray-900 mt-1 break-words">
                     {formData.location}
                   </p>
                 </div>
@@ -224,7 +224,7 @@ export function EntityForm({
                   <span className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
                     Description
                   </span>
-                  <p className="text-base font-medium text-gray-900 mt-1">
+                  <p className="text-base font-medium text-gray-900 mt-1 break-words">
                     {formData.description}
                   </p>
                 </div>
@@ -234,7 +234,7 @@ export function EntityForm({
                   <span className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
                     Phone Number
                   </span>
-                  <p className="text-base font-medium text-gray-900 mt-1">
+                  <p className="text-base font-medium text-gray-900 mt-1 break-words">
                     {formData.phoneNumber}
                   </p>
                 </div>
@@ -244,7 +244,7 @@ export function EntityForm({
                   <span className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
                     Other Contacts
                   </span>
-                  <p className="text-base font-medium text-gray-900 mt-1">
+                  <p className="text-base font-medium text-gray-900 mt-1 break-words">
                     {formData.otherContacts}
                   </p>
                 </div>
@@ -256,7 +256,7 @@ export function EntityForm({
                     <span className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
                       Years of Experience
                     </span>
-                    <p className="text-base font-medium text-gray-900 mt-1">
+                    <p className="text-base font-medium text-gray-900 mt-1 break-words">
                       {formData.experience_years}
                     </p>
                   </div>
@@ -268,7 +268,7 @@ export function EntityForm({
                     <span className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
                       Website
                     </span>
-                    <p className="text-base font-medium text-gray-900 mt-1">
+                    <p className="text-base font-medium text-gray-900 mt-1 break-all hover:break-words">
                       {formData.website}
                     </p>
                   </div>
@@ -295,7 +295,7 @@ export function EntityForm({
                       className="bg-gray-50 rounded-lg p-4 border-l-4 border-blue-500"
                     >
                       <div className="flex items-center justify-between">
-                        <span className="font-semibold text-gray-900">
+                        <span className="font-semibold text-gray-900 break-words">
                           {
                             [
                               "Monday",
@@ -312,7 +312,7 @@ export function EntityForm({
                             ]
                           }
                         </span>
-                        <span className="text-sm font-medium text-gray-600 bg-white px-3 py-1 rounded-full">
+                        <span className="text-sm font-medium text-gray-600 bg-white px-3 py-1 rounded-full break-words">
                           {"startTime" in schedule
                             ? `${schedule.startTime} - ${schedule.endTime}`
                             : `${schedule.openTime} - ${schedule.closeTime}`}
@@ -341,8 +341,8 @@ export function EntityForm({
                         className="bg-gray-50 rounded-lg p-4 border-l-4 border-purple-500"
                       >
                         <div className="flex items-center justify-between">
-                          <div>
-                            <span className="font-semibold text-gray-900">
+                          <div className="flex-1 min-w-0">
+                            <span className="font-semibold text-gray-900 break-words">
                               {entityType === "stringer" &&
                               "stringName" in price
                                 ? price.stringName
@@ -355,14 +355,14 @@ export function EntityForm({
                             {entityType !== "stringer" &&
                               "duration" in price &&
                               price.duration > 0 && (
-                                <p className="text-sm text-gray-600 mt-1">
+                                <p className="text-sm text-gray-600 mt-1 break-words">
                                   Duration: {price.duration} minutes
                                 </p>
                               )}
                           </div>
                           {entityType === "stringer" &&
                             "stringName" in price && (
-                              <span className="text-lg font-bold text-green-600 bg-white px-4 py-2 rounded-lg">
+                              <span className="text-lg font-bold text-green-600 bg-white px-4 py-2 rounded-lg flex-shrink-0 ml-3">
                                 ${price.price}
                               </span>
                             )}
@@ -387,7 +387,7 @@ export function EntityForm({
                   <span className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
                     Additional Information
                   </span>
-                  <p className="text-base font-medium text-gray-900 mt-1">
+                  <p className="text-base font-medium text-gray-900 mt-1 break-words">
                     {formData.additionalDetails}
                   </p>
                 </div>

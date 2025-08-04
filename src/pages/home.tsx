@@ -7,14 +7,12 @@ import { MapPin, Users, Wrench, Plus } from "lucide-react";
 import InteractiveMap from "@/components/shared/interactive-map";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useLocationContext } from "@/hooks/use-location-context";
-import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import LocationPicker from "@/components/shared/location-picker";
 
 const Home = () => {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
-  const { toast } = useToast();
   const { user } = useAuth();
   const {
     locationData: { city, state, isLoading: locationLoading },
