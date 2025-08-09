@@ -4,7 +4,12 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 
 interface FilterSidebarProps {
-  onFilterChange: (filters: unknown) => void;
+  onFilterChange: (filters: {
+    daysOfWeek?: string[];
+    isVerified?: boolean;
+    minPrice?: number;
+    maxPrice?: number;
+  }) => void;
   entityType: "club" | "court" | "coach" | "stringer";
 }
 
@@ -27,11 +32,9 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
     }
   };
 
-  const [rating, setRating] = useState([0]);
   const [verified, setVerified] = useState(false);
   const [availability, setAvailability] = useState<string[]>([]);
   const [priceRange, setPriceRange] = useState([0, getMaxRange(entityType)]);
-  const [facilities, setFacilities] = useState<string[]>([]);
 
   const days = [
     "Monday",
@@ -51,21 +54,23 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
 
   const handleApplyFilters = () => {
     onFilterChange({
-      rating: rating[0],
-      verified,
-      availability,
-      priceRange,
-      facilities,
+      isVerified: verified,
+      daysOfWeek: availability,
+      minPrice: priceRange[0],
+      maxPrice: priceRange[1],
     });
   };
 
   const handleResetFilters = () => {
-    setRating([0]);
     setVerified(false);
     setAvailability([]);
     setPriceRange([0, getMaxRange(entityType)]);
-    setFacilities([]);
-    onFilterChange({});
+    onFilterChange({
+      isVerified: false,
+      daysOfWeek: [],
+      minPrice: 0,
+      maxPrice: getMaxRange(entityType),
+    });
   };
 
   return (
@@ -87,49 +92,77 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
         </div>
       </div>
 
-      <div className="mb-6">
-        <h4 className="font-medium text-sm mb-2">Availability</h4>
-        <div className="space-y-2">
-          {days.map((day) => (
-            <div key={day} className="flex items-center space-x-2">
-              <Checkbox
-                id={`day-${day}`}
-                checked={availability.includes(day)}
-                onCheckedChange={() => handleAvailabilityChange(day)}
-              />
-              <label
-                htmlFor={`day-${day}`}
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-              >
-                {day}
-              </label>
+      {entityType !== "stringer" && (
+        <div className="mb-6">
+          <h4 className="font-medium text-sm mb-2">Availability</h4>
+          <div className="grid grid-cols-2 gap-2">
+            {days.map((day) => (
+              <div key={day} className="flex items-center space-x-2">
+                <Checkbox
+                  id={`day-${day}`}
+                  checked={availability.includes(day)}
+                  onCheckedChange={() => handleAvailabilityChange(day)}
+                />
+                <label
+                  htmlFor={`day-${day}`}
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                >
+                  {day.slice(0, 3)}
+                </label>
+              </div>
+            ))}
+          </div>
+          {availability.length > 0 && (
+            <div className="mt-3 p-2 bg-gray-50 rounded-lg">
+              <p className="text-xs text-gray-600 mb-1">Selected days:</p>
+              <div className="flex flex-wrap gap-1">
+                {availability.map((day) => (
+                  <span
+                    key={day}
+                    className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                  >
+                    {day.slice(0, 3)}
+                    <button
+                      type="button"
+                      onClick={() => handleAvailabilityChange(day)}
+                      className="ml-1 text-blue-600 hover:text-blue-800"
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+              </div>
             </div>
-          ))}
+          )}
         </div>
-      </div>
-
-      <div className="mb-6">
-        <h4 className="font-medium text-sm mb-2">
-          {entityType === "club" && "Facilities"}
-          {entityType === "court" && "Court Types"}
-          {entityType === "coach" && "Specialities"}
-          {entityType === "stringer" && "Services"}
-        </h4>
-      </div>
+      )}
 
       <div className="mb-6">
         <h4 className="font-medium text-sm mb-2">Price Range</h4>
-        <Slider
-          step={10}
-          value={priceRange}
-          onValueChange={setPriceRange}
-          className="mb-2"
-          max={getMaxRange(entityType)}
-        />
-        <div className="flex justify-between text-sm text-gray-600">
-          <span>${priceRange[0]}</span>
-          <span>${priceRange[1]}</span>
+        <div className="px-2">
+          <Slider
+            step={5}
+            value={priceRange}
+            onValueChange={setPriceRange}
+            className="mb-4"
+            max={getMaxRange(entityType)}
+          />
         </div>
+        <div className="flex justify-between items-center">
+          <div className="flex items-center space-x-2">
+            <span className="text-sm text-gray-600">Min:</span>
+            <span className="text-sm font-medium">${priceRange[0]}</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <span className="text-sm text-gray-600">Max:</span>
+            <span className="text-sm font-medium">${priceRange[1]}</span>
+          </div>
+        </div>
+        {priceRange[0] === priceRange[1] && priceRange[0] > 0 && (
+          <p className="text-xs text-gray-500 mt-1 text-center">
+            Exact price: ${priceRange[0]}
+          </p>
+        )}
       </div>
 
       <div className="flex flex-col space-y-2">

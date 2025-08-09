@@ -58,24 +58,80 @@ const MarkerCluster: React.FC<MarkerClusterProps> = ({
             gridSize: 40,
           }),
           renderer: {
-            render: ({ count, position }) => {
+            render: ({ count, position, markers }) => {
               const clusterElement = document.createElement("div");
               clusterElement.className = "cluster-marker";
+
+              const clusterEntities = markers
+                .map((marker) => {
+                  const entityIndex = markersRef.current.indexOf(
+                    marker as google.maps.marker.AdvancedMarkerElement
+                  );
+                  return entities[entityIndex];
+                })
+                .filter(Boolean);
+
+              const entityBreakdown = getEntityBreakdown(clusterEntities);
+              console.log(
+                "Cluster breakdown:",
+                entityBreakdown,
+                "Total:",
+                count
+              );
+
               clusterElement.style.cssText = `
-                background: #10b981;
-                border: 2px solid white;
+                background: conic-gradient(
+                  ${createPieChartGradient(entityBreakdown, count)}
+                );
+                border: 3px solid white;
                 border-radius: 50%;
                 color: white;
                 font-weight: bold;
                 font-size: 14px;
-                width: 40px;
-                height: 40px;
+                width: 50px;
+                height: 50px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                cursor: pointer;
+                transition: all 0.2s ease;
+                position: relative;
               `;
-              clusterElement.textContent = count.toString();
+
+              const countElement = document.createElement("div");
+              countElement.textContent = count.toString();
+              countElement.style.cssText = `
+                font-size: 16px;
+                font-weight: bold;
+                line-height: 1;
+                text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+              `;
+
+              clusterElement.appendChild(countElement);
+
+              clusterElement.addEventListener("mouseenter", () => {
+                clusterElement.style.transform = "scale(1.1)";
+                clusterElement.style.boxShadow = "0 6px 20px rgba(0,0,0,0.4)";
+              });
+
+              clusterElement.addEventListener("mouseleave", () => {
+                clusterElement.style.transform = "scale(1)";
+                clusterElement.style.boxShadow = "0 4px 12px rgba(0,0,0,0.3)";
+              });
+
+              clusterElement.addEventListener("click", () => {
+                if (count > 1) {
+                  const bounds = new google.maps.LatLngBounds();
+                  clusterEntities.forEach((entity) => {
+                    bounds.extend({
+                      lat: parseFloat(entity.locationPoint.latitude),
+                      lng: parseFloat(entity.locationPoint.longitude),
+                    });
+                  });
+                  map.fitBounds(bounds, 50);
+                }
+              });
 
               return new AdvancedMarkerElement({
                 position,
@@ -121,6 +177,58 @@ const MarkerCluster: React.FC<MarkerClusterProps> = ({
   }, [selectedEntity, entities]);
 
   return null;
+};
+
+const getEntityBreakdown = (entities: MapEntity[]) => {
+  return entities.reduce((acc, entity) => {
+    acc[entity.type] = (acc[entity.type] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+};
+
+const createPieChartGradient = (
+  breakdown: Record<string, number>,
+  total: number
+) => {
+  const colors = {
+    court: "#10b981",
+    coach: "#3b82f6",
+    stringer: "#f59e0b",
+  };
+
+  let currentAngle = 0;
+  const segments: string[] = [];
+
+  if (breakdown.court > 0) {
+    const percentage = (breakdown.court / total) * 360;
+    const endAngle = currentAngle + percentage;
+    segments.push(`${colors.court} ${currentAngle}deg ${endAngle}deg`);
+    currentAngle = endAngle;
+  }
+
+  if (breakdown.coach > 0) {
+    const percentage = (breakdown.coach / total) * 360;
+    const endAngle = currentAngle + percentage;
+    segments.push(`${colors.coach} ${currentAngle}deg ${endAngle}deg`);
+    currentAngle = endAngle;
+  }
+
+  if (breakdown.stringer > 0) {
+    const percentage = (breakdown.stringer / total) * 360;
+    const endAngle = currentAngle + percentage;
+    segments.push(`${colors.stringer} ${currentAngle}deg ${endAngle}deg`);
+  }
+
+  if (segments.length === 0) {
+    return "#6b7280";
+  }
+
+  if (segments.length === 1) {
+    const color = segments[0].split(" ")[0];
+    return `${color} 0deg 360deg`;
+  }
+
+  return segments.join(", ");
 };
 
 const createMarkerContent = (

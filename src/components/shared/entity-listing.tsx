@@ -32,7 +32,13 @@ interface PaginatedResponse {
 interface EntityListingProps {
   entityType: "club" | "court" | "coach" | "stringer";
   title: string;
-  useEntityData: () => {
+  useEntityData: (filters?: {
+    daysOfWeek?: number[];
+    isVerified?: boolean;
+    minPrice?: number;
+    maxPrice?: number;
+    search?: string;
+  }) => {
     data: { pages: PaginatedResponse[] } | undefined;
     isLoading: boolean;
     isFetchingNextPage: boolean;
@@ -50,13 +56,66 @@ const EntityListing: React.FC<EntityListingProps> = ({
 }) => {
   const navigate = useNavigate();
   const { isAuthenticated, user } = useAuth();
-  const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } =
-    useEntityData();
   const [searchTerm, setSearchTerm] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
+  const [activeFilters, setActiveFilters] = useState<{
+    daysOfWeek?: string[];
+    isVerified?: boolean;
+    minPrice?: number;
+    maxPrice?: number;
+    search?: string;
+  }>({});
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
+
+  // Format filters for API
+  const formattedFilters = useMemo(() => {
+    const formatted: {
+      isVerified?: boolean;
+      daysOfWeek?: number[];
+      minPrice?: number;
+      maxPrice?: number;
+      search?: string;
+    } = {};
+
+    if (activeFilters.isVerified !== undefined) {
+      formatted.isVerified = activeFilters.isVerified;
+    }
+
+    if (activeFilters.daysOfWeek && activeFilters.daysOfWeek.length > 0) {
+      // Convert day names to numbers (0=Sunday, 1=Monday, etc.)
+      const dayToNumber: Record<string, number> = {
+        Sunday: 0,
+        Monday: 1,
+        Tuesday: 2,
+        Wednesday: 3,
+        Thursday: 4,
+        Friday: 5,
+        Saturday: 6,
+      };
+      formatted.daysOfWeek = activeFilters.daysOfWeek.map(
+        (day) => dayToNumber[day]
+      );
+    }
+
+    if (activeFilters.minPrice !== undefined) {
+      formatted.minPrice = activeFilters.minPrice;
+    }
+
+    if (activeFilters.maxPrice !== undefined) {
+      formatted.maxPrice = activeFilters.maxPrice;
+    }
+
+    if (activeFilters.search) {
+      formatted.search = activeFilters.search;
+    }
+
+    return formatted;
+  }, [activeFilters]);
+
+  const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } =
+    useEntityData(formattedFilters);
 
   const entities = useMemo(
     () => data?.pages.flatMap((page) => page.data.content) || [],
@@ -93,12 +152,30 @@ const EntityListing: React.FC<EntityListingProps> = ({
     };
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-  const handleFilterChange = (filters: unknown) => {
-    setFilteredEntities(entities);
+  const handleFilterChange = (filters: {
+    daysOfWeek?: string[];
+    isVerified?: boolean;
+    minPrice?: number;
+    maxPrice?: number;
+  }) => {
+    // Update active filters to trigger API refetch
+    setActiveFilters(filters);
   };
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
+    setActiveFilters((prev) => ({
+      ...prev,
+      search: searchTerm.trim() || undefined,
+    }));
+  };
+
+  const handleClearSearch = () => {
+    setSearchTerm("");
+    setActiveFilters((prev) => {
+      const { search, ...rest } = prev;
+      return rest;
+    });
   };
 
   const handleAddEntityClick = () => {
@@ -188,6 +265,15 @@ const EntityListing: React.FC<EntityListingProps> = ({
               </div>
             )}
 
+            {isLoading && (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600 mx-auto mb-4"></div>
+                <p className="text-gray-600">
+                  Loading {getPluralForm(entityType)}...
+                </p>
+              </div>
+            )}
+
             {!isLoading && filteredEntities.length === 0 && (
               <div className="bg-white rounded-lg p-8 text-center">
                 <h2 className="text-xl font-semibold mb-2">
@@ -202,7 +288,7 @@ const EntityListing: React.FC<EntityListingProps> = ({
                 <Button
                   variant="outline"
                   onClick={() => {
-                    setFilteredEntities(entities);
+                    setActiveFilters({});
                     setSearchTerm("");
                   }}
                 >

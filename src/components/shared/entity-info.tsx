@@ -1,6 +1,6 @@
 import React from "react";
 import { MapEntity } from "@/services/map";
-import { MapPin, Star, Shield } from "lucide-react";
+import { MapPin, Shield } from "lucide-react";
 
 interface EntityInfoProps {
   entity: MapEntity;
@@ -45,8 +45,14 @@ const EntityInfo: React.FC<EntityInfoProps> = ({
     >
       <div className="flex items-center gap-2 mb-3">
         <span
-          className={`font-bold capitalize text-emerald-600 tracking-wide ${
+          className={`font-bold capitalize tracking-wide ${
             variant === "desktop" ? "text-sm" : "text-base"
+          } ${
+            entity.type === "court"
+              ? "text-emerald-600"
+              : entity.type === "coach"
+              ? "text-blue-600"
+              : "text-amber-600"
           }`}
         >
           {entity.type}

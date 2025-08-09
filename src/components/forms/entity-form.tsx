@@ -2,6 +2,7 @@ import { useForm, useFieldArray } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { MarkdownEditor } from "@/components/ui/markdown-editor";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Form,
@@ -29,6 +30,7 @@ import {
 } from "@/components/forms/schedule-calendar";
 import GoogleAutoComplete from "@/components/shared/google-autocomplete";
 import { useState } from "react";
+import { MarkdownRenderer } from "@/components/ui/markdown-renderer";
 import type { CourtFormData } from "@/services/courts";
 import type { CoachFormData } from "@/services/coaches";
 import type { StringerFormData } from "@/services/stringers";
@@ -67,6 +69,8 @@ export function EntityForm({
       description: "",
       phoneNumber: "",
       otherContacts: "",
+      website: "",
+      additionalDetails: "",
       schedules: [],
       prices:
         entityType === "stringer"
@@ -224,9 +228,9 @@ export function EntityForm({
                   <span className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
                     Description
                   </span>
-                  <p className="text-base font-medium text-gray-900 mt-1 break-words">
-                    {formData.description}
-                  </p>
+                  <div className="text-base font-medium text-gray-900 mt-1 prose prose-sm max-w-none">
+                    <MarkdownRenderer>{formData.description}</MarkdownRenderer>
+                  </div>
                 </div>
               )}
               {formData.phoneNumber && (
@@ -373,7 +377,6 @@ export function EntityForm({
               </div>
             )}
 
-          {/* Additional Details for Stringer */}
           {entityType === "stringer" &&
             "additionalDetails" in formData &&
             formData.additionalDetails &&
@@ -387,9 +390,11 @@ export function EntityForm({
                   <span className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
                     Additional Information
                   </span>
-                  <p className="text-base font-medium text-gray-900 mt-1 break-words">
-                    {formData.additionalDetails}
-                  </p>
+                  <div className="text-base font-medium text-gray-900 mt-1 prose prose-sm max-w-none">
+                    <MarkdownRenderer>
+                      {formData.additionalDetails}
+                    </MarkdownRenderer>
+                  </div>
                 </div>
               </div>
             )}
@@ -533,14 +538,15 @@ export function EntityForm({
                       )}
                     </FormLabel>
                     <FormControl>
-                      <Textarea
+                      <MarkdownEditor
                         id="entity-description"
                         name="description"
                         autoComplete="off"
-                        {...field}
-                        required={requiredFields.description}
+                        value={field.value || ""}
+                        onChange={field.onChange}
+                        placeholder="Describe your services, facilities, or any important information..."
                         maxLength={400}
-                        className="resize-none"
+                        showToolbar={true}
                       />
                     </FormControl>
                     <FormMessage />
@@ -598,6 +604,7 @@ export function EntityForm({
                           type="url"
                           autoComplete="off"
                           {...field}
+                          value={field.value || ""}
                           required={requiredFields.website}
                         />
                       </FormControl>
@@ -625,7 +632,7 @@ export function EntityForm({
                         type="tel"
                         autoComplete="off"
                         {...field}
-                        value={field.value}
+                        value={field.value || ""}
                         onChange={(e) => {
                           const value = e.target.value;
                           const digitsOnly = value.replace(/\D/g, "");
@@ -674,31 +681,6 @@ export function EntityForm({
                 }}
               />
 
-              {entityType === "stringer" && (
-                <FormField
-                  control={form.control}
-                  name="additionalDetails"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel htmlFor="entity-additional-details">
-                        Additional Details
-                      </FormLabel>
-                      <FormControl>
-                        <Textarea
-                          id="entity-additional-details"
-                          name="additionalDetails"
-                          autoComplete="off"
-                          {...field}
-                          maxLength={400}
-                          className="resize-none"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              )}
-
               <FormField
                 control={form.control}
                 name="otherContacts"
@@ -706,7 +688,8 @@ export function EntityForm({
                   <FormItem>
                     <FormLabel htmlFor="entity-other-contacts">
                       Other Contacts
-                      {requiredFields.otherContacts && (
+                      {(requiredFields.otherContacts ||
+                        entityType === "coach") && (
                         <span className="text-red-500 ml-1">*</span>
                       )}
                     </FormLabel>
@@ -716,12 +699,26 @@ export function EntityForm({
                         name="otherContacts"
                         autoComplete="off"
                         {...field}
-                        required={requiredFields.otherContacts}
+                        value={field.value || ""}
+                        required={
+                          requiredFields.otherContacts || entityType === "coach"
+                        }
                       />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
+                rules={{
+                  validate: (value) => {
+                    if (
+                      (!value || value.trim() === "") &&
+                      (requiredFields.otherContacts || entityType === "coach")
+                    ) {
+                      return "Other contacts are required for coaches";
+                    }
+                    return true;
+                  },
+                }}
               />
             </div>
           )}
@@ -1032,13 +1029,15 @@ export function EntityForm({
                           Additional Details
                         </FormLabel>
                         <FormControl>
-                          <Textarea
+                          <MarkdownEditor
                             id="entity-additional-details"
                             name="additionalDetails"
                             autoComplete="off"
-                            {...field}
+                            value={field.value || ""}
+                            onChange={field.onChange}
+                            placeholder="Add any additional information about your stringing services, equipment, or special offers..."
                             maxLength={400}
-                            className="resize-none"
+                            showToolbar={true}
                           />
                         </FormControl>
                         <FormMessage />

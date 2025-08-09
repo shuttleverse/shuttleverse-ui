@@ -40,12 +40,9 @@ const MapPage = () => {
 
   const [selectedEntity, setSelectedEntity] = useState<MapEntity | null>(null);
 
-  const filteredEntities = entities.filter((entity) =>
-    activeFilters.has(entity.type)
-  );
-
   const isScrollable = sheetHeight >= window.innerHeight * MAX_HEIGHT;
   const showResults = sheetHeight > MIN_HEIGHT + 50;
+  const isAtMaxHeight = sheetHeight >= window.innerHeight * MAX_HEIGHT;
 
   const canShowDualPanels = window.innerWidth >= 1200;
 
@@ -135,6 +132,8 @@ const MapPage = () => {
 
   const onDragStart = useCallback(
     (e: React.TouchEvent | React.MouseEvent) => {
+      if (isAtMaxHeight) return;
+
       e.preventDefault();
       e.stopPropagation();
       e.nativeEvent.stopImmediatePropagation();
@@ -150,7 +149,7 @@ const MapPage = () => {
 
       document.body.classList.add("map-dragging");
     },
-    [sheetHeight]
+    [sheetHeight, isAtMaxHeight]
   );
 
   const onDragMove = useCallback((e: TouchEvent | MouseEvent) => {
@@ -377,7 +376,7 @@ const MapPage = () => {
               onClick={() => toggleFilter("coach")}
               className={`py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
                 activeFilters.has("coach")
-                  ? "bg-emerald-600 text-white shadow-sm"
+                  ? "bg-blue-600 text-white shadow-sm"
                   : "bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200"
               }`}
             >
@@ -387,7 +386,7 @@ const MapPage = () => {
               onClick={() => toggleFilter("stringer")}
               className={`py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
                 activeFilters.has("stringer")
-                  ? "bg-emerald-600 text-white shadow-sm"
+                  ? "bg-amber-600 text-white shadow-sm"
                   : "bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200"
               }`}
             >
@@ -397,35 +396,45 @@ const MapPage = () => {
         </div>
 
         <div className="flex-1 overflow-y-auto p-4">
-          {filteredEntities.length === 0 ? (
-            <div className="text-center text-gray-400 py-8">
-              {activeFilters.size === 0 ? (
-                <div>
-                  <p>No filters selected</p>
-                  <p className="text-sm mt-1">
-                    Select at least one filter to see results
-                  </p>
+          {(() => {
+            const filteredEntities = entities.filter((entity) =>
+              activeFilters.has(entity.type)
+            );
+
+            if (filteredEntities.length === 0) {
+              return (
+                <div className="text-center text-gray-400 py-8">
+                  {activeFilters.size === 0 ? (
+                    <div>
+                      <p>No filters selected</p>
+                      <p className="text-sm mt-1">
+                        Select at least one filter to see results
+                      </p>
+                    </div>
+                  ) : (
+                    <div>
+                      <p>No results for selected filters</p>
+                      <p className="text-sm mt-1">Try adjusting your filters</p>
+                    </div>
+                  )}
                 </div>
-              ) : (
-                <div>
-                  <p>No results for selected filters</p>
-                  <p className="text-sm mt-1">Try adjusting your filters</p>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {filteredEntities.map((entity) => (
-                <EntityInfo
-                  key={entity.id}
-                  entity={entity}
-                  isSelected={selectedEntity?.id === entity.id}
-                  onClick={handlePanToEntity}
-                  variant="desktop"
-                />
-              ))}
-            </div>
-          )}
+              );
+            }
+
+            return (
+              <div className="space-y-3">
+                {filteredEntities.map((entity) => (
+                  <EntityInfo
+                    key={entity.id}
+                    entity={entity}
+                    isSelected={selectedEntity?.id === entity.id}
+                    onClick={handlePanToEntity}
+                    variant="desktop"
+                  />
+                ))}
+              </div>
+            );
+          })()}
         </div>
       </div>
     );
@@ -503,6 +512,7 @@ const MapPage = () => {
               onEntitySelect={handleEntitySelect}
               showSidePanel={false}
               canShowDualPanels={canShowDualPanels}
+              activeFilters={activeFilters}
             />
           </div>
         </div>
@@ -536,33 +546,34 @@ const MapPage = () => {
               onEntitySelect={handleEntitySelect}
               showSidePanel={false}
               canShowDualPanels={canShowDualPanels}
+              activeFilters={activeFilters}
             />
-
-            {sheetHeight < window.innerHeight * MAX_HEIGHT && (
-              <button
-                onClick={() => navigate(-1)}
-                className="absolute z-20 rounded-full bg-white/90 backdrop-blur-sm shadow-lg hover:bg-white hover:shadow-xl transition-all duration-300 p-3 text-gray-700 border border-white/40 hover:border-white/60"
-                style={{
-                  top: `${16 + mapOffset}px`,
-                  left: "16px",
-                }}
-                aria-label="Back"
-              >
-                <svg
-                  width="24"
-                  height="24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  viewBox="0 0 24 24"
-                >
-                  <path d="M15 18l-6-6 6-6" />
-                </svg>
-              </button>
-            )}
           </div>
+
+          {sheetHeight < window.innerHeight * MAX_HEIGHT && (
+            <button
+              onClick={() => navigate(-1)}
+              className="fixed z-20 rounded-full bg-white/90 backdrop-blur-sm shadow-lg hover:bg-white hover:shadow-xl transition-all duration-300 p-3 text-gray-700 border border-white/40 hover:border-white/60"
+              style={{
+                top: "16px",
+                left: "16px",
+              }}
+              aria-label="Back"
+            >
+              <svg
+                width="24"
+                height="24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                viewBox="0 0 24 24"
+              >
+                <path d="M15 18l-6-6 6-6" />
+              </svg>
+            </button>
+          )}
 
           <PreventPullToRefresh>
             <div
@@ -601,10 +612,12 @@ const MapPage = () => {
                   : "height 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94), border-radius 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94), border 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
                 transform: "translateZ(0)",
               }}
-              onMouseDown={!isScrollable ? onDragStart : undefined}
+              onMouseDown={
+                !isScrollable && !isAtMaxHeight ? onDragStart : undefined
+              }
               onTouchStart={(e) => {
                 e.stopPropagation();
-                if (!isScrollable) {
+                if (!isScrollable && !isAtMaxHeight) {
                   onDragStart(e);
                 }
               }}
@@ -658,7 +671,7 @@ const MapPage = () => {
                 onMouseUp={handleContentMouseUp}
               >
                 {sheetHeight >= window.innerHeight * MAX_HEIGHT && (
-                  <div className="mb-4">
+                  <div className="mb-4 flex justify-between items-center">
                     <button
                       onClick={() => navigate(-1)}
                       className="flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors hover:bg-gray-50 px-3 py-2 rounded-lg"
@@ -676,6 +689,26 @@ const MapPage = () => {
                         <path d="M15 18l-6-6 6-6" />
                       </svg>
                       <span className="text-sm font-medium">Back to Home</span>
+                    </button>
+                    <button
+                      onClick={() =>
+                        setSheetHeight(window.innerHeight * DEFAULT_HEIGHT)
+                      }
+                      className="flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors hover:bg-gray-50 px-3 py-2 rounded-lg"
+                    >
+                      <svg
+                        width="20"
+                        height="20"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        viewBox="0 0 24 24"
+                      >
+                        <path d="M7 15l5-5 5 5" />
+                      </svg>
+                      <span className="text-sm font-medium">Collapse</span>
                     </button>
                   </div>
                 )}
@@ -697,7 +730,7 @@ const MapPage = () => {
                           onClick={() => toggleFilter("coach")}
                           className={`py-3 px-2 rounded-lg text-sm font-medium transition-colors ${
                             activeFilters.has("coach")
-                              ? "bg-emerald-600 text-white shadow-sm"
+                              ? "bg-blue-600 text-white shadow-sm"
                               : "bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200"
                           }`}
                         >
@@ -707,7 +740,7 @@ const MapPage = () => {
                           onClick={() => toggleFilter("stringer")}
                           className={`py-3 px-2 rounded-lg text-sm font-medium transition-colors ${
                             activeFilters.has("stringer")
-                              ? "bg-emerald-600 text-white shadow-sm"
+                              ? "bg-amber-600 text-white shadow-sm"
                               : "bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200"
                           }`}
                         >
@@ -755,33 +788,43 @@ const MapPage = () => {
                         showBackButton={true}
                         transparentBackground={false}
                       />
-                    ) : filteredEntities.length === 0 ? (
-                      <div className="text-center text-gray-400 py-8">
-                        {activeFilters.size === 0 ? (
-                          <div>
-                            <p>No filters selected</p>
-                            <p className="text-sm mt-1">
-                              Select at least one filter to see results
-                            </p>
-                          </div>
-                        ) : (
-                          <div>
-                            <p>No results for selected filters</p>
-                            <p className="text-sm mt-1">
-                              Try adjusting your filters
-                            </p>
-                          </div>
-                        )}
-                      </div>
                     ) : (
-                      filteredEntities.map((entity) => (
-                        <EntityInfo
-                          key={entity.id}
-                          entity={entity}
-                          onClick={handlePanToEntity}
-                          variant="mobile"
-                        />
-                      ))
+                      (() => {
+                        const filteredEntities = entities.filter((entity) =>
+                          activeFilters.has(entity.type)
+                        );
+
+                        if (filteredEntities.length === 0) {
+                          return (
+                            <div className="text-center text-gray-400 py-8">
+                              {activeFilters.size === 0 ? (
+                                <div>
+                                  <p>No filters selected</p>
+                                  <p className="text-sm mt-1">
+                                    Select at least one filter to see results
+                                  </p>
+                                </div>
+                              ) : (
+                                <div>
+                                  <p>No results for selected filters</p>
+                                  <p className="text-sm mt-1">
+                                    Try adjusting your filters
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        }
+
+                        return filteredEntities.map((entity) => (
+                          <EntityInfo
+                            key={entity.id}
+                            entity={entity}
+                            onClick={handlePanToEntity}
+                            variant="mobile"
+                          />
+                        ));
+                      })()
                     )}
                   </div>
                 )}
