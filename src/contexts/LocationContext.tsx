@@ -182,6 +182,14 @@ export const LocationProvider: React.FC<LocationProviderProps> = ({
           for (const component of addressComponents) {
             if (component.types.includes("locality")) {
               city = component.long_name;
+            } else if (component.types.includes("sublocality_level_1")) {
+              city = component.long_name;
+            } else if (
+              component.types.includes("administrative_area_level_2")
+            ) {
+              if (!city) {
+                city = component.long_name;
+              }
             } else if (
               component.types.includes("administrative_area_level_1")
             ) {

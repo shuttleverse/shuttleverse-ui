@@ -11,6 +11,7 @@ import {
 import { ThumbsUp, MapPin, Globe, Phone, ArrowLeft, Info } from "lucide-react";
 import { ScheduleDisplay } from "@/components/shared/schedule-display";
 import { EntityAvatar } from "@/components/shared/entity-avatar";
+import { MarkdownRenderer } from "@/components/ui/markdown-renderer";
 import type { CourtData, CourtPriceData } from "@/services/courts";
 import type { CoachData, CoachPriceData } from "@/services/coaches";
 import type { StringerData } from "@/services/stringers";
@@ -49,6 +50,8 @@ export function EntityDetails({
 
   const handlePriceUpvote = (priceId: string) => {
     if (onUpvotePrice && !hasUpvotedPrice?.(priceId) && !isUpvotesLoading) {
+      setIsPriceInfoDialogOpen(false);
+
       onUpvotePrice(priceId);
 
       if (selectedPrice && selectedPrice.id === priceId) {
@@ -204,9 +207,9 @@ export function EntityDetails({
 
                   {entity.description && (
                     <div className="mt-6 sm:mt-8 pt-6 sm:pt-8 border-t border-primary/10">
-                      <p className="text-muted-foreground text-sm sm:text-base leading-relaxed">
+                      <MarkdownRenderer className="text-muted-foreground text-sm sm:text-base leading-relaxed prose prose-sm max-w-none">
                         {entity.description}
-                      </p>
+                      </MarkdownRenderer>
                     </div>
                   )}
                 </div>
@@ -216,9 +219,9 @@ export function EntityDetails({
                     <h2 className="text-lg sm:text-2xl font-semibold text-primary-indigo mb-4 sm:mb-6">
                       Additional Details
                     </h2>
-                    <p className="text-muted-foreground text-sm sm:text-base leading-relaxed">
+                    <MarkdownRenderer className="text-muted-foreground text-sm sm:text-base leading-relaxed prose prose-sm max-w-none">
                       {entity.additionalDetails}
-                    </p>
+                    </MarkdownRenderer>
                   </div>
                 )}
 

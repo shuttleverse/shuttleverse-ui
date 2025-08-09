@@ -64,6 +64,8 @@ export function ScheduleDisplay({
 
   const handleUpvote = (scheduleId: string) => {
     if (onUpvote && !hasUpvotedSchedule?.(scheduleId) && !isUpvotesLoading) {
+      setIsInfoDialogOpen(false);
+
       onUpvote(scheduleId);
 
       if (selectedSchedule && selectedSchedule.id === scheduleId) {

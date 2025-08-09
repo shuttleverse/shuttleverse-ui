@@ -4,6 +4,7 @@ import { Check, MapPin } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { EntityAvatar } from "@/components/shared/entity-avatar";
+import { MarkdownRenderer } from "@/components/ui/markdown-renderer";
 
 interface EntityCardProps {
   id: string;
@@ -71,12 +72,6 @@ const EntityCard: React.FC<EntityCardProps> = ({
               <MapPin className="w-4 h-4 mr-1" /> {location}
             </div>
           </div>
-
-          {description && (
-            <p className="text-sm text-gray-600 mt-2 line-clamp-2">
-              {description}
-            </p>
-          )}
         </CardContent>
       </Card>
     </Link>

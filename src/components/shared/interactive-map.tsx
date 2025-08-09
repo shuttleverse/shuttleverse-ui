@@ -122,6 +122,7 @@ interface InteractiveMapProps {
   onEntitySelect?: (entity: MapEntity | null) => void;
   showSidePanel?: boolean;
   canShowDualPanels?: boolean;
+  activeFilters?: Set<string>;
 }
 
 const InteractiveMap: React.FC<InteractiveMapProps> = ({
@@ -133,6 +134,7 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
   onEntitySelect,
   showSidePanel = true,
   canShowDualPanels = true,
+  activeFilters,
 }) => {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
@@ -236,8 +238,15 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
     const coaches = coachesQuery.data || [];
     const stringers = stringersQuery.data || [];
 
-    return [...courts, ...coaches, ...stringers];
-  }, [courtsQuery.data, coachesQuery.data, stringersQuery.data]);
+    const allEntities = [...courts, ...coaches, ...stringers];
+
+    // Filter entities based on activeFilters if provided
+    if (activeFilters) {
+      return allEntities.filter((entity) => activeFilters.has(entity.type));
+    }
+
+    return allEntities;
+  }, [courtsQuery.data, coachesQuery.data, stringersQuery.data, activeFilters]);
 
   const handleMarkerClick = useCallback(
     (entity: MapEntity) => {
@@ -382,10 +391,8 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
                   <span>Courts</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <div className="flex items-center gap-1">
-                    <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                    <span>Coaches</span>
-                  </div>
+                  <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                  <span>Coaches</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <div className="w-3 h-3 bg-amber-500 rounded-full"></div>

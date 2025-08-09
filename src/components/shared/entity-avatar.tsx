@@ -46,15 +46,15 @@ const getTypeStyle = (type: EntityAvatarProps["type"]) => {
 const getTypeColor = (type: EntityAvatarProps["type"]) => {
   switch (type) {
     case "court":
-      return "4361EE";
-    case "coach":
       return "10B981";
+    case "coach":
+      return "3B82F6";
     case "stringer":
       return "F59E0B";
     case "club":
       return "8B5CF6";
     default:
-      return "4361EE";
+      return "10B981";
   }
 };
 

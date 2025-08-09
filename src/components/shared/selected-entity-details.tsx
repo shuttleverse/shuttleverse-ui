@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import type { MapEntity } from "@/services/map";
 import { EntityAvatar } from "./entity-avatar";
+import { MarkdownRenderer } from "@/components/ui/markdown-renderer";
 
 interface SelectedEntityDetailsProps {
   entity: MapEntity & {
@@ -282,9 +283,9 @@ const SelectedEntityDetails: React.FC<SelectedEntityDetailsProps> = ({
 
           {entity.description && (
             <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-5 border border-gray-200">
-              <p className="text-gray-700 text-base leading-relaxed">
+              <MarkdownRenderer className="text-gray-700 text-base leading-relaxed prose prose-sm max-w-none">
                 {entity.description}
-              </p>
+              </MarkdownRenderer>
             </div>
           )}
 
@@ -331,9 +332,9 @@ const SelectedEntityDetails: React.FC<SelectedEntityDetailsProps> = ({
                 <span className="text-blue-600">📋</span>
                 Additional Details
               </h4>
-              <p className="text-base text-gray-700 leading-relaxed">
+              <MarkdownRenderer className="text-base text-gray-700 leading-relaxed prose prose-sm max-w-none">
                 {entity.additionalDetails}
-              </p>
+              </MarkdownRenderer>
             </div>
           )}
 
