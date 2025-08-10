@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import { MarkerClusterer, GridAlgorithm } from "@googlemaps/markerclusterer";
 import { MapEntity } from "@/services/map";
+import { entityColors } from "@/lib/colors";
 
 interface MarkerClusterProps {
   entities: MapEntity[];
@@ -191,9 +192,9 @@ const createPieChartGradient = (
   total: number
 ) => {
   const colors = {
-    court: "#10b981",
-    coach: "#3b82f6",
-    stringer: "#f59e0b",
+    court: entityColors.court.solid,
+    coach: entityColors.coach.solid,
+    stringer: entityColors.stringer.solid,
   };
 
   let currentAngle = 0;
@@ -236,16 +237,10 @@ const createMarkerContent = (
   isSelected: boolean = false
 ) => {
   const getMarkerColor = (type: string) => {
-    switch (type) {
-      case "court":
-        return "#10b981";
-      case "coach":
-        return "#3b82f6";
-      case "stringer":
-        return "#f59e0b";
-      default:
-        return "#6b7280";
-    }
+    return (
+      entityColors[type as keyof typeof entityColors]?.gradient ||
+      entityColors.default.gradient
+    );
   };
 
   const markerElement = document.createElement("div");

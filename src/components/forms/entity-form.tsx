@@ -843,10 +843,6 @@ export function EntityForm({
                                     </SelectContent>
                                   </Select>
                                   <Input
-                                    placeholder={`${
-                                      type.charAt(0).toUpperCase() +
-                                      type.slice(1)
-                                    } ${type !== "email" ? "username" : ""}`}
                                     value={contact}
                                     onChange={(e) => {
                                       const currentContacts = field.value || {};

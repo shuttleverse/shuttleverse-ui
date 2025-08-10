@@ -7,6 +7,8 @@ import {
 } from "@/services/stringers";
 import { EntityForm } from "@/components/forms/entity-form";
 import Navbar from "@/components/layout/navbar";
+import { useIsMobile } from "@/hooks/use-mobile";
+import BottomNavigation from "@/components/layout/bottom-navigation";
 
 const requiredFields = {
   name: true,
@@ -27,7 +29,7 @@ export default function AddStringer() {
   const { toast } = useToast();
   const createStringer = useCreateStringer();
   const addStringerPrice = useAddStringerPrice();
-
+  const isMobile = useIsMobile();
   const handleSubmit = async (formData: StringerFormData) => {
     try {
       const { prices } = formData;
@@ -86,6 +88,7 @@ export default function AddStringer() {
           </div>
         </div>
       </div>
+      {isMobile && <BottomNavigation />}
     </div>
   );
 }

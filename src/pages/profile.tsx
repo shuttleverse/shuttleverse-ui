@@ -10,15 +10,20 @@ import { User, Edit, Save, X } from "lucide-react";
 import { toast } from "@/components/ui/sonner-utils";
 import Navbar from "@/components/layout/navbar";
 import Footer from "@/components/layout/footer";
+import BottomNavigation from "@/components/layout/bottom-navigation";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { useLogout } from "@/services/auth";
 
 const Profile = () => {
   const { user } = useAuth();
   const updateProfile = useUpdateProfile();
+  const logout = useLogout();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     username: user?.username || "",
     bio: user?.bio || "",
   });
+  const isMobile = useIsMobile();
 
   const handleEdit = () => {
     setIsEditing(true);
@@ -251,15 +256,24 @@ const Profile = () => {
                     </div>
                   )}
                 </div>
+                {isMobile && (
+                  <Button
+                    onClick={() => logout.mutate()}
+                    variant="outline"
+                    className="flex-1"
+                  >
+                    Logout
+                  </Button>
+                )}
               </CardContent>
             </Card>
           </div>
 
-          {/* Additional spacing to push footer down */}
           <div className="h-64"></div>
         </div>
       </div>
       <Footer />
+      {isMobile && <BottomNavigation />}
     </div>
   );
 };

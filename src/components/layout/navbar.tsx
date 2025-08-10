@@ -52,17 +52,6 @@ const Navbar = () => {
 
           <div className="flex items-center">
             <div className="hidden md:flex md:items-center ml-4 space-x-4">
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Search className="h-4 w-4 text-gray-400" />
-                </div>
-                <Input
-                  type="text"
-                  placeholder="Search"
-                  className="pl-10 w-[200px]"
-                />
-              </div>
-
               {isAuthenticated ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -105,7 +94,7 @@ const Navbar = () => {
             </div>
 
             <button
-              className="md:hidden p-2 text-gray-600 hover:text-primary transition-colors"
+              className="hidden md:block p-2 text-gray-600 hover:text-primary transition-colors"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
             >
               {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -114,20 +103,10 @@ const Navbar = () => {
         </div>
 
         {isMenuOpen && (
-          <div className="md:hidden py-4 border-t">
+          <div className="hidden md:block py-4 border-t">
             <div className="flex flex-col space-y-4">
               <div className="px-4 pb-2">
                 <LocationDisplay variant="full" />
-              </div>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Search className="h-4 w-4 text-gray-400" />
-                </div>
-                <Input
-                  type="text"
-                  placeholder="Search"
-                  className="w-full pl-10"
-                />
               </div>
 
               <div className="space-y-2 pt-2">

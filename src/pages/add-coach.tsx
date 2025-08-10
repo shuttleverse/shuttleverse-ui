@@ -8,6 +8,8 @@ import {
 } from "@/services/coaches";
 import { EntityForm } from "@/components/forms/entity-form";
 import Navbar from "@/components/layout/navbar";
+import BottomNavigation from "@/components/layout/bottom-navigation";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const requiredFields = {
   name: true,
@@ -29,6 +31,7 @@ export default function AddCoach() {
   const createCoach = useCreateCoach();
   const addCoachSchedule = useAddCoachSchedule();
   const addCoachPrice = useAddCoachPrice();
+  const isMobile = useIsMobile();
 
   const handleSubmit = async (formData: CoachFormData) => {
     try {
@@ -92,6 +95,7 @@ export default function AddCoach() {
           </div>
         </div>
       </div>
+      {isMobile && <BottomNavigation />}
     </div>
   );
 }

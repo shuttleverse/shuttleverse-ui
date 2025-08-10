@@ -7,11 +7,14 @@ import EntityInfo from "@/components/shared/entity-info";
 import SelectedEntityDetails from "@/components/shared/selected-entity-details";
 import PreventPullToRefresh from "@/components/shared/prevent-pull-to-refresh";
 import { useLocationContext } from "@/hooks/use-location-context";
+import BottomNavigation from "@/components/layout/bottom-navigation";
+import { MapPin } from "lucide-react";
+import { entityColors } from "@/lib/colors";
 
 const MIN_HEIGHT = 120;
 const DEFAULT_HEIGHT = 0.5;
 const MAX_HEIGHT = 1.0;
-const SIDE_PANEL_WIDTH = 320;
+const BOTTOM_NAV_HEIGHT = 70;
 
 const MapPage = () => {
   const navigate = useNavigate();
@@ -54,7 +57,7 @@ const MapPage = () => {
     } else {
       const maxOffset = window.innerHeight * 0.25;
       const progress =
-        (sheetHeight - MIN_HEIGHT) /
+        (sheetHeight - MIN_HEIGHT - BOTTOM_NAV_HEIGHT) /
         (window.innerHeight * DEFAULT_HEIGHT - MIN_HEIGHT);
       return Math.min(maxOffset, maxOffset * progress);
     }
@@ -108,33 +111,10 @@ const MapPage = () => {
     [getMapOffset, sheetHeight, isMobile, canShowDualPanels]
   );
 
-  const handleViewDetails = useCallback(
-    (entity: MapEntity) => {
-      const entityType = entity.type;
-      const entityId = entity.id;
-
-      switch (entityType) {
-        case "court":
-          navigate(`/courts/${entityId}`);
-          break;
-        case "coach":
-          navigate(`/coaches/${entityId}`);
-          break;
-        case "stringer":
-          navigate(`/stringers/${entityId}`);
-          break;
-        default:
-          navigate(`/entity/${entityId}`);
-      }
-    },
-    [navigate]
-  );
-
   const onDragStart = useCallback(
     (e: React.TouchEvent | React.MouseEvent) => {
       if (isAtMaxHeight) return;
 
-      e.preventDefault();
       e.stopPropagation();
       e.nativeEvent.stopImmediatePropagation();
       dragging.current = true;
@@ -211,12 +191,12 @@ const MapPage = () => {
         if (sheetHeight > window.innerHeight * DEFAULT_HEIGHT) {
           targetHeight = window.innerHeight * DEFAULT_HEIGHT;
         } else {
-          targetHeight = MIN_HEIGHT;
+          targetHeight = MIN_HEIGHT + BOTTOM_NAV_HEIGHT;
         }
       }
     } else {
       if (sheetHeight < threshold1) {
-        targetHeight = MIN_HEIGHT;
+        targetHeight = MIN_HEIGHT + BOTTOM_NAV_HEIGHT;
       } else if (sheetHeight < threshold2) {
         targetHeight = window.innerHeight * DEFAULT_HEIGHT;
       } else {
@@ -367,7 +347,7 @@ const MapPage = () => {
               Nearby Places
             </h2>
             <button
-              onClick={() => navigate(-1)}
+              onClick={() => navigate("/")}
               className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
               aria-label="Go back to home"
             >
@@ -390,9 +370,16 @@ const MapPage = () => {
               onClick={() => toggleFilter("court")}
               className={`py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
                 activeFilters.has("court")
-                  ? "bg-emerald-600 text-white shadow-sm"
+                  ? "text-white shadow-sm"
                   : "bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200"
               }`}
+              style={
+                activeFilters.has("court")
+                  ? {
+                      background: entityColors.court.gradient,
+                    }
+                  : {}
+              }
             >
               Courts
             </button>
@@ -400,9 +387,16 @@ const MapPage = () => {
               onClick={() => toggleFilter("coach")}
               className={`py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
                 activeFilters.has("coach")
-                  ? "bg-blue-600 text-white shadow-sm"
+                  ? "text-white shadow-sm"
                   : "bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200"
               }`}
+              style={
+                activeFilters.has("coach")
+                  ? {
+                      background: entityColors.coach.gradient,
+                    }
+                  : {}
+              }
             >
               Coaches
             </button>
@@ -410,9 +404,16 @@ const MapPage = () => {
               onClick={() => toggleFilter("stringer")}
               className={`py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
                 activeFilters.has("stringer")
-                  ? "bg-amber-600 text-white shadow-sm"
+                  ? "text-white shadow-sm"
                   : "bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200"
               }`}
+              style={
+                activeFilters.has("stringer")
+                  ? {
+                      background: entityColors.stringer.gradient,
+                    }
+                  : {}
+              }
             >
               Stringers
             </button>
@@ -509,355 +510,401 @@ const MapPage = () => {
     [isMobile, canShowDualPanels, setSheetHeight]
   );
 
+  const handleCurrentLocation = useCallback(() => {
+    if (mapRef.current && locationData.coordinates) {
+      const currentPosition = {
+        lat: parseFloat(locationData.coordinates.latitude),
+        lng: parseFloat(locationData.coordinates.longitude),
+      };
+
+      mapRef.current.panTo(currentPosition);
+      mapRef.current.setZoom(14);
+    }
+  }, [locationData.coordinates]);
+
   return (
-    <div
-      className="min-h-screen bg-white flex"
-      style={{
-        height: "100vh",
-        overflow: "hidden",
-        position: "fixed",
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-      }}
-    >
-      {!isMobile && (
-        <div className="flex w-full h-full">
-          {(!selectedEntity || canShowDualPanels) && renderLeftPanel()}
+    <>
+      <div
+        className="min-h-screen bg-white flex"
+        style={{
+          height: "100vh",
+          overflow: "hidden",
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+        }}
+      >
+        {!isMobile && (
+          <div className="flex w-full h-full">
+            {(!selectedEntity || canShowDualPanels) && renderLeftPanel()}
 
-          <div className="flex-1 relative">
-            <InteractiveMap
-              fullScreen
-              mapRef={mapRef}
-              onEntitiesChange={handleEntitiesChange}
-              defaultZoom={defaultZoom}
-              selectedEntity={selectedEntity}
-              onEntitySelect={handleEntitySelect}
-              showSidePanel={false}
-              canShowDualPanels={canShowDualPanels}
-              activeFilters={activeFilters}
-            />
+            <div className="flex-1 relative">
+              <InteractiveMap
+                fullScreen
+                mapRef={mapRef}
+                onEntitiesChange={handleEntitiesChange}
+                defaultZoom={defaultZoom}
+                selectedEntity={selectedEntity}
+                onEntitySelect={handleEntitySelect}
+                showSidePanel={false}
+                canShowDualPanels={canShowDualPanels}
+                activeFilters={activeFilters}
+              />
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {isMobile && (
-        <div
-          style={{
-            flex: 1,
-            width: "100vw",
-            height: "100vh",
-            position: "relative",
-          }}
-        >
+        {isMobile && (
           <div
             style={{
-              width: "100%",
-              height: "100%",
-              transform: `translateY(-${mapOffset}px)`,
-              transition: dragging.current
-                ? "none"
-                : "transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
+              flex: 1,
+              width: "100vw",
+              height: "100vh",
+              position: "relative",
             }}
           >
-            <InteractiveMap
-              fullScreen
-              mapRef={mapRef}
-              onEntitiesChange={handleEntitiesChange}
-              defaultZoom={defaultZoom}
-              selectedEntity={selectedEntity}
-              onEntitySelect={handleEntitySelect}
-              showSidePanel={false}
-              canShowDualPanels={canShowDualPanels}
-              activeFilters={activeFilters}
-            />
-          </div>
-
-          {sheetHeight < window.innerHeight * MAX_HEIGHT && (
-            <button
-              onClick={() => navigate(-1)}
-              className="fixed z-20 rounded-full bg-white/90 backdrop-blur-sm shadow-lg hover:bg-white hover:shadow-xl transition-all duration-300 p-3 text-gray-700 border border-white/40 hover:border-white/60"
-              style={{
-                top: "16px",
-                left: "16px",
-              }}
-              aria-label="Back"
-            >
-              <svg
-                width="24"
-                height="24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                viewBox="0 0 24 24"
-              >
-                <path d="M15 18l-6-6 6-6" />
-              </svg>
-            </button>
-          )}
-
-          <PreventPullToRefresh>
             <div
               style={{
-                position: "fixed",
-                left: 0,
-                right: 0,
-                bottom: 0,
-                zIndex: 1002,
-                background: "rgba(255, 255, 255, 0.95)",
-                backdropFilter: "blur(20px)",
-                borderTopLeftRadius:
-                  sheetHeight >= window.innerHeight * MAX_HEIGHT ? 0 : 20,
-                borderTopRightRadius:
-                  sheetHeight >= window.innerHeight * MAX_HEIGHT ? 0 : 20,
-                boxShadow:
-                  sheetHeight >= window.innerHeight * MAX_HEIGHT
-                    ? "none"
-                    : "0 -8px 32px rgba(0,0,0,0.12)",
-                border:
-                  sheetHeight >= window.innerHeight * MAX_HEIGHT
-                    ? "none"
-                    : "1px solid rgba(255, 255, 255, 0.3)",
-                height: sheetHeight,
-                minHeight: MIN_HEIGHT,
-                maxHeight: window.innerHeight * MAX_HEIGHT,
-                display: "flex",
-                flexDirection: "column",
-                touchAction: "none",
-                overscrollBehavior:
-                  sheetHeight >= window.innerHeight * MAX_HEIGHT
-                    ? "none"
-                    : "auto",
+                width: "100%",
+                height: "100%",
+                transform: `translateY(-${mapOffset}px)`,
                 transition: dragging.current
                   ? "none"
-                  : "height 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94), border-radius 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94), border 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
-                transform: "translateZ(0)",
+                  : "transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
               }}
-              onMouseDown={
-                !isScrollable && !isAtMaxHeight ? onDragStart : undefined
-              }
-              onTouchStart={(e) => {
-                e.stopPropagation();
-                if (!isScrollable && !isAtMaxHeight) {
-                  onDragStart(e);
-                }
-              }}
-              onTouchMove={(e) => e.stopPropagation()}
-              onTouchEnd={(e) => e.stopPropagation()}
             >
-              {sheetHeight < window.innerHeight * MAX_HEIGHT && (
-                <div
-                  style={{
-                    height: 32,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    touchAction: "none",
-                    userSelect: "none",
-                    WebkitUserSelect: "none",
-                    cursor: isScrollable ? "grab" : "default",
-                  }}
-                  onMouseDown={isScrollable ? onDragStart : undefined}
-                  onTouchStart={isScrollable ? onDragStart : undefined}
-                  onTouchMove={(e) => e.preventDefault()}
-                  onTouchEnd={(e) => e.preventDefault()}
-                >
-                  <div
-                    style={{
-                      height: 4,
-                      width: 36,
-                      background: "rgba(156, 163, 175, 0.6)",
-                      borderRadius: 2,
-                    }}
-                  />
-                </div>
-              )}
+              <InteractiveMap
+                fullScreen
+                mapRef={mapRef}
+                onEntitiesChange={handleEntitiesChange}
+                defaultZoom={defaultZoom}
+                selectedEntity={selectedEntity}
+                onEntitySelect={handleEntitySelect}
+                showSidePanel={false}
+                canShowDualPanels={canShowDualPanels}
+                activeFilters={activeFilters}
+              />
+            </div>
 
+            {sheetHeight < window.innerHeight * MAX_HEIGHT && (
+              <button
+                onClick={() => navigate(-1)}
+                className="fixed z-20 rounded-full bg-white/90 backdrop-blur-sm shadow-lg hover:bg-white hover:shadow-xl transition-all duration-300 p-3 text-gray-700 border border-white/40 hover:border-white/60"
+                style={{
+                  top: "16px",
+                  left: "16px",
+                }}
+                aria-label="Back"
+              >
+                <svg
+                  width="24"
+                  height="24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M15 18l-6-6 6-6" />
+                </svg>
+              </button>
+            )}
+
+            <PreventPullToRefresh>
               <div
                 style={{
-                  overflowY: isScrollable ? "auto" : "hidden",
-                  flex: 1,
-                  padding:
+                  position: "fixed",
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  zIndex: 1002,
+                  background: "rgba(255, 255, 255, 0.95)",
+                  backdropFilter: "blur(20px)",
+                  borderTopLeftRadius:
+                    sheetHeight >= window.innerHeight * MAX_HEIGHT ? 0 : 20,
+                  borderTopRightRadius:
+                    sheetHeight >= window.innerHeight * MAX_HEIGHT ? 0 : 20,
+                  boxShadow:
                     sheetHeight >= window.innerHeight * MAX_HEIGHT
-                      ? "40px 20px 20px 20px"
-                      : "0 20px 20px 20px",
-                  touchAction: isScrollable ? "pan-y" : "none",
-                  WebkitOverflowScrolling: isScrollable ? "touch" : "auto",
+                      ? "none"
+                      : "0 -8px 32px rgba(0,0,0,0.12)",
+                  border:
+                    sheetHeight >= window.innerHeight * MAX_HEIGHT
+                      ? "none"
+                      : "1px solid rgba(255, 255, 255, 0.3)",
+                  height: sheetHeight,
+                  minHeight: MIN_HEIGHT,
+                  maxHeight: window.innerHeight * MAX_HEIGHT,
+                  display: "flex",
+                  flexDirection: "column",
+                  touchAction: "none",
+                  overscrollBehavior:
+                    sheetHeight >= window.innerHeight * MAX_HEIGHT
+                      ? "none"
+                      : "auto",
+                  transition: dragging.current
+                    ? "none"
+                    : "height 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94), border-radius 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94), border 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
+                  transform: "translateZ(0)",
                 }}
-                onTouchStart={handleContentTouchStart}
-                onTouchMove={handleContentTouchMove}
-                onTouchEnd={handleContentTouchEnd}
-                onMouseDown={handleContentMouseDown}
-                onMouseMove={handleContentMouseMove}
-                onMouseUp={handleContentMouseUp}
+                onMouseDown={
+                  !isScrollable && !isAtMaxHeight ? onDragStart : undefined
+                }
+                onTouchStart={(e) => {
+                  e.stopPropagation();
+                  if (!isScrollable && !isAtMaxHeight) {
+                    onDragStart(e);
+                  }
+                }}
+                onTouchMove={(e) => e.stopPropagation()}
+                onTouchEnd={(e) => e.stopPropagation()}
               >
-                {sheetHeight >= window.innerHeight * MAX_HEIGHT && (
-                  <div className="mb-4 flex justify-between items-center">
-                    <button
-                      onClick={() => navigate(-1)}
-                      className="flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors hover:bg-gray-50 px-3 py-2 rounded-lg"
-                    >
-                      <svg
-                        width="20"
-                        height="20"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        viewBox="0 0 24 24"
-                      >
-                        <path d="M15 18l-6-6 6-6" />
-                      </svg>
-                      <span className="text-sm font-medium">Back to Home</span>
-                    </button>
-                    <button
-                      onClick={() =>
-                        setSheetHeight(window.innerHeight * DEFAULT_HEIGHT)
-                      }
-                      className="flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors hover:bg-gray-50 px-3 py-2 rounded-lg"
-                    >
-                      <svg
-                        width="20"
-                        height="20"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        viewBox="0 0 24 24"
-                      >
-                        <path d="M7 15l5-5 5 5" />
-                      </svg>
-                      <span className="text-sm font-medium">Collapse</span>
-                    </button>
+                {sheetHeight < window.innerHeight * MAX_HEIGHT && (
+                  <div
+                    style={{
+                      height: 32,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      touchAction: "none",
+                      userSelect: "none",
+                      WebkitUserSelect: "none",
+                      cursor: isScrollable ? "grab" : "default",
+                    }}
+                    onMouseDown={isScrollable ? onDragStart : undefined}
+                    onTouchStart={isScrollable ? onDragStart : undefined}
+                    onTouchMove={(e) => e.preventDefault()}
+                    onTouchEnd={(e) => e.preventDefault()}
+                  >
+                    <div
+                      style={{
+                        height: 4,
+                        width: 36,
+                        background: "rgba(156, 163, 175, 0.6)",
+                        borderRadius: 2,
+                      }}
+                    />
                   </div>
                 )}
-                {!selectedEntity && (
-                  <div className="mb-6 pt-2">
-                    <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
-                      <div className="grid grid-cols-3 gap-2">
-                        <button
-                          onClick={() => toggleFilter("court")}
-                          className={`py-3 px-2 rounded-lg text-sm font-medium transition-colors ${
-                            activeFilters.has("court")
-                              ? "bg-emerald-600 text-white shadow-sm"
-                              : "bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200"
-                          }`}
+
+                <div
+                  style={{
+                    overflowY: isScrollable ? "auto" : "hidden",
+                    flex: 1,
+                    padding:
+                      sheetHeight >= window.innerHeight * MAX_HEIGHT
+                        ? "40px 20px 20px 20px"
+                        : "0 20px 20px 20px",
+                    touchAction: isScrollable ? "pan-y" : "none",
+                    WebkitOverflowScrolling: isScrollable ? "touch" : "auto",
+                  }}
+                  onTouchStart={handleContentTouchStart}
+                  onTouchMove={handleContentTouchMove}
+                  onTouchEnd={handleContentTouchEnd}
+                  onMouseDown={handleContentMouseDown}
+                  onMouseMove={handleContentMouseMove}
+                  onMouseUp={handleContentMouseUp}
+                >
+                  {sheetHeight >= window.innerHeight * MAX_HEIGHT && (
+                    <div className="mb-4 flex justify-between items-center">
+                      <button
+                        onClick={() => navigate(-1)}
+                        className="flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors hover:bg-gray-50 px-3 py-2 rounded-lg"
+                      >
+                        <svg
+                          width="20"
+                          height="20"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          viewBox="0 0 24 24"
                         >
-                          Courts
-                        </button>
-                        <button
-                          onClick={() => toggleFilter("coach")}
-                          className={`py-3 px-2 rounded-lg text-sm font-medium transition-colors ${
-                            activeFilters.has("coach")
-                              ? "bg-blue-600 text-white shadow-sm"
-                              : "bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200"
-                          }`}
+                          <path d="M15 18l-6-6 6-6" />
+                        </svg>
+                        <span className="text-sm font-medium">Back</span>
+                      </button>
+                      <button
+                        onClick={() =>
+                          setSheetHeight(window.innerHeight * DEFAULT_HEIGHT)
+                        }
+                        className="flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors hover:bg-gray-50 px-3 py-2 rounded-lg"
+                      >
+                        <svg
+                          width="20"
+                          height="20"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          viewBox="0 0 24 24"
                         >
-                          Coaches
-                        </button>
-                        <button
-                          onClick={() => toggleFilter("stringer")}
-                          className={`py-3 px-2 rounded-lg text-sm font-medium transition-colors ${
-                            activeFilters.has("stringer")
-                              ? "bg-amber-600 text-white shadow-sm"
-                              : "bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200"
-                          }`}
-                        >
-                          Stringers
-                        </button>
+                          <path d="M7 15l5-5 5 5" />
+                        </svg>
+                        <span className="text-sm font-medium">Collapse</span>
+                      </button>
+                    </div>
+                  )}
+                  {!selectedEntity && (
+                    <div className="mb-6 pt-2">
+                      <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={handleCurrentLocation}
+                            className="p-2 rounded-lg bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200 transition-colors"
+                            title="Go to current location"
+                          >
+                            <MapPin className="h-4 w-4" />
+                          </button>
+                          <div className="grid grid-cols-3 gap-2 flex-1">
+                            <button
+                              onClick={() => toggleFilter("court")}
+                              className={`py-2 px-3 rounded-lg text-xs font-medium transition-colors ${
+                                activeFilters.has("court")
+                                  ? "text-white shadow-sm"
+                                  : "bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200"
+                              }`}
+                              style={
+                                activeFilters.has("court")
+                                  ? {
+                                      background: entityColors.court.gradient,
+                                    }
+                                  : {}
+                              }
+                            >
+                              Courts
+                            </button>
+                            <button
+                              onClick={() => toggleFilter("coach")}
+                              className={`py-2 px-3 rounded-lg text-xs font-medium transition-colors ${
+                                activeFilters.has("coach")
+                                  ? "text-white shadow-sm"
+                                  : "bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200"
+                              }`}
+                              style={
+                                activeFilters.has("coach")
+                                  ? {
+                                      background: entityColors.coach.gradient,
+                                    }
+                                  : {}
+                              }
+                            >
+                              Coaches
+                            </button>
+                            <button
+                              onClick={() => toggleFilter("stringer")}
+                              className={`py-2 px-3 rounded-lg text-xs font-medium transition-colors ${
+                                activeFilters.has("stringer")
+                                  ? "text-white shadow-sm"
+                                  : "bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200"
+                              }`}
+                              style={
+                                activeFilters.has("stringer")
+                                  ? {
+                                      background:
+                                        entityColors.stringer.gradient,
+                                    }
+                                  : {}
+                              }
+                            >
+                              Stringers
+                            </button>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {(showResults || selectedEntity) && (
-                  <div className="space-y-3">
-                    {selectedEntity ? (
-                      <SelectedEntityDetails
-                        entity={
-                          selectedEntity as MapEntity & {
-                            phoneNumber?: string;
-                            website?: string;
-                            otherContacts?: Record<string, string>;
-                            additionalDetails?: string;
-                            experienceYears?: number;
-                            scheduleList?: unknown[];
-                            priceList?: unknown[];
-                            upvotes?: number;
+                  {(showResults || selectedEntity) && (
+                    <div className="space-y-3">
+                      {selectedEntity ? (
+                        <SelectedEntityDetails
+                          entity={
+                            selectedEntity as MapEntity & {
+                              phoneNumber?: string;
+                              website?: string;
+                              otherContacts?: Record<string, string>;
+                              additionalDetails?: string;
+                              experienceYears?: number;
+                              scheduleList?: unknown[];
+                              priceList?: unknown[];
+                              upvotes?: number;
+                            }
                           }
-                        }
-                        fullEntityData={
-                          selectedEntity as MapEntity & {
-                            phoneNumber?: string;
-                            website?: string;
-                            otherContacts?: Record<string, string>;
-                            additionalDetails?: string;
-                            experienceYears?: number;
-                            scheduleList?: unknown[];
-                            priceList?: unknown[];
-                            upvotes?: number;
+                          fullEntityData={
+                            selectedEntity as MapEntity & {
+                              phoneNumber?: string;
+                              website?: string;
+                              otherContacts?: Record<string, string>;
+                              additionalDetails?: string;
+                              experienceYears?: number;
+                              scheduleList?: unknown[];
+                              priceList?: unknown[];
+                              upvotes?: number;
+                            }
                           }
-                        }
-                        isLoading={false}
-                        onBack={() => setSelectedEntity(null)}
-                        onViewDetails={(entity) => {
-                          const path = `/${entity.type}s/${entity.id}`;
-                          navigate(path);
-                        }}
-                        showBackButton={true}
-                        transparentBackground={false}
-                      />
-                    ) : (
-                      (() => {
-                        const filteredEntities = entities.filter((entity) =>
-                          activeFilters.has(entity.type)
-                        );
-
-                        if (filteredEntities.length === 0) {
-                          return (
-                            <div className="text-center text-gray-400 py-8">
-                              {activeFilters.size === 0 ? (
-                                <div>
-                                  <p>No filters selected</p>
-                                  <p className="text-sm mt-1">
-                                    Select at least one filter to see results
-                                  </p>
-                                </div>
-                              ) : (
-                                <div>
-                                  <p>No results for selected filters</p>
-                                  <p className="text-sm mt-1">
-                                    Try adjusting your filters
-                                  </p>
-                                </div>
-                              )}
-                            </div>
+                          isLoading={false}
+                          onBack={() => setSelectedEntity(null)}
+                          onViewDetails={(entity) => {
+                            const path = `/${entity.type}s/${entity.id}`;
+                            navigate(path);
+                          }}
+                          showBackButton={true}
+                          transparentBackground={false}
+                        />
+                      ) : (
+                        (() => {
+                          const filteredEntities = entities.filter((entity) =>
+                            activeFilters.has(entity.type)
                           );
-                        }
 
-                        return filteredEntities.map((entity) => (
-                          <EntityInfo
-                            key={entity.id}
-                            entity={entity}
-                            onClick={handlePanToEntity}
-                            variant="mobile"
-                          />
-                        ));
-                      })()
-                    )}
-                  </div>
-                )}
+                          if (filteredEntities.length === 0) {
+                            return (
+                              <div className="text-center text-gray-400 py-8">
+                                {activeFilters.size === 0 ? (
+                                  <div>
+                                    <p>No filters selected</p>
+                                    <p className="text-sm mt-1">
+                                      Select at least one filter to see results
+                                    </p>
+                                  </div>
+                                ) : (
+                                  <div>
+                                    <p>No results for selected filters</p>
+                                    <p className="text-sm mt-1">
+                                      Try adjusting your filters
+                                    </p>
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          }
+
+                          return filteredEntities.map((entity) => (
+                            <EntityInfo
+                              key={entity.id}
+                              entity={entity}
+                              onClick={handlePanToEntity}
+                              variant="mobile"
+                            />
+                          ));
+                        })()
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          </PreventPullToRefresh>
-        </div>
-      )}
-    </div>
+            </PreventPullToRefresh>
+          </div>
+        )}
+      </div>
+      {isMobile && <BottomNavigation />}
+    </>
   );
 };
 
