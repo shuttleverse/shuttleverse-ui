@@ -17,9 +17,10 @@ const requiredFields = {
   description: false,
   website: false,
   phoneNumber: false,
-  schedules: true,
+  schedules: false,
   prices: true,
-  otherContacts: false,
+  otherContacts: true,
+  experienceYears: false,
 };
 
 export default function AddCoach() {

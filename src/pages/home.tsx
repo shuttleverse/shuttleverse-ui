@@ -40,8 +40,8 @@ const Home = () => {
       id: coach.id,
       type: "coach" as const,
       name: coach.name,
-      specialization: coach.experience_years
-        ? `${coach.experience_years} years experience`
+      specialization: coach.experienceYears
+        ? `${coach.experienceYears} Years of Experience`
         : "Professional coach",
       time: "Recently added",
     })),
@@ -237,8 +237,8 @@ const Home = () => {
                         <h3 className="font-medium">{coach.name}</h3>
                         <div className="flex text-xs space-x-2">
                           <span className="text-gray-600">
-                            {coach.experience_years
-                              ? `${coach.experience_years} years`
+                            {coach.experienceYears
+                              ? `${coach.experienceYears} years`
                               : "Professional"}
                           </span>
                           {coach.location && (

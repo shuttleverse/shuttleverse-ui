@@ -18,7 +18,8 @@ const requiredFields = {
   phoneNumber: false,
   schedules: false,
   prices: true,
-  otherContacts: false,
+  otherContacts: true,
+  experienceYears: false,
 };
 
 export default function AddStringer() {

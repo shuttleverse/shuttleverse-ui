@@ -25,9 +25,9 @@ export type MapEntity = {
   priceList?: unknown[];
   phoneNumber?: string;
   website?: string;
-  otherContacts?: string;
+  otherContacts?: Record<string, string>;
   additionalDetails?: string;
-  experience_years?: number;
+  experienceYears?: number;
 };
 
 export function useEntitiesByLocation(
@@ -61,9 +61,11 @@ export function useEntitiesByLocation(
           priceList: entityObj.priceList as unknown[] | undefined,
           phoneNumber: entityObj.phoneNumber as string | undefined,
           website: entityObj.website as string | undefined,
-          otherContacts: entityObj.otherContacts as string | undefined,
+          otherContacts: entityObj.otherContacts as
+            | Record<string, string>
+            | undefined,
           additionalDetails: entityObj.additionalDetails as string | undefined,
-          experience_years: entityObj.experience_years as number | undefined,
+          experienceYears: entityObj.experienceYears as number | undefined,
         } as MapEntity;
       });
     },
@@ -96,9 +98,11 @@ export function useEntitiesByBoundingBox(
           priceList: entityObj.priceList as unknown[] | undefined,
           phoneNumber: entityObj.phoneNumber as string | undefined,
           website: entityObj.website as string | undefined,
-          otherContacts: entityObj.otherContacts as string | undefined,
+          otherContacts: entityObj.otherContacts as
+            | Record<string, string>
+            | undefined,
           additionalDetails: entityObj.additionalDetails as string | undefined,
-          experience_years: entityObj.experience_years as number | undefined,
+          experienceYears: entityObj.experienceYears as number | undefined,
         } as MapEntity;
       });
     },

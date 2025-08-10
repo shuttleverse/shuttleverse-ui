@@ -20,7 +20,7 @@ export type StringerFormData = {
   description?: string;
   phoneNumber?: string;
   additionalDetails?: string;
-  otherContacts: string;
+  otherContacts: Record<string, string>;
   prices: StringerFormPriceData[];
 };
 
@@ -35,7 +35,7 @@ type StringerCreationAPIData = {
   website?: string;
   phoneNumber?: string;
   additionalDetails?: string;
-  otherContacts: string;
+  otherContacts: Record<string, string>;
 };
 
 export type StringerPriceData = {
@@ -53,7 +53,7 @@ export type StringerData = {
   additionalDetails?: string;
   description?: string;
   phoneNumber?: string;
-  otherContacts: string;
+  otherContacts: Record<string, string>;
   isVerified: boolean;
   priceList: StringerPriceData[];
   upvotes: number;

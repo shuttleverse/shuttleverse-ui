@@ -24,10 +24,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Trash2, Plus, Check, ArrowLeft, ArrowRight } from "lucide-react";
-import {
-  ScheduleCalendar,
-  type ScheduleData,
-} from "@/components/forms/schedule-calendar";
+import { ScheduleCalendar } from "@/components/forms/schedule-calendar";
 import GoogleAutoComplete from "@/components/shared/google-autocomplete";
 import { useState } from "react";
 import { MarkdownRenderer } from "@/components/ui/markdown-renderer";
@@ -44,7 +41,7 @@ interface EntityFormProps {
   defaultValues?: Partial<EntityFormData>;
   isSubmitting?: boolean;
   requiredFields: Record<
-    keyof EntityFormData | "website" | "schedules",
+    keyof EntityFormData | "website" | "schedules" | "experienceYears",
     boolean
   >;
 }
@@ -59,6 +56,9 @@ export function EntityForm({
   const [currentStep, setCurrentStep] = useState(1);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [formData, setFormData] = useState<EntityFormData | null>(null);
+  const [priceRangeModes, setPriceRangeModes] = useState<
+    Record<number, boolean>
+  >({});
 
   const form = useForm<EntityFormData>({
     defaultValues: {
@@ -68,17 +68,25 @@ export function EntityForm({
       latitude: "",
       description: "",
       phoneNumber: "",
-      otherContacts: "",
+      otherContacts: {},
       website: "",
       additionalDetails: "",
       schedules: [],
       prices:
         entityType === "stringer"
           ? [{ price: 0, stringName: "Service Fee" }]
-          : [{ price: 0, duration: 0 }],
-      ...(entityType === "coach" && { experience_years: 0 }),
+          : [
+              {
+                minPrice: 0,
+                maxPrice: 0,
+                duration: 0,
+                durationUnit: "minutes",
+                description: "",
+              },
+            ],
+      ...(entityType === "coach" && { experienceYears: 0 }),
       ...defaultValues,
-    },
+    } as EntityFormData,
   });
 
   const {
@@ -94,7 +102,13 @@ export function EntityForm({
     if (entityType === "stringer") {
       appendPrice({ price: 0, stringName: "" });
     } else {
-      appendPrice({ price: 0, duration: 0 });
+      appendPrice({
+        minPrice: 0,
+        maxPrice: 0,
+        duration: 0,
+        durationUnit: "minutes",
+        description: "",
+      });
     }
   };
 
@@ -123,6 +137,38 @@ export function EntityForm({
             "Operating hours are required. Please add at least one schedule.",
         });
         return;
+      }
+    }
+
+    if (currentStep === 3 && entityType !== "stringer") {
+      const prices = form.getValues("prices");
+      for (let i = 0; i < prices.length; i++) {
+        const price = prices[i];
+        if ("durationUnit" in price && price.durationUnit !== "minutes") {
+          if (!price.duration || price.duration === 0) {
+            form.setError(`prices.${i}.duration`, {
+              type: "required",
+              message: "Duration cannot be 0",
+            });
+            return;
+          }
+        }
+      }
+    }
+
+    if (currentStep === 3 && entityType !== "stringer") {
+      const prices = form.getValues("prices");
+      for (let i = 0; i < prices.length; i++) {
+        const price = prices[i];
+        if ("durationUnit" in price && price.durationUnit === "minutes") {
+          if (!price.duration || price.duration === 0) {
+            form.setError(`prices.${i}.duration`, {
+              type: "required",
+              message: "Duration cannot be 0",
+            });
+            return;
+          }
+        }
       }
     }
 
@@ -243,25 +289,35 @@ export function EntityForm({
                   </p>
                 </div>
               )}
-              {formData.otherContacts && (
-                <div className="bg-gray-50 rounded-lg p-4 border-l-4 border-green-500">
-                  <span className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
-                    Other Contacts
-                  </span>
-                  <p className="text-base font-medium text-gray-900 mt-1 break-words">
-                    {formData.otherContacts}
-                  </p>
-                </div>
-              )}
+              {formData.otherContacts &&
+                Object.keys(formData.otherContacts).length > 0 && (
+                  <div className="bg-gray-50 rounded-lg p-4 border-l-4 border-green-500">
+                    <span className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
+                      Other Contacts
+                    </span>
+                    <div className="text-base font-medium text-gray-900 mt-1 break-words">
+                      {Object.entries(formData.otherContacts).map(
+                        ([type, contact]) => (
+                          <div key={type} className="mb-1">
+                            <span className="font-semibold capitalize">
+                              {type}:
+                            </span>{" "}
+                            {contact}
+                          </div>
+                        )
+                      )}
+                    </div>
+                  </div>
+                )}
               {entityType === "coach" &&
-                "experience_years" in formData &&
-                formData.experience_years && (
+                "experienceYears" in formData &&
+                formData.experienceYears !== 0 && (
                   <div className="bg-gray-50 rounded-lg p-4 border-l-4 border-green-500">
                     <span className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
                       Years of Experience
                     </span>
                     <p className="text-base font-medium text-gray-900 mt-1 break-words">
-                      {formData.experience_years}
+                      {formData.experienceYears}
                     </p>
                   </div>
                 )}
@@ -282,7 +338,6 @@ export function EntityForm({
 
           <Separator className="my-8" />
 
-          {/* Schedule */}
           {entityType !== "stringer" &&
             "schedules" in formData &&
             formData.schedules &&
@@ -330,7 +385,14 @@ export function EntityForm({
 
           {formData.prices &&
             formData.prices.length > 0 &&
-            formData.prices.some((price) => price.price > 0) && (
+            formData.prices.some((price) => {
+              if (entityType === "stringer" && "price" in price) {
+                return price.price > 0;
+              } else if ("minPrice" in price) {
+                return price.minPrice > 0;
+              }
+              return false;
+            }) && (
               <div>
                 <h3 className="text-lg font-semibold mb-6 flex items-center gap-2 text-green-700">
                   <Check className="h-5 w-5 text-green-500" />
@@ -338,7 +400,14 @@ export function EntityForm({
                 </h3>
                 <div className="space-y-3">
                   {formData.prices
-                    .filter((price) => price.price > 0)
+                    .filter((price) => {
+                      if (entityType === "stringer" && "price" in price) {
+                        return price.price > 0;
+                      } else if ("minPrice" in price) {
+                        return price.minPrice > 0;
+                      }
+                      return false;
+                    })
                     .map((price, index) => (
                       <div
                         key={index}
@@ -350,17 +419,19 @@ export function EntityForm({
                               {entityType === "stringer" &&
                               "stringName" in price
                                 ? price.stringName
-                                : `$${price.price}${
-                                    "duration" in price && price.duration > 0
-                                      ? ` / ${price.duration} minutes`
+                                : "minPrice" in price
+                                ? `$${price.minPrice}${
+                                    price.maxPrice > price.minPrice
+                                      ? ` - $${price.maxPrice}`
                                       : ""
-                                  }`}
+                                  } / ${price.duration} ${price.durationUnit}`
+                                : ""}
                             </span>
                             {entityType !== "stringer" &&
-                              "duration" in price &&
-                              price.duration > 0 && (
+                              "minPrice" in price &&
+                              price.description && (
                                 <p className="text-sm text-gray-600 mt-1 break-words">
-                                  Duration: {price.duration} minutes
+                                  {price.description}
                                 </p>
                               )}
                           </div>
@@ -557,17 +628,19 @@ export function EntityForm({
               {entityType === "coach" && (
                 <FormField
                   control={form.control}
-                  name="experience_years"
+                  name="experienceYears"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel htmlFor="entity-experience-years">
                         Years of Experience
-                        <span className="text-red-500 ml-1">*</span>
+                        {requiredFields.experienceYears && (
+                          <span className="text-red-500 ml-1">*</span>
+                        )}
                       </FormLabel>
                       <FormControl>
                         <Input
                           id="entity-experience-years"
-                          name="experience_years"
+                          name="experienceYears"
                           type="number"
                           min="0"
                           autoComplete="off"
@@ -576,7 +649,7 @@ export function EntityForm({
                             const value = e.target.value;
                             field.onChange(value === "" ? 0 : Number(value));
                           }}
-                          required
+                          required={requiredFields.experienceYears}
                         />
                       </FormControl>
                       <FormMessage />
@@ -688,22 +761,165 @@ export function EntityForm({
                   <FormItem>
                     <FormLabel htmlFor="entity-other-contacts">
                       Other Contacts
-                      {(requiredFields.otherContacts ||
-                        entityType === "coach") && (
+                      {(entityType === "coach" ||
+                        entityType === "stringer") && (
                         <span className="text-red-500 ml-1">*</span>
                       )}
                     </FormLabel>
                     <FormControl>
-                      <Input
-                        id="entity-other-contacts"
-                        name="otherContacts"
-                        autoComplete="off"
-                        {...field}
-                        value={field.value || ""}
-                        required={
-                          requiredFields.otherContacts || entityType === "coach"
-                        }
-                      />
+                      <div className="space-y-3">
+                        {field.value && Object.keys(field.value).length > 0 && (
+                          <div className="space-y-2">
+                            {Object.entries(field.value).map(
+                              ([type, contact]) => (
+                                <div
+                                  key={type}
+                                  className="flex items-center gap-2"
+                                >
+                                  <Select
+                                    value={type}
+                                    onValueChange={(newType) => {
+                                      if (newType && newType !== type) {
+                                        const currentContacts = {
+                                          ...field.value,
+                                        };
+                                        delete currentContacts[type];
+                                        field.onChange({
+                                          ...currentContacts,
+                                          [newType]: contact,
+                                        });
+                                      }
+                                    }}
+                                  >
+                                    <SelectTrigger className="w-40">
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {[
+                                        {
+                                          value: "wechat",
+                                          label: "WeChat",
+                                        },
+                                        {
+                                          value: "xiaohongshu",
+                                          label: "Xiaohongshu",
+                                        },
+                                        {
+                                          value: "instagram",
+                                          label: "Instagram",
+                                        },
+                                        {
+                                          value: "facebook",
+                                          label: "Facebook",
+                                        },
+                                        {
+                                          value: "whatsapp",
+                                          label: "WhatsApp",
+                                        },
+                                        {
+                                          value: "telegram",
+                                          label: "Telegram",
+                                        },
+                                        { value: "line", label: "Line" },
+                                        { value: "email", label: "Email" },
+                                      ]
+                                        .filter(
+                                          (option) =>
+                                            option.value === type ||
+                                            !field.value ||
+                                            !field.value[option.value]
+                                        )
+                                        .map((option) => (
+                                          <SelectItem
+                                            key={option.value}
+                                            value={option.value}
+                                          >
+                                            {option.label}
+                                          </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                  </Select>
+                                  <Input
+                                    placeholder={`${
+                                      type.charAt(0).toUpperCase() +
+                                      type.slice(1)
+                                    } ${type !== "email" ? "username" : ""}`}
+                                    value={contact}
+                                    onChange={(e) => {
+                                      const currentContacts = field.value || {};
+                                      field.onChange({
+                                        ...currentContacts,
+                                        [type]: e.target.value,
+                                      });
+                                    }}
+                                    className="flex-1"
+                                    maxLength={100}
+                                  />
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => {
+                                      const currentContacts = {
+                                        ...field.value,
+                                      };
+                                      delete currentContacts[type];
+                                      field.onChange(currentContacts);
+                                    }}
+                                    className="text-red-500 hover:text-red-700"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              )
+                            )}
+                          </div>
+                        )}
+                        <div className="flex items-center gap-2">
+                          <Select
+                            value=""
+                            onValueChange={(contactType) => {
+                              if (contactType) {
+                                const currentContacts = field.value || {};
+                                if (!currentContacts[contactType]) {
+                                  field.onChange({
+                                    ...currentContacts,
+                                    [contactType]: "",
+                                  });
+                                }
+                              }
+                            }}
+                          >
+                            <SelectTrigger className="w-40">
+                              <SelectValue placeholder="Add contact" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {[
+                                { value: "wechat", label: "WeChat" },
+                                { value: "xiaohongshu", label: "Xiaohongshu" },
+                                { value: "instagram", label: "Instagram" },
+                                { value: "facebook", label: "Facebook" },
+                                { value: "whatsapp", label: "WhatsApp" },
+                                { value: "telegram", label: "Telegram" },
+                                { value: "line", label: "Line" },
+                                { value: "email", label: "Email" },
+                              ]
+                                .filter(
+                                  (option) =>
+                                    !field.value || !field.value[option.value]
+                                )
+                                .map((option) => (
+                                  <SelectItem
+                                    key={option.value}
+                                    value={option.value}
+                                  >
+                                    {option.label}
+                                  </SelectItem>
+                                ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -711,10 +927,18 @@ export function EntityForm({
                 rules={{
                   validate: (value) => {
                     if (
-                      (!value || value.trim() === "") &&
-                      (requiredFields.otherContacts || entityType === "coach")
+                      (!value || Object.keys(value).length === 0) &&
+                      (entityType === "coach" || entityType === "stringer")
                     ) {
-                      return "Other contacts are required for coaches";
+                      return "Other contacts are required";
+                    }
+                    if (value && Object.keys(value).length > 0) {
+                      const hasEmptyValues = Object.values(value).some(
+                        (contact) => !contact || contact.trim() === ""
+                      );
+                      if (hasEmptyValues) {
+                        return "Contact values cannot be empty";
+                      }
                     }
                     return true;
                   },
@@ -880,122 +1104,358 @@ export function EntityForm({
                     </Button>
                   </div>
                   {priceFields.map((field, index) => (
-                    <div
-                      key={field.id}
-                      className="grid grid-cols-1 md:grid-cols-2 gap-4"
-                    >
-                      <FormField
-                        control={form.control}
-                        name={`prices.${index}.duration`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel htmlFor={`duration-${index}`}>
-                              Duration
-                            </FormLabel>
-                            <div className="flex items-center gap-2">
+                    <div key={field.id} className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name={`prices.${index}.minPrice`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel htmlFor={`min-price-${index}`}>
+                                {priceRangeModes[index]
+                                  ? "Min Price ($)"
+                                  : "Price ($)"}
+                              </FormLabel>
                               <FormControl>
-                                <div className="flex items-center gap-2">
-                                  <Select
-                                    value={Math.floor(
-                                      field.value / 60
-                                    ).toString()}
-                                    onValueChange={(value) => {
-                                      const hours = Number(value);
-                                      const minutes = field.value % 60;
-                                      field.onChange(hours * 60 + minutes);
-                                    }}
-                                  >
-                                    <SelectTrigger
-                                      id={`duration-hours-${index}`}
-                                      className="w-20"
-                                    >
-                                      <SelectValue placeholder="Hours" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {Array.from({ length: 9 }, (_, i) => (
-                                        <SelectItem
-                                          key={i}
-                                          value={i.toString()}
-                                        >
-                                          {i}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                  <span className="text-sm text-muted-foreground">
-                                    hours
-                                  </span>
-                                </div>
-                              </FormControl>
-                              <FormControl>
-                                <div className="flex items-center gap-2">
-                                  <Select
-                                    value={(field.value % 60).toString()}
-                                    onValueChange={(value) => {
-                                      const minutes = Number(value);
-                                      const hours = Math.floor(
-                                        field.value / 60
+                                <Input
+                                  id={`min-price-${index}`}
+                                  name={`prices.${index}.minPrice`}
+                                  type="number"
+                                  min="1"
+                                  step="1"
+                                  autoComplete="off"
+                                  value={field.value === 0 ? "" : field.value}
+                                  onChange={(e) => {
+                                    const value = e.target.value;
+                                    const numValue =
+                                      value === "" ? 0 : Number(value);
+                                    field.onChange(numValue);
+                                    const maxPriceField = form.getValues(
+                                      `prices.${index}.maxPrice`
+                                    );
+                                    if (maxPriceField === field.value) {
+                                      form.setValue(
+                                        `prices.${index}.maxPrice`,
+                                        numValue
                                       );
-                                      field.onChange(hours * 60 + minutes);
-                                    }}
-                                  >
-                                    <SelectTrigger
-                                      id={`duration-minutes-${index}`}
-                                      className="w-20"
-                                    >
-                                      <SelectValue placeholder="Minutes" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {Array.from({ length: 60 }, (_, i) => (
-                                        <SelectItem
-                                          key={i}
-                                          value={i.toString()}
-                                        >
-                                          {i.toString().padStart(2, "0")}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                  <span className="text-sm text-muted-foreground">
-                                    minutes
-                                  </span>
-                                </div>
+                                    }
+                                  }}
+                                  required={requiredFields.prices}
+                                />
                               </FormControl>
-                            </div>
-                            <FormDescription>
-                              Maximum duration is 8 hours (480 minutes)
-                            </FormDescription>
-                            <FormMessage />
-                          </FormItem>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        {priceRangeModes[index] && (
+                          <FormField
+                            control={form.control}
+                            name={`prices.${index}.maxPrice`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel htmlFor={`max-price-${index}`}>
+                                  Max Price ($)
+                                </FormLabel>
+                                <FormControl>
+                                  <Input
+                                    id={`max-price-${index}`}
+                                    name={`prices.${index}.maxPrice`}
+                                    type="number"
+                                    min="1"
+                                    step="1"
+                                    autoComplete="off"
+                                    value={field.value === 0 ? "" : field.value}
+                                    onChange={(e) => {
+                                      const value = e.target.value;
+                                      field.onChange(
+                                        value === "" ? 0 : Number(value)
+                                      );
+                                    }}
+                                    required={requiredFields.prices}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
                         )}
-                      />
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            const currentMin = form.getValues(
+                              `prices.${index}.minPrice`
+                            );
+                            const currentMax = form.getValues(
+                              `prices.${index}.maxPrice`
+                            );
+                            const isRangeMode = priceRangeModes[index];
+
+                            if (!isRangeMode) {
+                              form.setValue(`prices.${index}.minPrice`, 0);
+                              form.setValue(`prices.${index}.maxPrice`, 0);
+                              setPriceRangeModes((prev) => ({
+                                ...prev,
+                                [index]: true,
+                              }));
+                            } else {
+                              form.setValue(`prices.${index}.minPrice`, 0);
+                              form.setValue(`prices.${index}.maxPrice`, 0);
+                              setPriceRangeModes((prev) => ({
+                                ...prev,
+                                [index]: false,
+                              }));
+                            }
+                          }}
+                          className="text-xs"
+                        >
+                          {priceRangeModes[index]
+                            ? "Switch to Single Price"
+                            : "Switch to Range"}
+                        </Button>
+                        {priceRangeModes[index] && (
+                          <span className="text-xs text-muted-foreground">
+                            Range mode
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {form.watch(`prices.${index}.durationUnit`) ===
+                        "minutes" ? (
+                          <div className="grid grid-cols-2 gap-2">
+                            <FormField
+                              control={form.control}
+                              name={`prices.${index}.duration`}
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>
+                                    Hours
+                                    <span className="text-red-500 ml-1">*</span>
+                                  </FormLabel>
+                                  <FormControl>
+                                    <Select
+                                      value={Math.floor(
+                                        (field.value || 0) / 60
+                                      ).toString()}
+                                      onValueChange={(value) => {
+                                        const hours = Number(value) || 0;
+                                        const currentMinutes =
+                                          (field.value || 0) % 60;
+                                        const totalMinutes =
+                                          hours * 60 + currentMinutes;
+                                        field.onChange(totalMinutes);
+                                      }}
+                                    >
+                                      <SelectTrigger>
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        {Array.from({ length: 13 }, (_, i) => (
+                                          <SelectItem
+                                            key={i}
+                                            value={i.toString()}
+                                          >
+                                            {i}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                              rules={{
+                                validate: (value) => {
+                                  if (!value || value === 0) {
+                                    return "Duration cannot be 0";
+                                  }
+                                  return true;
+                                },
+                              }}
+                            />
+                            <FormField
+                              control={form.control}
+                              name={`prices.${index}.duration`}
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>
+                                    Minutes
+                                    <span className="text-red-500 ml-1">*</span>
+                                  </FormLabel>
+                                  <FormControl>
+                                    <Select
+                                      value={(
+                                        (field.value || 0) % 60
+                                      ).toString()}
+                                      onValueChange={(value) => {
+                                        const minutes = Number(value) || 0;
+                                        const currentHours = Math.floor(
+                                          (field.value || 0) / 60
+                                        );
+                                        const totalMinutes =
+                                          currentHours * 60 + minutes;
+                                        field.onChange(totalMinutes);
+                                      }}
+                                    >
+                                      <SelectTrigger>
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        {Array.from({ length: 61 }, (_, i) => (
+                                          <SelectItem
+                                            key={i}
+                                            value={i.toString()}
+                                          >
+                                            {i}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                              rules={{
+                                validate: (value) => {
+                                  if (!value || value === 0) {
+                                    return "Duration cannot be 0";
+                                  }
+                                  return true;
+                                },
+                              }}
+                            />
+                          </div>
+                        ) : (
+                          <div className="w-full">
+                            <FormField
+                              control={form.control}
+                              name={`prices.${index}.duration`}
+                              render={({ field }) => (
+                                <FormItem className="w-full">
+                                  <FormLabel htmlFor={`duration-${index}`}>
+                                    Duration
+                                    <span className="text-red-500 ml-1">*</span>
+                                  </FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      id={`duration-${index}`}
+                                      type="number"
+                                      min="1"
+                                      step="1"
+                                      placeholder="Enter duration"
+                                      value={
+                                        field.value === 0 ? "" : field.value
+                                      }
+                                      onChange={(e) => {
+                                        const value = e.target.value;
+                                        const numValue =
+                                          value === "" ? 0 : Number(value);
+                                        field.onChange(numValue);
+                                      }}
+                                      required={requiredFields.prices}
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                              rules={{
+                                validate: (value) => {
+                                  if (!value || value === 0) {
+                                    return "Duration cannot be 0";
+                                  }
+                                  return true;
+                                },
+                              }}
+                            />
+                          </div>
+                        )}
+
+                        <FormField
+                          control={form.control}
+                          name={`prices.${index}.durationUnit`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel htmlFor={`duration-unit-${index}`}>
+                                Duration Unit
+                                <span className="text-red-500 ml-1">*</span>
+                              </FormLabel>
+                              <FormControl>
+                                <Select
+                                  value={field.value}
+                                  onValueChange={(value) => {
+                                    field.onChange(value);
+                                  }}
+                                >
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select unit" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="minutes">
+                                      Time
+                                    </SelectItem>
+                                    {entityType === "coach" && (
+                                      <>
+                                        <SelectItem value="class">
+                                          Class
+                                        </SelectItem>
+                                      </>
+                                    )}
+                                    {entityType === "court" && (
+                                      <>
+                                        <SelectItem value="session">
+                                          Session
+                                        </SelectItem>
+                                      </>
+                                    )}
+                                    <SelectItem value="day">Day</SelectItem>
+                                    <SelectItem value="month">Month</SelectItem>
+                                    <SelectItem value="year">Year</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                          rules={{
+                            validate: (value) => {
+                              if (!value || value === "") {
+                                return "Duration unit is required";
+                              }
+                              return true;
+                            },
+                          }}
+                        />
+                      </div>
 
                       <FormField
                         control={form.control}
-                        name={`prices.${index}.price`}
+                        name={`prices.${index}.description`}
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel htmlFor={`price-${index}`}>
-                              Price ($)
+                            <FormLabel htmlFor={`description-${index}`}>
+                              Description (Optional)
                             </FormLabel>
                             <FormControl>
                               <Input
-                                id={`price-${index}`}
-                                name={`prices.${index}.price`}
-                                type="number"
-                                min="1"
-                                step="1"
-                                autoComplete="off"
-                                value={field.value === 0 ? "" : field.value}
-                                onChange={(e) => {
-                                  const value = e.target.value;
-                                  field.onChange(
-                                    value === "" ? 0 : Number(value)
-                                  );
-                                }}
-                                required={requiredFields.prices}
+                                id={`description-${index}`}
+                                name={`prices.${index}.description`}
+                                placeholder="Additional details about this pricing..."
+                                value={field.value || ""}
+                                onChange={field.onChange}
+                                maxLength={100}
                               />
                             </FormControl>
+                            <FormDescription>
+                              {field.value
+                                ? `${field.value.length}/100 characters`
+                                : "0/100 characters"}
+                            </FormDescription>
                             <FormMessage />
                           </FormItem>
                         )}

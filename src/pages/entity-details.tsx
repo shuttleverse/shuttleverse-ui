@@ -305,12 +305,23 @@ export default function EntityDetailsPage() {
   };
 
   const handleAddPrice = async (
-    priceData: Array<{ price: number; stringName?: string; duration?: number }>
+    priceData: Array<{
+      price?: number;
+      stringName?: string;
+      minPrice?: number;
+      maxPrice?: number;
+      duration?: number;
+      durationUnit?: string;
+      description?: string;
+    }>
   ) => {
     if (type === "court") {
       const courtPriceData: CourtFormPriceData[] = priceData.map((price) => ({
-        price: price.price,
-        duration: price.duration || 0,
+        minPrice: price.minPrice || 0,
+        maxPrice: price.maxPrice || 0,
+        duration: price.duration || 1,
+        durationUnit: price.durationUnit || "minutes",
+        description: price.description,
       }));
       await (
         addPriceMutation as ReturnType<typeof useAddCourtPrice>
@@ -320,8 +331,11 @@ export default function EntityDetailsPage() {
       });
     } else if (type === "coach") {
       const coachPriceData: CoachFormPriceData[] = priceData.map((price) => ({
-        price: price.price,
-        duration: price.duration || 0,
+        minPrice: price.minPrice || 0,
+        maxPrice: price.maxPrice || 0,
+        duration: price.duration || 1,
+        durationUnit: price.durationUnit || "minutes",
+        description: price.description,
       }));
       await (
         addPriceMutation as ReturnType<typeof useAddCoachPrice>
