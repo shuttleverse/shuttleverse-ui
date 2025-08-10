@@ -35,6 +35,7 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import AuthPrompt from "./auth-prompt";
 import { useToast } from "@/hooks/use-toast";
+import { Separator } from "@/components/ui/separator";
 
 type CoachCourtPriceData = {
   minPrice: number;
@@ -231,7 +232,16 @@ export function AddInfoModal({
   if (showConfirmation && confirmationData) {
     return (
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent
+          className="max-w-2xl bg-gradient-to-br from-gray-100 via-blue-100 to-green-100 backdrop-blur-md border-none"
+          style={{
+            background:
+              "linear-gradient(to bottom right, rgb(243 244 246), rgb(219 234 254), rgb(220 252 231))",
+            backdropFilter: "blur(16px)",
+            border: "1px solid rgba(255, 255, 255, 0.2)",
+            boxShadow: "0 -4px 32px rgba(0,0,0,0.08)",
+          }}
+        >
           <DialogHeader>
             <DialogTitle>
               Confirm{" "}
@@ -253,7 +263,7 @@ export function AddInfoModal({
                   (schedule, index) => (
                     <div
                       key={index}
-                      className="bg-gray-50 rounded-lg p-4 border-l-4 border-blue-500"
+                      className="bg-transparent rounded-lg p-4 border-l-4 border-blue-500 border border-gray-300 shadow-md"
                     >
                       <div className="flex items-center justify-between">
                         <span className="font-semibold text-gray-900">
@@ -284,7 +294,7 @@ export function AddInfoModal({
                 {(confirmationData.data as PriceData[]).map((price, index) => (
                   <div
                     key={index}
-                    className="bg-gray-50 rounded-lg p-4 border-l-4 border-purple-500"
+                    className="bg-transparent rounded-lg p-4 border-l-4 border-purple-500 border border-gray-300 shadow-sm"
                   >
                     <div className="flex items-center justify-between">
                       <div>
@@ -308,7 +318,7 @@ export function AddInfoModal({
                           )}
                       </div>
                       {entityType === "stringer" && "stringName" in price && (
-                        <span className="text-lg font-bold text-green-600 bg-white px-4 py-2 rounded-lg">
+                        <span className="text-lg font-bold text-green-600 bg-white px-4 py-2 rounded-lg border-none">
                           ${price.price}
                         </span>
                       )}
@@ -340,7 +350,16 @@ export function AddInfoModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent
+        className="max-w-4xl max-h-[90vh] overflow-y-auto bg-gradient-to-br from-gray-100 via-blue-100 to-green-100 backdrop-blur-md border border-white/20"
+        style={{
+          background:
+            "linear-gradient(to bottom right, rgb(243 244 246), rgb(219 234 254), rgb(220 252 231))",
+          backdropFilter: "blur(16px)",
+          border: "1px solid rgba(255, 255, 255, 0.2)",
+          boxShadow: "0 -4px 32px rgba(0,0,0,0.08)",
+        }}
+      >
         <DialogHeader>
           <DialogTitle>Add Information to {getEntityTitle()}</DialogTitle>
           <DialogDescription>
@@ -368,8 +387,8 @@ export function AddInfoModal({
           </TabsList>
 
           {entityType !== "stringer" && (
-            <TabsContent value="schedule" className="space-y-4">
-              <Card>
+            <TabsContent value="schedule" className="space-y-4 border-none">
+              <Card className="bg-transparent border-none !important shadow-none">
                 <CardHeader>
                   <CardTitle>Add Schedule</CardTitle>
                 </CardHeader>
@@ -413,7 +432,7 @@ export function AddInfoModal({
           )}
 
           <TabsContent value="pricing" className="space-y-4">
-            <Card>
+            <Card className="bg-transparent border-none !important shadow-none">
               <CardHeader>
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                   <CardTitle>Add Pricing</CardTitle>
@@ -436,42 +455,55 @@ export function AddInfoModal({
                   >
                     {priceFields.map((field, index) => (
                       <div key={field.id} className="space-y-4">
-                        {entityType === "stringer" ? (
-                          <FormField
-                            control={priceForm.control}
-                            name={`prices.${index}.stringName`}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>String</FormLabel>
-                                <FormControl>
-                                  <Input
-                                    placeholder="e.g. Yonex BG65"
-                                    {...field}
-                                    required
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        ) : (
-                          <>
+                        {index > 0 && (
+                          <Separator className="my-6 bg-gray-400" />
+                        )}
+                        <div className="bg-transparent p-4 rounded-lg border border-gray-300 shadow-md">
+                          <div className="flex items-center justify-between mb-4">
+                            <h4 className="text-sm font-semibold text-gray-700">
+                              {entityType === "stringer"
+                                ? index === 0
+                                  ? "Service Fee"
+                                  : `String Option ${index}`
+                                : `Pricing Option ${index + 1}`}
+                            </h4>
+                          </div>
+                          {entityType === "stringer" ? (
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                               <FormField
                                 control={priceForm.control}
-                                name={`prices.${index}.minPrice`}
+                                name={`prices.${index}.stringName`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>String</FormLabel>
+                                    <FormControl>
+                                      <Input
+                                        placeholder="e.g. Yonex BG65"
+                                        {...field}
+                                        required
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={priceForm.control}
+                                name={`prices.${index}.price`}
                                 render={({ field }) => (
                                   <FormItem>
                                     <FormLabel>
-                                      {priceRangeModes[index]
-                                        ? "Min Price ($)"
-                                        : "Price ($)"}
+                                      Price ($)
+                                      <span className="text-red-500 ml-1">
+                                        *
+                                      </span>
                                     </FormLabel>
                                     <FormControl>
                                       <Input
                                         type="number"
                                         min="1"
                                         step="1"
+                                        placeholder="Enter price"
                                         value={
                                           field.value === 0 ? "" : field.value
                                         }
@@ -480,17 +512,6 @@ export function AddInfoModal({
                                           const numValue =
                                             value === "" ? 0 : Number(value);
                                           field.onChange(numValue);
-                                          // Update maxPrice to match minPrice if it's currently the same
-                                          const maxPriceField =
-                                            priceForm.getValues(
-                                              `prices.${index}.maxPrice`
-                                            );
-                                          if (maxPriceField === field.value) {
-                                            priceForm.setValue(
-                                              `prices.${index}.maxPrice`,
-                                              numValue
-                                            );
-                                          }
                                         }}
                                         required
                                       />
@@ -499,14 +520,23 @@ export function AddInfoModal({
                                   </FormItem>
                                 )}
                               />
-
-                              {priceRangeModes[index] && (
+                            </div>
+                          ) : (
+                            <>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <FormField
                                   control={priceForm.control}
-                                  name={`prices.${index}.maxPrice`}
+                                  name={`prices.${index}.minPrice`}
                                   render={({ field }) => (
                                     <FormItem>
-                                      <FormLabel>Max Price ($)</FormLabel>
+                                      <FormLabel>
+                                        {priceRangeModes[index]
+                                          ? "Min Price ($)"
+                                          : "Price ($)"}
+                                        <span className="text-red-500 ml-1">
+                                          *
+                                        </span>
+                                      </FormLabel>
                                       <FormControl>
                                         <Input
                                           type="number"
@@ -517,9 +547,19 @@ export function AddInfoModal({
                                           }
                                           onChange={(e) => {
                                             const value = e.target.value;
-                                            field.onChange(
-                                              value === "" ? 0 : Number(value)
-                                            );
+                                            const numValue =
+                                              value === "" ? 0 : Number(value);
+                                            field.onChange(numValue);
+                                            const maxPriceField =
+                                              priceForm.getValues(
+                                                `prices.${index}.maxPrice`
+                                              );
+                                            if (maxPriceField === field.value) {
+                                              priceForm.setValue(
+                                                `prices.${index}.maxPrice`,
+                                                numValue
+                                              );
+                                            }
                                           }}
                                           required
                                         />
@@ -528,215 +568,15 @@ export function AddInfoModal({
                                     </FormItem>
                                   )}
                                 />
-                              )}
-                            </div>
 
-                            <div className="flex items-center gap-2">
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={() => {
-                                  const currentMin = priceForm.getValues(
-                                    `prices.${index}.minPrice`
-                                  );
-                                  const currentMax = priceForm.getValues(
-                                    `prices.${index}.maxPrice`
-                                  );
-                                  const isRangeMode = priceRangeModes[index];
-
-                                  if (!isRangeMode) {
-                                    // Switch to range mode - clear both fields
-                                    priceForm.setValue(
-                                      `prices.${index}.minPrice`,
-                                      0
-                                    );
-                                    priceForm.setValue(
-                                      `prices.${index}.maxPrice`,
-                                      0
-                                    );
-                                    setPriceRangeModes((prev) => ({
-                                      ...prev,
-                                      [index]: true,
-                                    }));
-                                  } else {
-                                    // Switch to single price mode - clear both fields
-                                    priceForm.setValue(
-                                      `prices.${index}.minPrice`,
-                                      0
-                                    );
-                                    priceForm.setValue(
-                                      `prices.${index}.maxPrice`,
-                                      0
-                                    );
-                                    setPriceRangeModes((prev) => ({
-                                      ...prev,
-                                      [index]: false,
-                                    }));
-                                  }
-                                }}
-                                className="text-xs"
-                              >
-                                {priceRangeModes[index]
-                                  ? "Switch to Single Price"
-                                  : "Switch to Range"}
-                              </Button>
-                              {priceRangeModes[index] && (
-                                <span className="text-xs text-muted-foreground">
-                                  Range mode
-                                </span>
-                              )}
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              {priceForm.watch(
-                                `prices.${index}.durationUnit`
-                              ) === "minutes" ? (
-                                <div className="grid grid-cols-2 gap-2">
+                                {priceRangeModes[index] && (
                                   <FormField
                                     control={priceForm.control}
-                                    name={`prices.${index}.duration`}
+                                    name={`prices.${index}.maxPrice`}
                                     render={({ field }) => (
                                       <FormItem>
                                         <FormLabel>
-                                          Hours
-                                          <span className="text-red-500 ml-1">
-                                            *
-                                          </span>
-                                        </FormLabel>
-                                        <FormControl>
-                                          <Select
-                                            value={Math.floor(
-                                              (field.value || 0) / 60
-                                            ).toString()}
-                                            onValueChange={(value) => {
-                                              const hours = Number(value) || 0;
-                                              const currentMinutes =
-                                                (field.value || 0) % 60;
-                                              const totalMinutes =
-                                                hours * 60 + currentMinutes;
-                                              field.onChange(totalMinutes);
-                                            }}
-                                          >
-                                            <SelectTrigger>
-                                              <SelectValue />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                              {Array.from(
-                                                { length: 13 },
-                                                (_, i) => (
-                                                  <SelectItem
-                                                    key={i}
-                                                    value={i.toString()}
-                                                  >
-                                                    {i}
-                                                  </SelectItem>
-                                                )
-                                              )}
-                                            </SelectContent>
-                                          </Select>
-                                        </FormControl>
-                                        <FormMessage />
-                                      </FormItem>
-                                    )}
-                                    rules={{
-                                      validate: (value) => {
-                                        if (!value || value === 0) {
-                                          return "Duration cannot be 0";
-                                        }
-                                        return true;
-                                      },
-                                    }}
-                                  />
-                                  <FormField
-                                    control={priceForm.control}
-                                    name={`prices.${index}.duration`}
-                                    render={({ field }) => (
-                                      <FormItem>
-                                        <FormLabel>
-                                          Minutes
-                                          <span className="text-red-500 ml-1">
-                                            *
-                                          </span>
-                                        </FormLabel>
-                                        <FormControl>
-                                          <Select
-                                            value={(
-                                              (field.value || 0) % 60
-                                            ).toString()}
-                                            onValueChange={(value) => {
-                                              const minutes =
-                                                Number(value) || 0;
-                                              const currentHours = Math.floor(
-                                                (field.value || 0) / 60
-                                              );
-                                              const totalMinutes =
-                                                currentHours * 60 + minutes;
-                                              field.onChange(totalMinutes);
-                                            }}
-                                          >
-                                            <SelectTrigger>
-                                              <SelectValue />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                              {Array.from(
-                                                { length: 61 },
-                                                (_, i) => (
-                                                  <SelectItem
-                                                    key={i}
-                                                    value={i.toString()}
-                                                  >
-                                                    {i}
-                                                  </SelectItem>
-                                                )
-                                              )}
-                                            </SelectContent>
-                                          </Select>
-                                        </FormControl>
-                                        <FormMessage />
-                                      </FormItem>
-                                    )}
-                                    rules={{
-                                      validate: (value) => {
-                                        if (!value || value === 0) {
-                                          return "Duration cannot be 0";
-                                        }
-                                        return true;
-                                      },
-                                    }}
-                                  />
-                                </div>
-                              ) : (
-                                <div
-                                  className={
-                                    priceForm.watch(
-                                      `prices.${index}.durationUnit`
-                                    ) === "" ||
-                                    priceForm.watch(
-                                      `prices.${index}.durationUnit`
-                                    ) === "other"
-                                      ? "grid grid-cols-2 gap-2"
-                                      : "w-full"
-                                  }
-                                >
-                                  <FormField
-                                    control={priceForm.control}
-                                    name={`prices.${index}.duration`}
-                                    render={({ field }) => (
-                                      <FormItem
-                                        className={
-                                          priceForm.watch(
-                                            `prices.${index}.durationUnit`
-                                          ) === "" ||
-                                          priceForm.watch(
-                                            `prices.${index}.durationUnit`
-                                          ) === "other"
-                                            ? ""
-                                            : "w-full"
-                                        }
-                                      >
-                                        <FormLabel>
-                                          Duration
+                                          Max Price ($)
                                           <span className="text-red-500 ml-1">
                                             *
                                           </span>
@@ -746,7 +586,6 @@ export function AddInfoModal({
                                             type="number"
                                             min="1"
                                             step="1"
-                                            placeholder="Enter duration"
                                             value={
                                               field.value === 0
                                                 ? ""
@@ -754,11 +593,9 @@ export function AddInfoModal({
                                             }
                                             onChange={(e) => {
                                               const value = e.target.value;
-                                              const numValue =
-                                                value === ""
-                                                  ? 0
-                                                  : Number(value);
-                                              field.onChange(numValue);
+                                              field.onChange(
+                                                value === "" ? 0 : Number(value)
+                                              );
                                             }}
                                             required
                                           />
@@ -766,124 +603,365 @@ export function AddInfoModal({
                                         <FormMessage />
                                       </FormItem>
                                     )}
-                                    rules={{
-                                      validate: (value) => {
-                                        if (!value || value === 0) {
-                                          return "Duration cannot be 0";
-                                        }
-                                        return true;
-                                      },
-                                    }}
                                   />
-                                </div>
-                              )}
+                                )}
+                              </div>
+
+                              <div className="flex items-center gap-2 mt-4">
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
+                                    const isRangeMode = priceRangeModes[index];
+
+                                    if (!isRangeMode) {
+                                      priceForm.setValue(
+                                        `prices.${index}.minPrice`,
+                                        0
+                                      );
+                                      priceForm.setValue(
+                                        `prices.${index}.maxPrice`,
+                                        0
+                                      );
+                                      setPriceRangeModes((prev) => ({
+                                        ...prev,
+                                        [index]: true,
+                                      }));
+                                    } else {
+                                      priceForm.setValue(
+                                        `prices.${index}.minPrice`,
+                                        0
+                                      );
+                                      priceForm.setValue(
+                                        `prices.${index}.maxPrice`,
+                                        0
+                                      );
+                                      setPriceRangeModes((prev) => ({
+                                        ...prev,
+                                        [index]: false,
+                                      }));
+                                    }
+                                  }}
+                                  className="text-xs"
+                                >
+                                  {priceRangeModes[index]
+                                    ? "Switch to Single Price"
+                                    : "Switch to Range"}
+                                </Button>
+                                {priceRangeModes[index] && (
+                                  <span className="text-xs text-muted-foreground">
+                                    Range mode
+                                  </span>
+                                )}
+                              </div>
+                              <Separator className="my-4 bg-transparent" />
+
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {priceForm.watch(
+                                  `prices.${index}.durationUnit`
+                                ) === "minutes" ? (
+                                  <div className="grid grid-cols-2 gap-2">
+                                    <FormField
+                                      control={priceForm.control}
+                                      name={`prices.${index}.duration`}
+                                      render={({ field }) => (
+                                        <FormItem>
+                                          <FormLabel>
+                                            Hours
+                                            <span className="text-red-500 ml-1">
+                                              *
+                                            </span>
+                                          </FormLabel>
+                                          <FormControl>
+                                            <Select
+                                              value={Math.floor(
+                                                (field.value || 0) / 60
+                                              ).toString()}
+                                              onValueChange={(value) => {
+                                                const hours =
+                                                  Number(value) || 0;
+                                                const currentMinutes =
+                                                  (field.value || 0) % 60;
+                                                const totalMinutes =
+                                                  hours * 60 + currentMinutes;
+                                                field.onChange(totalMinutes);
+                                              }}
+                                            >
+                                              <SelectTrigger>
+                                                <SelectValue />
+                                              </SelectTrigger>
+                                              <SelectContent>
+                                                {Array.from(
+                                                  { length: 13 },
+                                                  (_, i) => (
+                                                    <SelectItem
+                                                      key={i}
+                                                      value={i.toString()}
+                                                    >
+                                                      {i
+                                                        .toString()
+                                                        .padStart(2, "0")}
+                                                    </SelectItem>
+                                                  )
+                                                )}
+                                              </SelectContent>
+                                            </Select>
+                                          </FormControl>
+                                          <FormMessage />
+                                        </FormItem>
+                                      )}
+                                      rules={{
+                                        validate: (value) => {
+                                          if (!value || value === 0) {
+                                            return "Duration cannot be 0";
+                                          }
+                                          return true;
+                                        },
+                                      }}
+                                    />
+                                    <FormField
+                                      control={priceForm.control}
+                                      name={`prices.${index}.duration`}
+                                      render={({ field }) => (
+                                        <FormItem>
+                                          <FormLabel>
+                                            Minutes
+                                            <span className="text-red-500 ml-1">
+                                              *
+                                            </span>
+                                          </FormLabel>
+                                          <FormControl>
+                                            <Select
+                                              value={(
+                                                (field.value || 0) % 60
+                                              ).toString()}
+                                              onValueChange={(value) => {
+                                                const minutes =
+                                                  Number(value) || 0;
+                                                const currentHours = Math.floor(
+                                                  (field.value || 0) / 60
+                                                );
+                                                const totalMinutes =
+                                                  currentHours * 60 + minutes;
+                                                field.onChange(totalMinutes);
+                                              }}
+                                            >
+                                              <SelectTrigger>
+                                                <SelectValue />
+                                              </SelectTrigger>
+                                              <SelectContent>
+                                                {Array.from(
+                                                  { length: 61 },
+                                                  (_, i) => (
+                                                    <SelectItem
+                                                      key={i}
+                                                      value={i.toString()}
+                                                    >
+                                                      {i
+                                                        .toString()
+                                                        .padStart(2, "0")}
+                                                    </SelectItem>
+                                                  )
+                                                )}
+                                              </SelectContent>
+                                            </Select>
+                                          </FormControl>
+                                          <FormMessage />
+                                        </FormItem>
+                                      )}
+                                      rules={{
+                                        validate: (value) => {
+                                          if (!value || value === 0) {
+                                            return "Duration cannot be 0";
+                                          }
+                                          return true;
+                                        },
+                                      }}
+                                    />
+                                  </div>
+                                ) : (
+                                  <div
+                                    className={
+                                      priceForm.watch(
+                                        `prices.${index}.durationUnit`
+                                      ) === "" ||
+                                      priceForm.watch(
+                                        `prices.${index}.durationUnit`
+                                      ) === "other"
+                                        ? "grid grid-cols-2 gap-2"
+                                        : "w-full"
+                                    }
+                                  >
+                                    <FormField
+                                      control={priceForm.control}
+                                      name={`prices.${index}.duration`}
+                                      render={({ field }) => (
+                                        <FormItem
+                                          className={
+                                            priceForm.watch(
+                                              `prices.${index}.durationUnit`
+                                            ) === "" ||
+                                            priceForm.watch(
+                                              `prices.${index}.durationUnit`
+                                            ) === "other"
+                                              ? ""
+                                              : "w-full"
+                                          }
+                                        >
+                                          <FormLabel>
+                                            Duration
+                                            <span className="text-red-500 ml-1">
+                                              *
+                                            </span>
+                                          </FormLabel>
+                                          <FormControl>
+                                            <Input
+                                              type="number"
+                                              min="1"
+                                              step="1"
+                                              placeholder="Enter duration"
+                                              value={
+                                                field.value === 0
+                                                  ? ""
+                                                  : field.value
+                                              }
+                                              onChange={(e) => {
+                                                const value = e.target.value;
+                                                const numValue =
+                                                  value === ""
+                                                    ? 0
+                                                    : Number(value);
+                                                field.onChange(numValue);
+                                              }}
+                                              required
+                                            />
+                                          </FormControl>
+                                          <FormMessage />
+                                        </FormItem>
+                                      )}
+                                      rules={{
+                                        validate: (value) => {
+                                          if (!value || value === 0) {
+                                            return "Duration cannot be 0";
+                                          }
+                                          return true;
+                                        },
+                                      }}
+                                    />
+                                  </div>
+                                )}
+
+                                <FormField
+                                  control={priceForm.control}
+                                  name={`prices.${index}.durationUnit`}
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>
+                                        Duration Unit
+                                        <span className="text-red-500 ml-1">
+                                          *
+                                        </span>
+                                      </FormLabel>
+                                      <FormControl>
+                                        <Select
+                                          value={field.value}
+                                          onValueChange={(value) => {
+                                            field.onChange(value);
+                                          }}
+                                        >
+                                          <SelectTrigger>
+                                            <SelectValue placeholder="Select unit" />
+                                          </SelectTrigger>
+                                          <SelectContent>
+                                            <SelectItem value="minutes">
+                                              Time
+                                            </SelectItem>
+                                            {entityType === "coach" && (
+                                              <>
+                                                <SelectItem value="class">
+                                                  Class
+                                                </SelectItem>
+                                              </>
+                                            )}
+                                            {entityType === "court" && (
+                                              <>
+                                                <SelectItem value="session">
+                                                  Session
+                                                </SelectItem>
+                                              </>
+                                            )}
+                                            <SelectItem value="day">
+                                              Day
+                                            </SelectItem>
+                                            <SelectItem value="month">
+                                              Month
+                                            </SelectItem>
+                                            <SelectItem value="year">
+                                              Year
+                                            </SelectItem>
+                                          </SelectContent>
+                                        </Select>
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                  rules={{
+                                    validate: (value) => {
+                                      if (!value || value === "") {
+                                        return "Duration unit is required";
+                                      }
+                                      return true;
+                                    },
+                                  }}
+                                />
+                              </div>
+
+                              <Separator className="my-4 bg-transparent" />
 
                               <FormField
                                 control={priceForm.control}
-                                name={`prices.${index}.durationUnit`}
+                                name={`prices.${index}.description`}
                                 render={({ field }) => (
                                   <FormItem>
                                     <FormLabel>
-                                      Duration Unit
-                                      <span className="text-red-500 ml-1">
-                                        *
-                                      </span>
+                                      Description (Optional)
                                     </FormLabel>
                                     <FormControl>
-                                      <Select
-                                        value={field.value}
-                                        onValueChange={(value) => {
-                                          field.onChange(value);
-                                        }}
-                                      >
-                                        <SelectTrigger>
-                                          <SelectValue placeholder="Select unit" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                          <SelectItem value="minutes">
-                                            Minutes
-                                          </SelectItem>
-                                          {entityType === "coach" && (
-                                            <>
-                                              <SelectItem value="class">
-                                                Class
-                                              </SelectItem>
-                                            </>
-                                          )}
-                                          {entityType === "court" && (
-                                            <>
-                                              <SelectItem value="session">
-                                                Session
-                                              </SelectItem>
-                                            </>
-                                          )}
-                                          <SelectItem value="day">
-                                            Day
-                                          </SelectItem>
-                                          <SelectItem value="month">
-                                            Month
-                                          </SelectItem>
-                                          <SelectItem value="year">
-                                            Year
-                                          </SelectItem>
-                                        </SelectContent>
-                                      </Select>
+                                      <Input
+                                        value={field.value || ""}
+                                        onChange={field.onChange}
+                                        maxLength={100}
+                                      />
                                     </FormControl>
+                                    <FormDescription>
+                                      {field.value
+                                        ? `${field.value.length}/100 characters`
+                                        : "0/100 characters"}
+                                    </FormDescription>
                                     <FormMessage />
                                   </FormItem>
                                 )}
-                                rules={{
-                                  validate: (value) => {
-                                    if (!value || value === "") {
-                                      return "Duration unit is required";
-                                    }
-                                    return true;
-                                  },
-                                }}
                               />
-                            </div>
-
-                            <FormField
-                              control={priceForm.control}
-                              name={`prices.${index}.description`}
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Description (Optional)</FormLabel>
-                                  <FormControl>
-                                    <Input
-                                      placeholder="Additional details about this pricing..."
-                                      value={field.value || ""}
-                                      onChange={field.onChange}
-                                      maxLength={100}
-                                    />
-                                  </FormControl>
-                                  <FormDescription>
-                                    {field.value
-                                      ? `${field.value.length}/100 characters`
-                                      : "0/100 characters"}
-                                  </FormDescription>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                          </>
-                        )}
-
-                        {priceFields.length > 1 &&
-                          (entityType !== "stringer" || index !== 0) && (
-                            <div className="flex justify-end md:col-span-2">
-                              <Button
-                                type="button"
-                                onClick={() => removePrice(index)}
-                                variant="ghost"
-                                size="sm"
-                                className="text-red-500 hover:text-red-700"
-                              >
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                Remove Price
-                              </Button>
-                            </div>
+                            </>
                           )}
+
+                          {priceFields.length > 1 &&
+                            (entityType !== "stringer" || index !== 0) && (
+                              <div className="flex justify-end md:col-span-2">
+                                <Button
+                                  type="button"
+                                  onClick={() => removePrice(index)}
+                                  variant="ghost"
+                                  size="sm"
+                                  className="text-red-500 hover:text-red-700"
+                                >
+                                  <Trash2 className="h-4 w-4 mr-2" />
+                                  Remove Price
+                                </Button>
+                              </div>
+                            )}
+                        </div>
                       </div>
                     ))}
                     <div className="flex justify-end space-x-2">

@@ -332,6 +332,30 @@ const MapPage = () => {
     };
   }, [onDragMove, onDragEnd]);
 
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const courtId = urlParams.get("court");
+    const coachId = urlParams.get("coach");
+    const stringerId = urlParams.get("stringer");
+
+    if (courtId || coachId || stringerId) {
+      const entityId = courtId || coachId || stringerId;
+      const entityType = courtId ? "court" : coachId ? "coach" : "stringer";
+
+      const targetEntity = entities.find(
+        (entity) => entity.id === entityId && entity.type === entityType
+      );
+
+      if (targetEntity) {
+        setSelectedEntity(targetEntity);
+        handlePanToEntity(targetEntity);
+
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, "", newUrl);
+      }
+    }
+  }, [entities, handlePanToEntity]);
+
   const defaultZoom = isMobile ? 11 : 12;
 
   const renderLeftPanel = () => {
