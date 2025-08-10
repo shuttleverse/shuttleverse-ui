@@ -8,6 +8,8 @@ import {
 } from "@/services/courts";
 import { EntityForm } from "@/components/forms/entity-form";
 import Navbar from "@/components/layout/navbar";
+import BottomNavigation from "@/components/layout/bottom-navigation";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const requiredFields = {
   name: true,
@@ -29,7 +31,8 @@ export default function AddCourt() {
   const createCourt = useCreateCourt();
   const addCourtSchedule = useAddCourtSchedule();
   const addCourtPrice = useAddCourtPrice();
-
+  const isMobile = useIsMobile();
+  
   const handleSubmit = async (formData: CourtFormData) => {
     try {
       const { schedules, prices } = formData;
@@ -92,6 +95,7 @@ export default function AddCourt() {
           </div>
         </div>
       </div>
+      {isMobile && <BottomNavigation />}
     </div>
   );
 }

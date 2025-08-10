@@ -4,10 +4,10 @@ import Layout from "@/components/layout/layout";
 import EntityCard from "@/components/shared/entity-card";
 import FilterSidebar from "@/components/shared/filter-sidebar";
 import AuthPrompt from "@/components/shared/auth-prompt";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, SlidersHorizontal, Plus } from "lucide-react";
+import { SlidersHorizontal, Plus } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface EntityData {
   id: string;
@@ -37,7 +37,6 @@ interface EntityListingProps {
     isVerified?: boolean;
     minPrice?: number;
     maxPrice?: number;
-    search?: string;
   }) => {
     data: { pages: PaginatedResponse[] } | undefined;
     isLoading: boolean;
@@ -56,7 +55,7 @@ const EntityListing: React.FC<EntityListingProps> = ({
 }) => {
   const navigate = useNavigate();
   const { isAuthenticated, user } = useAuth();
-  const [searchTerm, setSearchTerm] = useState("");
+  const isMobile = useIsMobile();
   const [showFilters, setShowFilters] = useState(false);
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
   const [activeFilters, setActiveFilters] = useState<{
@@ -64,19 +63,16 @@ const EntityListing: React.FC<EntityListingProps> = ({
     isVerified?: boolean;
     minPrice?: number;
     maxPrice?: number;
-    search?: string;
   }>({});
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
-  // Format filters for API
   const formattedFilters = useMemo(() => {
     const formatted: {
       isVerified?: boolean;
       daysOfWeek?: number[];
       minPrice?: number;
       maxPrice?: number;
-      search?: string;
     } = {};
 
     if (activeFilters.isVerified !== undefined) {
@@ -84,7 +80,6 @@ const EntityListing: React.FC<EntityListingProps> = ({
     }
 
     if (activeFilters.daysOfWeek && activeFilters.daysOfWeek.length > 0) {
-      // Convert day names to numbers (0=Sunday, 1=Monday, etc.)
       const dayToNumber: Record<string, number> = {
         Sunday: 0,
         Monday: 1,
@@ -105,10 +100,6 @@ const EntityListing: React.FC<EntityListingProps> = ({
 
     if (activeFilters.maxPrice !== undefined) {
       formatted.maxPrice = activeFilters.maxPrice;
-    }
-
-    if (activeFilters.search) {
-      formatted.search = activeFilters.search;
     }
 
     return formatted;
@@ -158,24 +149,7 @@ const EntityListing: React.FC<EntityListingProps> = ({
     minPrice?: number;
     maxPrice?: number;
   }) => {
-    // Update active filters to trigger API refetch
     setActiveFilters(filters);
-  };
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    setActiveFilters((prev) => ({
-      ...prev,
-      search: searchTerm.trim() || undefined,
-    }));
-  };
-
-  const handleClearSearch = () => {
-    setSearchTerm("");
-    setActiveFilters((prev) => {
-      const { search, ...rest } = prev;
-      return rest;
-    });
   };
 
   const handleAddEntityClick = () => {
@@ -211,14 +185,16 @@ const EntityListing: React.FC<EntityListingProps> = ({
             {title}
           </h1>
           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-            <Button
-              variant="outline"
-              className="flex items-center gap-2 px-3 py-1 text-sm sm:px-4 sm:py-2 sm:text-base w-full sm:w-auto"
-              onClick={() => setShowFilters(!showFilters)}
-            >
-              <SlidersHorizontal className="h-4 w-4" />
-              <span>Filters</span>
-            </Button>
+            {isMobile && (
+              <Button
+                variant="outline"
+                className="flex items-center gap-2 px-3 py-1 text-sm sm:px-4 sm:py-2 sm:text-base w-full sm:w-auto"
+                onClick={() => setShowFilters(!showFilters)}
+              >
+                <SlidersHorizontal className="h-4 w-4" />
+                <span>Filters</span>
+              </Button>
+            )}
             <Button
               className="flex items-center gap-2 px-3 py-1 text-sm sm:px-4 sm:py-2 sm:text-base w-full sm:w-auto"
               onClick={handleAddEntityClick}
@@ -227,27 +203,6 @@ const EntityListing: React.FC<EntityListingProps> = ({
               <span>Add {entityType}</span>
             </Button>
           </div>
-        </div>
-
-        <div className="mb-6">
-          <form onSubmit={handleSearch} className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-5 w-5 text-gray-400" />
-            </div>
-            <Input
-              type="text"
-              placeholder={`Search for ${getPluralForm(entityType)}...`}
-              className="pl-10 w-full"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            <Button
-              type="submit"
-              className="absolute right-0 top-0 bottom-0 rounded-l-none"
-            >
-              Search
-            </Button>
-          </form>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -279,9 +234,7 @@ const EntityListing: React.FC<EntityListingProps> = ({
                 <h2 className="text-xl font-semibold mb-2">
                   No {getPluralForm(entityType)} found
                 </h2>
-                <p className="text-gray-600 mb-4">
-                  Try adjusting your search or filters
-                </p>
+                <p className="text-gray-600 mb-4">Try adjusting your filters</p>
                 <Button onClick={handleAddEntityClick} className="mr-2">
                   Add {entityType}
                 </Button>
@@ -289,7 +242,6 @@ const EntityListing: React.FC<EntityListingProps> = ({
                   variant="outline"
                   onClick={() => {
                     setActiveFilters({});
-                    setSearchTerm("");
                   }}
                 >
                   Clear Filters

@@ -25,6 +25,9 @@ import type { CoachData, CoachPriceData } from "@/services/coaches";
 import type { StringerData, StringerPriceData } from "@/services/stringers";
 import { useState } from "react";
 
+import { useNavigate } from "react-router-dom";
+import { useIsMobile } from "@/hooks/use-mobile";
+
 type EntityData = CourtData | CoachData | StringerData;
 
 interface EntityDetailsProps {
@@ -46,6 +49,8 @@ export function EntityDetails({
   isUpvotesLoading = false,
   onAddInfo,
 }: EntityDetailsProps) {
+  const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [selectedPrice, setSelectedPrice] = useState<
     CourtPriceData | CoachPriceData | StringerPriceData | null
   >(null);
@@ -170,7 +175,11 @@ export function EntityDetails({
                           size="sm"
                           onClick={() => {
                             const mapUrl = `/map?${entity.type}=${entity.id}`;
-                            window.open(mapUrl, "_blank");
+                            if (isMobile) {
+                              navigate(mapUrl);
+                            } else {
+                              window.open(mapUrl, "_blank");
+                            }
                           }}
                           className="absolute -top-1 -right-1 flex items-center gap-2 text-primary border-primary hover:bg-primary hover:text-white transition-colors"
                         >

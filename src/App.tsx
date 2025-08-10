@@ -18,6 +18,7 @@ import EntityDetailsPage from "@/pages/entity-details";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { LocationProvider } from "@/contexts/LocationContext";
 import MapPage from "@/pages/map";
+import AddPage from "@/pages/add";
 import Profile from "@/pages/profile";
 import About from "@/pages/about";
 import Contact from "@/pages/contact";
@@ -36,6 +37,7 @@ const AppContent = () => {
       <Route path="/home" element={<Navigate to="/" replace />} />
       <Route path="/login" element={<Login />} />
       <Route path="/map" element={<MapPage />} />
+      <Route path="/add" element={<AddPage />} />
       <Route path="/courts" element={<Courts />} />
       <Route path="/courts/:id" element={<EntityDetailsPage />} />
       <Route path="/coaches" element={<Coaches />} />

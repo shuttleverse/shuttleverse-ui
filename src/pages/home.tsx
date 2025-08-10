@@ -85,16 +85,6 @@ const Home = () => {
             />
           )}
         </div>
-
-        {isMobile && (
-          <button
-            onClick={() => navigate("/map")}
-            className="w-full mb-4 py-3 rounded-lg bg-emerald-600 text-white font-semibold text-lg shadow hover:bg-emerald-700 transition-colors"
-            style={{ letterSpacing: 0.5 }}
-          >
-            Near Me
-          </button>
-        )}
         <div className="bg-white rounded-lg shadow-md p-6 mt-4 mb-6">
           <p className="text-gray-600 mb-4">
             Your comprehensive badminton resource hub

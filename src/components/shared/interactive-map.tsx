@@ -27,6 +27,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import MapSidePanel from "./map-side-panel";
 import SelectedEntityDetails from "./selected-entity-details";
 import { useLocationContext } from "@/hooks/use-location-context";
+import { entityColors } from "@/lib/colors";
 import "./interactive-map.css";
 
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
@@ -49,16 +50,10 @@ export const CustomMarker: React.FC<{
   isSelected: boolean;
 }> = ({ entity, onClick }) => {
   const getMarkerBackground = (type: string) => {
-    switch (type) {
-      case "court":
-        return "#10b981";
-      case "coach":
-        return "#3b82f6";
-      case "stringer":
-        return "#f59e0b";
-      default:
-        return "#6b7280";
-    }
+    return (
+      entityColors[type as keyof typeof entityColors]?.gradient ||
+      entityColors.default.gradient
+    );
   };
 
   return (
@@ -77,39 +72,6 @@ export const CustomMarker: React.FC<{
         scale={1.2}
       />
     </AdvancedMarker>
-  );
-};
-
-const EntityInfoWindow: React.FC<{
-  entity: MapEntity;
-  onClose: () => void;
-}> = ({ entity, onClose }) => {
-  const navigate = useNavigate();
-
-  const handleViewDetails = () => {
-    const path = `/${entity.type}s/${entity.id}`;
-    navigate(path);
-  };
-
-  return (
-    <InfoWindow
-      position={{
-        lat: parseFloat(entity.locationPoint.latitude),
-        lng: parseFloat(entity.locationPoint.longitude),
-      }}
-      onCloseClick={onClose}
-    >
-      <div className="p-2">
-        <h3 className="font-semibold text-gray-900 mb-1">{entity.name}</h3>
-        <p className="text-sm text-gray-600 mb-2">{entity.location}</p>
-        <button
-          onClick={handleViewDetails}
-          className="text-sm text-emerald-600 hover:text-emerald-700 font-medium"
-        >
-          View Details →
-        </button>
-      </div>
-    </InfoWindow>
   );
 };
 
@@ -209,7 +171,7 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
           maxLon: bounds.east,
           maxLat: bounds.north,
         });
-      }, 500);
+      }, 1000);
     },
     []
   );
@@ -240,7 +202,6 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
 
     const allEntities = [...courts, ...coaches, ...stringers];
 
-    // Filter entities based on activeFilters if provided
     if (activeFilters) {
       return allEntities.filter((entity) => activeFilters.has(entity.type));
     }
@@ -254,10 +215,6 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
     },
     [setSelectedEntity]
   );
-
-  const handleInfoWindowClose = useCallback(() => {
-    setSelectedEntity(null);
-  }, [setSelectedEntity]);
 
   const renderRightPanel = () => {
     if (!selectedEntity) {
