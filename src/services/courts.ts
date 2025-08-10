@@ -14,8 +14,11 @@ export type CourtFormScheduleData = {
 };
 
 export type CourtFormPriceData = {
-  price: number;
+  minPrice: number;
+  maxPrice: number;
   duration: number;
+  durationUnit: string;
+  description?: string;
 };
 
 export type CourtFormData = {
@@ -26,7 +29,7 @@ export type CourtFormData = {
   description?: string;
   website?: string;
   phoneNumber?: string;
-  otherContacts?: string;
+  otherContacts?: Record<string, string>;
   schedules: CourtFormScheduleData[];
   prices: CourtFormPriceData[];
 };
@@ -41,7 +44,7 @@ type CourtCreationAPIData = {
   description: string;
   website: string;
   phoneNumber: string;
-  otherContacts?: string;
+  otherContacts?: Record<string, string>;
 };
 
 export type CourtScheduleData = {
@@ -58,8 +61,11 @@ export type CourtScheduleData = {
 
 export type CourtPriceData = {
   id: string;
-  price: number;
+  minPrice: number;
+  maxPrice: number;
   duration: number;
+  durationUnit: string;
+  description?: string;
   upvotes: number;
   submittedBy?: {
     username: string;
@@ -75,7 +81,7 @@ export type CourtData = {
   description?: string;
   website?: string;
   phoneNumber?: string;
-  otherContacts?: string;
+  otherContacts?: Record<string, string>;
   isVerified: boolean;
   scheduleList: CourtScheduleData[];
   priceList: CourtPriceData[];

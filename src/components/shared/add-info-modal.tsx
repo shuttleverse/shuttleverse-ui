@@ -22,6 +22,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import {
@@ -36,8 +37,11 @@ import AuthPrompt from "./auth-prompt";
 import { useToast } from "@/hooks/use-toast";
 
 type CoachCourtPriceData = {
-  price: number;
+  minPrice: number;
+  maxPrice: number;
   duration: number;
+  durationUnit: string;
+  description?: string;
 };
 
 type StringerPriceData = {
@@ -77,8 +81,12 @@ export function AddInfoModal({
     type: "schedule" | "pricing";
     data: ScheduleData[] | PriceData[];
   } | null>(null);
+  const [priceRangeModes, setPriceRangeModes] = useState<
+    Record<number, boolean>
+  >({});
+
   const { toast } = useToast();
-  
+
   useEffect(() => {
     setActiveTab(entityType === "stringer" ? "pricing" : defaultTab);
   }, [defaultTab, entityType]);
@@ -108,7 +116,13 @@ export function AddInfoModal({
     if (entityType === "stringer") {
       appendPrice({ price: 0, stringName: "" });
     } else {
-      appendPrice({ price: 0, duration: 0 });
+      appendPrice({
+        minPrice: 0,
+        maxPrice: 0,
+        duration: 0,
+        durationUnit: "minutes",
+        description: "",
+      });
     }
   };
 
@@ -131,6 +145,36 @@ export function AddInfoModal({
     }
 
     if (!onAddPrice) return;
+
+    if (entityType !== "stringer") {
+      for (let i = 0; i < data.prices.length; i++) {
+        const price = data.prices[i];
+        if ("durationUnit" in price && price.durationUnit !== "minutes") {
+          if (!price.duration || price.duration === 0) {
+            priceForm.setError(`prices.${i}.duration`, {
+              type: "required",
+              message: "Duration cannot be 0",
+            });
+            return;
+          }
+        }
+      }
+    }
+
+    if (entityType !== "stringer") {
+      for (let i = 0; i < data.prices.length; i++) {
+        const price = data.prices[i];
+        if ("durationUnit" in price && price.durationUnit === "minutes") {
+          if (!price.duration || price.duration === 0) {
+            priceForm.setError(`prices.${i}.duration`, {
+              type: "required",
+              message: "Duration cannot be 0",
+            });
+            return;
+          }
+        }
+      }
+    }
 
     setConfirmationData({ type: "pricing", data: data.prices });
     setShowConfirmation(true);
@@ -247,17 +291,19 @@ export function AddInfoModal({
                         <span className="font-semibold text-gray-900">
                           {entityType === "stringer" && "stringName" in price
                             ? price.stringName
-                            : `$${price.price}${
-                                "duration" in price && price.duration > 0
-                                  ? ` / ${price.duration} minutes`
+                            : "minPrice" in price
+                            ? `$${price.minPrice}${
+                                price.maxPrice > price.minPrice
+                                  ? ` - $${price.maxPrice}`
                                   : ""
-                              }`}
+                              } / ${price.duration} ${price.durationUnit}`
+                            : ""}
                         </span>
                         {entityType !== "stringer" &&
-                          "duration" in price &&
-                          price.duration > 0 && (
+                          "description" in price &&
+                          price.description && (
                             <p className="text-sm text-gray-600 mt-1">
-                              Duration: {price.duration} minutes
+                              {price.description}
                             </p>
                           )}
                       </div>
@@ -389,10 +435,7 @@ export function AddInfoModal({
                     className="space-y-4"
                   >
                     {priceFields.map((field, index) => (
-                      <div
-                        key={field.id}
-                        className="grid grid-cols-1 md:grid-cols-2 gap-4"
-                      >
+                      <div key={field.id} className="space-y-4">
                         {entityType === "stringer" ? (
                           <FormField
                             control={priceForm.control}
@@ -412,110 +455,419 @@ export function AddInfoModal({
                             )}
                           />
                         ) : (
-                          <FormField
-                            control={priceForm.control}
-                            name={`prices.${index}.duration`}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Duration</FormLabel>
-                                <div className="flex items-center gap-2">
-                                  <FormControl>
-                                    <div className="flex items-center gap-2">
-                                      <Select
-                                        value={Math.floor(
-                                          field.value / 60
-                                        ).toString()}
-                                        onValueChange={(value) => {
-                                          const hours = Number(value);
-                                          const minutes = field.value % 60;
-                                          field.onChange(hours * 60 + minutes);
+                          <>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <FormField
+                                control={priceForm.control}
+                                name={`prices.${index}.minPrice`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>
+                                      {priceRangeModes[index]
+                                        ? "Min Price ($)"
+                                        : "Price ($)"}
+                                    </FormLabel>
+                                    <FormControl>
+                                      <Input
+                                        type="number"
+                                        min="1"
+                                        step="1"
+                                        value={
+                                          field.value === 0 ? "" : field.value
+                                        }
+                                        onChange={(e) => {
+                                          const value = e.target.value;
+                                          const numValue =
+                                            value === "" ? 0 : Number(value);
+                                          field.onChange(numValue);
+                                          // Update maxPrice to match minPrice if it's currently the same
+                                          const maxPriceField =
+                                            priceForm.getValues(
+                                              `prices.${index}.maxPrice`
+                                            );
+                                          if (maxPriceField === field.value) {
+                                            priceForm.setValue(
+                                              `prices.${index}.maxPrice`,
+                                              numValue
+                                            );
+                                          }
                                         }}
-                                      >
-                                        <SelectTrigger className="w-20">
-                                          <SelectValue placeholder="Hours" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                          {Array.from({ length: 9 }, (_, i) => (
-                                            <SelectItem
-                                              key={i}
-                                              value={i.toString()}
-                                            >
-                                              {i}
-                                            </SelectItem>
-                                          ))}
-                                        </SelectContent>
-                                      </Select>
-                                      <span className="text-sm text-muted-foreground">
-                                        hours
-                                      </span>
-                                    </div>
-                                  </FormControl>
-                                  <FormControl>
-                                    <div className="flex items-center gap-2">
-                                      <Select
-                                        value={(field.value % 60).toString()}
-                                        onValueChange={(value) => {
-                                          const minutes = Number(value);
-                                          const hours = Math.floor(
-                                            field.value / 60
-                                          );
-                                          field.onChange(hours * 60 + minutes);
-                                        }}
-                                      >
-                                        <SelectTrigger className="w-20">
-                                          <SelectValue placeholder="Minutes" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                          {Array.from(
-                                            { length: 60 },
-                                            (_, i) => (
-                                              <SelectItem
-                                                key={i}
-                                                value={i.toString()}
-                                              >
-                                                {i.toString().padStart(2, "0")}
-                                              </SelectItem>
-                                            )
-                                          )}
-                                        </SelectContent>
-                                      </Select>
-                                      <span className="text-sm text-muted-foreground">
-                                        minutes
-                                      </span>
-                                    </div>
-                                  </FormControl>
-                                </div>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        )}
+                                        required
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
 
-                        <FormField
-                          control={priceForm.control}
-                          name={`prices.${index}.price`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Price ($)</FormLabel>
-                              <FormControl>
-                                <Input
-                                  type="number"
-                                  min="1"
-                                  step="1"
-                                  value={field.value === 0 ? "" : field.value}
-                                  onChange={(e) => {
-                                    const value = e.target.value;
-                                    field.onChange(
-                                      value === "" ? 0 : Number(value)
-                                    );
-                                  }}
-                                  required
+                              {priceRangeModes[index] && (
+                                <FormField
+                                  control={priceForm.control}
+                                  name={`prices.${index}.maxPrice`}
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Max Price ($)</FormLabel>
+                                      <FormControl>
+                                        <Input
+                                          type="number"
+                                          min="1"
+                                          step="1"
+                                          value={
+                                            field.value === 0 ? "" : field.value
+                                          }
+                                          onChange={(e) => {
+                                            const value = e.target.value;
+                                            field.onChange(
+                                              value === "" ? 0 : Number(value)
+                                            );
+                                          }}
+                                          required
+                                        />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
                                 />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                              )}
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  const currentMin = priceForm.getValues(
+                                    `prices.${index}.minPrice`
+                                  );
+                                  const currentMax = priceForm.getValues(
+                                    `prices.${index}.maxPrice`
+                                  );
+                                  const isRangeMode = priceRangeModes[index];
+
+                                  if (!isRangeMode) {
+                                    // Switch to range mode - clear both fields
+                                    priceForm.setValue(
+                                      `prices.${index}.minPrice`,
+                                      0
+                                    );
+                                    priceForm.setValue(
+                                      `prices.${index}.maxPrice`,
+                                      0
+                                    );
+                                    setPriceRangeModes((prev) => ({
+                                      ...prev,
+                                      [index]: true,
+                                    }));
+                                  } else {
+                                    // Switch to single price mode - clear both fields
+                                    priceForm.setValue(
+                                      `prices.${index}.minPrice`,
+                                      0
+                                    );
+                                    priceForm.setValue(
+                                      `prices.${index}.maxPrice`,
+                                      0
+                                    );
+                                    setPriceRangeModes((prev) => ({
+                                      ...prev,
+                                      [index]: false,
+                                    }));
+                                  }
+                                }}
+                                className="text-xs"
+                              >
+                                {priceRangeModes[index]
+                                  ? "Switch to Single Price"
+                                  : "Switch to Range"}
+                              </Button>
+                              {priceRangeModes[index] && (
+                                <span className="text-xs text-muted-foreground">
+                                  Range mode
+                                </span>
+                              )}
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              {priceForm.watch(
+                                `prices.${index}.durationUnit`
+                              ) === "minutes" ? (
+                                <div className="grid grid-cols-2 gap-2">
+                                  <FormField
+                                    control={priceForm.control}
+                                    name={`prices.${index}.duration`}
+                                    render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel>
+                                          Hours
+                                          <span className="text-red-500 ml-1">
+                                            *
+                                          </span>
+                                        </FormLabel>
+                                        <FormControl>
+                                          <Select
+                                            value={Math.floor(
+                                              (field.value || 0) / 60
+                                            ).toString()}
+                                            onValueChange={(value) => {
+                                              const hours = Number(value) || 0;
+                                              const currentMinutes =
+                                                (field.value || 0) % 60;
+                                              const totalMinutes =
+                                                hours * 60 + currentMinutes;
+                                              field.onChange(totalMinutes);
+                                            }}
+                                          >
+                                            <SelectTrigger>
+                                              <SelectValue />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                              {Array.from(
+                                                { length: 13 },
+                                                (_, i) => (
+                                                  <SelectItem
+                                                    key={i}
+                                                    value={i.toString()}
+                                                  >
+                                                    {i}
+                                                  </SelectItem>
+                                                )
+                                              )}
+                                            </SelectContent>
+                                          </Select>
+                                        </FormControl>
+                                        <FormMessage />
+                                      </FormItem>
+                                    )}
+                                    rules={{
+                                      validate: (value) => {
+                                        if (!value || value === 0) {
+                                          return "Duration cannot be 0";
+                                        }
+                                        return true;
+                                      },
+                                    }}
+                                  />
+                                  <FormField
+                                    control={priceForm.control}
+                                    name={`prices.${index}.duration`}
+                                    render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel>
+                                          Minutes
+                                          <span className="text-red-500 ml-1">
+                                            *
+                                          </span>
+                                        </FormLabel>
+                                        <FormControl>
+                                          <Select
+                                            value={(
+                                              (field.value || 0) % 60
+                                            ).toString()}
+                                            onValueChange={(value) => {
+                                              const minutes =
+                                                Number(value) || 0;
+                                              const currentHours = Math.floor(
+                                                (field.value || 0) / 60
+                                              );
+                                              const totalMinutes =
+                                                currentHours * 60 + minutes;
+                                              field.onChange(totalMinutes);
+                                            }}
+                                          >
+                                            <SelectTrigger>
+                                              <SelectValue />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                              {Array.from(
+                                                { length: 61 },
+                                                (_, i) => (
+                                                  <SelectItem
+                                                    key={i}
+                                                    value={i.toString()}
+                                                  >
+                                                    {i}
+                                                  </SelectItem>
+                                                )
+                                              )}
+                                            </SelectContent>
+                                          </Select>
+                                        </FormControl>
+                                        <FormMessage />
+                                      </FormItem>
+                                    )}
+                                    rules={{
+                                      validate: (value) => {
+                                        if (!value || value === 0) {
+                                          return "Duration cannot be 0";
+                                        }
+                                        return true;
+                                      },
+                                    }}
+                                  />
+                                </div>
+                              ) : (
+                                <div
+                                  className={
+                                    priceForm.watch(
+                                      `prices.${index}.durationUnit`
+                                    ) === "" ||
+                                    priceForm.watch(
+                                      `prices.${index}.durationUnit`
+                                    ) === "other"
+                                      ? "grid grid-cols-2 gap-2"
+                                      : "w-full"
+                                  }
+                                >
+                                  <FormField
+                                    control={priceForm.control}
+                                    name={`prices.${index}.duration`}
+                                    render={({ field }) => (
+                                      <FormItem
+                                        className={
+                                          priceForm.watch(
+                                            `prices.${index}.durationUnit`
+                                          ) === "" ||
+                                          priceForm.watch(
+                                            `prices.${index}.durationUnit`
+                                          ) === "other"
+                                            ? ""
+                                            : "w-full"
+                                        }
+                                      >
+                                        <FormLabel>
+                                          Duration
+                                          <span className="text-red-500 ml-1">
+                                            *
+                                          </span>
+                                        </FormLabel>
+                                        <FormControl>
+                                          <Input
+                                            type="number"
+                                            min="1"
+                                            step="1"
+                                            placeholder="Enter duration"
+                                            value={
+                                              field.value === 0
+                                                ? ""
+                                                : field.value
+                                            }
+                                            onChange={(e) => {
+                                              const value = e.target.value;
+                                              const numValue =
+                                                value === ""
+                                                  ? 0
+                                                  : Number(value);
+                                              field.onChange(numValue);
+                                            }}
+                                            required
+                                          />
+                                        </FormControl>
+                                        <FormMessage />
+                                      </FormItem>
+                                    )}
+                                    rules={{
+                                      validate: (value) => {
+                                        if (!value || value === 0) {
+                                          return "Duration cannot be 0";
+                                        }
+                                        return true;
+                                      },
+                                    }}
+                                  />
+                                </div>
+                              )}
+
+                              <FormField
+                                control={priceForm.control}
+                                name={`prices.${index}.durationUnit`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>
+                                      Duration Unit
+                                      <span className="text-red-500 ml-1">
+                                        *
+                                      </span>
+                                    </FormLabel>
+                                    <FormControl>
+                                      <Select
+                                        value={field.value}
+                                        onValueChange={(value) => {
+                                          field.onChange(value);
+                                        }}
+                                      >
+                                        <SelectTrigger>
+                                          <SelectValue placeholder="Select unit" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          <SelectItem value="minutes">
+                                            Minutes
+                                          </SelectItem>
+                                          {entityType === "coach" && (
+                                            <>
+                                              <SelectItem value="class">
+                                                Class
+                                              </SelectItem>
+                                            </>
+                                          )}
+                                          {entityType === "court" && (
+                                            <>
+                                              <SelectItem value="session">
+                                                Session
+                                              </SelectItem>
+                                            </>
+                                          )}
+                                          <SelectItem value="day">
+                                            Day
+                                          </SelectItem>
+                                          <SelectItem value="month">
+                                            Month
+                                          </SelectItem>
+                                          <SelectItem value="year">
+                                            Year
+                                          </SelectItem>
+                                        </SelectContent>
+                                      </Select>
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                                rules={{
+                                  validate: (value) => {
+                                    if (!value || value === "") {
+                                      return "Duration unit is required";
+                                    }
+                                    return true;
+                                  },
+                                }}
+                              />
+                            </div>
+
+                            <FormField
+                              control={priceForm.control}
+                              name={`prices.${index}.description`}
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Description (Optional)</FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      placeholder="Additional details about this pricing..."
+                                      value={field.value || ""}
+                                      onChange={field.onChange}
+                                      maxLength={100}
+                                    />
+                                  </FormControl>
+                                  <FormDescription>
+                                    {field.value
+                                      ? `${field.value.length}/100 characters`
+                                      : "0/100 characters"}
+                                  </FormDescription>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </>
+                        )}
 
                         {priceFields.length > 1 &&
                           (entityType !== "stringer" || index !== 0) && (

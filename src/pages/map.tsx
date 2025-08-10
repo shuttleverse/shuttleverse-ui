@@ -759,9 +759,9 @@ const MapPage = () => {
                           selectedEntity as MapEntity & {
                             phoneNumber?: string;
                             website?: string;
-                            otherContacts?: string;
+                            otherContacts?: Record<string, string>;
                             additionalDetails?: string;
-                            experience_years?: number;
+                            experienceYears?: number;
                             scheduleList?: unknown[];
                             priceList?: unknown[];
                             upvotes?: number;
@@ -771,9 +771,9 @@ const MapPage = () => {
                           selectedEntity as MapEntity & {
                             phoneNumber?: string;
                             website?: string;
-                            otherContacts?: string;
+                            otherContacts?: Record<string, string>;
                             additionalDetails?: string;
-                            experience_years?: number;
+                            experienceYears?: number;
                             scheduleList?: unknown[];
                             priceList?: unknown[];
                             upvotes?: number;

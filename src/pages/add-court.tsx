@@ -20,6 +20,7 @@ const requiredFields = {
   schedules: true,
   prices: true,
   otherContacts: false,
+  experienceYears: false,
 };
 
 export default function AddCourt() {

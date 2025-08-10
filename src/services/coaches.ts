@@ -14,8 +14,11 @@ export type CoachFormScheduleData = {
 };
 
 export type CoachFormPriceData = {
-  price: number;
+  minPrice: number;
+  maxPrice: number;
   duration: number;
+  durationUnit: string;
+  description?: string;
 };
 
 export type CoachFormData = {
@@ -24,9 +27,9 @@ export type CoachFormData = {
   longitude?: string;
   latitude?: string;
   description?: string;
-  experience_years?: number;
+  experienceYears?: number;
   phoneNumber?: string;
-  otherContacts: string;
+  otherContacts: Record<string, string>;
   schedules: CoachFormScheduleData[];
   prices: CoachFormPriceData[];
 };
@@ -39,10 +42,10 @@ type CoachCreationAPIData = {
     latitude?: string;
   };
   description?: string;
-  experience_years?: number;
+  experienceYears?: number;
   website?: string;
   phoneNumber?: string;
-  otherContacts: string;
+  otherContacts: Record<string, string>;
 };
 
 export type CoachScheduleData = {
@@ -60,8 +63,11 @@ export type CoachScheduleData = {
 
 export type CoachPriceData = {
   id: string;
-  price: number;
+  minPrice: number;
+  maxPrice: number;
   duration: number;
+  durationUnit: string;
+  description?: string;
   upvotes: number;
   submittedBy: {
     id: string;
@@ -76,9 +82,9 @@ export type CoachData = {
   name: string;
   location?: string;
   description?: string;
-  experience_years?: number;
+  experienceYears?: number;
   phoneNumber?: string;
-  otherContacts: string;
+  otherContacts: Record<string, string>;
   isVerified: boolean;
   scheduleList: CoachScheduleData[];
   priceList: CoachPriceData[];
@@ -122,7 +128,7 @@ export function useCreateCoach() {
             },
           }),
         description: coachData.description,
-        experience_years: coachData.experience_years,
+        experienceYears: coachData.experienceYears,
         phoneNumber: coachData.phoneNumber,
         otherContacts: coachData.otherContacts,
       };
