@@ -55,7 +55,7 @@ export default function AddStringer() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-green-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-100 via-blue-100 to-green-100">
       <Navbar />
       <div className="container mx-auto p-6 pt-24">
         <div className="max-w-4xl mx-auto">

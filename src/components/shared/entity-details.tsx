@@ -8,7 +8,15 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { ThumbsUp, MapPin, Globe, Phone, ArrowLeft, Info } from "lucide-react";
+import {
+  ThumbsUp,
+  MapPin,
+  Globe,
+  Phone,
+  ArrowLeft,
+  Info,
+  Navigation,
+} from "lucide-react";
 import { ScheduleDisplay } from "@/components/shared/schedule-display";
 import { EntityAvatar } from "@/components/shared/entity-avatar";
 import { MarkdownRenderer } from "@/components/ui/markdown-renderer";
@@ -148,13 +156,28 @@ export function EntityDetails({
               <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 sm:gap-8">
                 <div className="space-y-6 sm:space-y-8 xl:col-span-1">
                   <div className="flex flex-col items-center md:items-start">
-                    <EntityAvatar
-                      id={entity.id}
-                      name={entity.name}
-                      type={entity.type}
-                      size="lg"
-                      className="w-28 h-28 sm:w-36 sm:h-36 border-4 border-white/20 mb-4 sm:mb-6 shadow-lg"
-                    />
+                    <div className="relative mb-4 sm:mb-6">
+                      <EntityAvatar
+                        id={entity.id}
+                        name={entity.name}
+                        type={entity.type}
+                        size="lg"
+                        className="w-28 h-28 sm:w-36 sm:h-36 border-4 border-white/20 shadow-lg"
+                      />
+                      {entity.location && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            const mapUrl = `/map?${entity.type}=${entity.id}`;
+                            window.open(mapUrl, "_blank");
+                          }}
+                          className="absolute -top-1 -right-1 flex items-center gap-2 text-primary border-primary hover:bg-primary hover:text-white transition-colors"
+                        >
+                          <Navigation className="w-4 h-4" />
+                        </Button>
+                      )}
+                    </div>
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-6">
                       <div className="text-center md:text-left">
                         <h1 className="text-2xl sm:text-4xl font-bold text-primary-indigo mb-2 sm:mb-3">
