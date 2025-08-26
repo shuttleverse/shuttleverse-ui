@@ -15,11 +15,13 @@ import ProtectedRoute from "@/components/protected-routes";
 import Home from "@/pages/home";
 import Onboarding from "@/pages/onboarding";
 import EntityDetailsPage from "@/pages/entity-details";
+import OwnershipClaimPage from "@/pages/ownership-claim";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { LocationProvider } from "@/contexts/LocationContext";
 import MapPage from "@/pages/map";
 import AddPage from "@/pages/add";
 import Profile from "@/pages/profile";
+import Admin from "@/pages/admin";
 import About from "@/pages/about";
 import Contact from "@/pages/contact";
 import PrivacyPolicy from "@/pages/privacy-policy";
@@ -50,10 +52,12 @@ const AppContent = () => {
       <Route path="/terms-of-service" element={<TermsOfService />} />
       <Route element={<ProtectedRoute />}>
         <Route path="/profile" element={<Profile />} />
+        <Route path="/admin" element={<Admin />} />
         <Route path="/onboarding" element={<Onboarding />} />
         <Route path="/courts/add" element={<AddCourt />} />
         <Route path="/coaches/add" element={<AddCoach />} />
         <Route path="/stringers/add" element={<AddStringer />} />
+        <Route path="/claim/:id" element={<OwnershipClaimPage />} />
       </Route>
       <Route path="*" element={<NotFound />} />
     </Routes>

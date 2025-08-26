@@ -36,10 +36,10 @@ export type CoachFormData = {
 
 type CoachCreationAPIData = {
   name: string;
-  location?: string;
-  locationPoint?: {
-    longitude?: string;
-    latitude?: string;
+  location: string;
+  locationPoint: {
+    longitude: string;
+    latitude: string;
   };
   description?: string;
   experienceYears?: number;
@@ -80,14 +80,27 @@ export type CoachData = {
   id: string;
   type: "coach";
   name: string;
-  location?: string;
+  location: string;
+  locationPoint: {
+    longitude: string;
+    latitude: string;
+  };
   description?: string;
   experienceYears?: number;
   phoneNumber?: string;
   otherContacts: Record<string, string>;
-  isVerified: boolean;
   scheduleList: CoachScheduleData[];
   priceList: CoachPriceData[];
+  owner?: {
+    id: string;
+    username: string;
+  };
+  creator: {
+    id: string;
+    username: string;
+  };
+  createdAt: string;
+  updatedAt: string;
 };
 
 export function useCoaches(filters = {}) {
@@ -211,6 +224,25 @@ export function useUpvoteCoachPrice() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["upvotes"] });
+      queryClient.invalidateQueries({ queryKey: ["coach"] });
+    },
+  });
+}
+
+export function useUpdateCoach() {
+  return useMutation({
+    mutationFn: async (params: {
+      coachId: string;
+      coachData: CoachCreationAPIData;
+    }) => {
+      const { data } = await api.put(
+        `/api/community/v1/coach/${params.coachId}`,
+        params.coachData
+      );
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["coaches"] });
       queryClient.invalidateQueries({ queryKey: ["coach"] });
     },
   });

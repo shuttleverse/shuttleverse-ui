@@ -26,10 +26,10 @@ export type StringerFormData = {
 
 type StringerCreationAPIData = {
   name: string;
-  location?: string;
-  locationPoint?: {
-    longitude?: string;
-    latitude?: string;
+  location: string;
+  locationPoint: {
+    longitude: string;
+    latitude: string;
   };
   description?: string;
   website?: string;
@@ -49,14 +49,27 @@ export type StringerData = {
   id: string;
   type: "stringer";
   name: string;
-  location?: string;
+  location: string;
+  locationPoint: {
+    longitude: string;
+    latitude: string;
+  };
   additionalDetails?: string;
   description?: string;
   phoneNumber?: string;
   otherContacts: Record<string, string>;
-  isVerified: boolean;
   priceList: StringerPriceData[];
   upvotes: number;
+  owner?: {
+    id: string;
+    username: string;
+  };
+  creator: {
+    id: string;
+    username: string;
+  };
+  createdAt: string;
+  updatedAt: string;
 };
 
 export function useStringers(filters = {}) {
@@ -151,6 +164,25 @@ export function useUpvoteStringerPrice() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["upvotes"] });
+      queryClient.invalidateQueries({ queryKey: ["stringer"] });
+    },
+  });
+}
+
+export function useUpdateStringer() {
+  return useMutation({
+    mutationFn: async (params: {
+      stringerId: string;
+      stringerData: StringerCreationAPIData;
+    }) => {
+      const { data } = await api.put(
+        `/api/community/v1/stringer/${params.stringerId}`,
+        params.stringerData
+      );
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["stringers"] });
       queryClient.invalidateQueries({ queryKey: ["stringer"] });
     },
   });
