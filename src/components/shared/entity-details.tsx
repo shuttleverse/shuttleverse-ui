@@ -370,7 +370,7 @@ export function EntityDetails({
                             <Navigation className="w-4 h-4" />
                           </Button>
                         )}
-                        {isOwner && (
+                        {(isOwner || (user && user.admin)) && (
                           <Button
                             variant="outline"
                             size="sm"
@@ -514,54 +514,63 @@ export function EntityDetails({
                           )}
                         </div>
                       )}
-                      {entity.type === "court" && (
-                        <div className="flex items-start gap-2 sm:gap-3 text-muted-foreground group">
-                          <Globe className="w-5 h-5 text-primary group-hover:text-primary-indigo transition-colors flex-shrink-0 mt-0.5" />
+                      {entity.type === "court" &&
+                        (entity.website ||
+                          (entity.owner &&
+                            user &&
+                            (entity.owner.id === user.id || user.admin))) && (
+                          <div className="flex items-start gap-2 sm:gap-3 text-muted-foreground group">
+                            <Globe className="w-5 h-5 text-primary group-hover:text-primary-indigo transition-colors flex-shrink-0 mt-0.5" />
+                            {isEditing ? (
+                              <Input
+                                value={formData.website}
+                                onChange={(e) =>
+                                  handleInputChange("website", e.target.value)
+                                }
+                                placeholder="Website URL"
+                                className="text-sm sm:text-base text-primary border-primary-indigo focus:border-primary-indigo bg-transparent h-10 px-3 py-2 rounded-md border focus:outline-none focus:ring-2 focus:ring-primary-indigo focus:ring-offset-0"
+                              />
+                            ) : (
+                              entity.website && (
+                                <a
+                                  href={entity.website}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-sm sm:text-base text-primary hover:text-primary-indigo transition-colors break-all hover:break-words"
+                                >
+                                  {entity.website}
+                                </a>
+                              )
+                            )}
+                          </div>
+                        )}
+                      {(entity.phoneNumber ||
+                        (entity.owner &&
+                          user &&
+                          (entity.owner.id === user.id || user.admin))) && (
+                        <div className="flex items-center gap-2 sm:gap-3 text-muted-foreground group">
+                          <Phone className="w-5 h-5 text-primary group-hover:text-primary-indigo transition-colors" />
                           {isEditing ? (
                             <Input
-                              value={formData.website}
+                              value={formData.phoneNumber}
                               onChange={(e) =>
-                                handleInputChange("website", e.target.value)
+                                handleInputChange("phoneNumber", e.target.value)
                               }
-                              placeholder="Website URL"
+                              placeholder="Phone number"
                               className="text-sm sm:text-base text-primary border-primary-indigo focus:border-primary-indigo bg-transparent h-10 px-3 py-2 rounded-md border focus:outline-none focus:ring-2 focus:ring-primary-indigo focus:ring-offset-0"
                             />
                           ) : (
-                            entity.website && (
+                            entity.phoneNumber && (
                               <a
-                                href={entity.website}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-sm sm:text-base text-primary hover:text-primary-indigo transition-colors break-all hover:break-words"
+                                href={`tel:${entity.phoneNumber}`}
+                                className="text-sm sm:text-base text-primary hover:text-primary-indigo transition-colors cursor-pointer"
                               >
-                                {entity.website}
+                                {entity.phoneNumber}
                               </a>
                             )
                           )}
                         </div>
                       )}
-                      <div className="flex items-center gap-2 sm:gap-3 text-muted-foreground group">
-                        <Phone className="w-5 h-5 text-primary group-hover:text-primary-indigo transition-colors" />
-                        {isEditing ? (
-                          <Input
-                            value={formData.phoneNumber}
-                            onChange={(e) =>
-                              handleInputChange("phoneNumber", e.target.value)
-                            }
-                            placeholder="Phone number"
-                            className="text-sm sm:text-base text-primary border-primary-indigo focus:border-primary-indigo bg-transparent h-10 px-3 py-2 rounded-md border focus:outline-none focus:ring-2 focus:ring-primary-indigo focus:ring-offset-0"
-                          />
-                        ) : (
-                          entity.phoneNumber && (
-                            <a
-                              href={`tel:${entity.phoneNumber}`}
-                              className="text-sm sm:text-base text-primary hover:text-primary-indigo transition-colors cursor-pointer"
-                            >
-                              {entity.phoneNumber}
-                            </a>
-                          )
-                        )}
-                      </div>
 
                       {entity.type === "coach" &&
                         entity.experienceYears &&
@@ -581,7 +590,6 @@ export function EntityDetails({
                             </span>
                           </div>
                         )}
-                      {/* Other Contacts Section */}
                       {((entity.otherContacts &&
                         Object.keys(entity.otherContacts).length > 0) ||
                         isEditing) && (
@@ -911,22 +919,29 @@ export function EntityDetails({
                           <h2 className="text-lg sm:text-2xl font-semibold text-primary-indigo">
                             Schedules
                           </h2>
-                          {onAddInfo && (
-                            <Button
-                              onClick={() => {
-                                if (!isAuthenticated) {
-                                  setShowAuthPrompt(true);
-                                  return;
-                                }
-                                onAddInfo("schedule");
-                              }}
-                              variant="outline"
-                              size="sm"
-                              className="text-primary-indigo border-primary-indigo hover:bg-primary-indigo hover:text-white"
-                            >
-                              {isOwner ? "Edit Schedule" : "Add Schedule"}
-                            </Button>
-                          )}
+                          {onAddInfo &&
+                            ((entity.owner &&
+                              user &&
+                              entity.owner.id === user.id) ||
+                              !entity.owner ||
+                              (user && user.admin)) && (
+                              <Button
+                                onClick={() => {
+                                  if (!isAuthenticated) {
+                                    setShowAuthPrompt(true);
+                                    return;
+                                  }
+                                  onAddInfo("schedule");
+                                }}
+                                variant="outline"
+                                size="sm"
+                                className="text-primary-indigo border-primary-indigo hover:bg-primary-indigo hover:text-white"
+                              >
+                                {isOwner || (user && user.admin)
+                                  ? "Edit Schedule"
+                                  : "Add Schedule"}
+                              </Button>
+                            )}
                         </div>
                         <ScheduleDisplay
                           schedules={entity.scheduleList}
@@ -945,22 +960,27 @@ export function EntityDetails({
                 <h2 className="text-lg sm:text-xl font-semibold text-primary-indigo">
                   Prices
                 </h2>
-                {onAddInfo && (
-                  <Button
-                    onClick={() => {
-                      if (!isAuthenticated) {
-                        setShowAuthPrompt(true);
-                        return;
-                      }
-                      onAddInfo("pricing");
-                    }}
-                    variant="outline"
-                    size="sm"
-                    className="text-primary-indigo border-primary-indigo hover:bg-primary-indigo hover:text-white"
-                  >
-                    {isOwner ? "Edit Pricing" : "Add Pricing"}
-                  </Button>
-                )}
+                {onAddInfo &&
+                  ((entity.owner && user && entity.owner.id === user.id) ||
+                    !entity.owner ||
+                    (user && user.admin)) && (
+                    <Button
+                      onClick={() => {
+                        if (!isAuthenticated) {
+                          setShowAuthPrompt(true);
+                          return;
+                        }
+                        onAddInfo("pricing");
+                      }}
+                      variant="outline"
+                      size="sm"
+                      className="text-primary-indigo border-primary-indigo hover:bg-primary-indigo hover:text-white"
+                    >
+                      {isOwner || (user && user.admin)
+                        ? "Edit Pricing"
+                        : "Add Pricing"}
+                    </Button>
+                  )}
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                 {renderPrices()}

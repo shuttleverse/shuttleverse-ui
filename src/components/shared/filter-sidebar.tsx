@@ -32,7 +32,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
     }
   };
 
-  const [verified, setVerified] = useState(false);
+  const [verified, setVerified] = useState<boolean | null>(null);
   const [availability, setAvailability] = useState<string[]>([]);
   const [priceRange, setPriceRange] = useState([0, getMaxRange(entityType)]);
 
@@ -62,11 +62,11 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
   };
 
   const handleResetFilters = () => {
-    setVerified(false);
+    setVerified(null);
     setAvailability([]);
     setPriceRange([0, getMaxRange(entityType)]);
     onFilterChange({
-      isVerified: false,
+      isVerified: null,
       daysOfWeek: [],
       minPrice: 0,
       maxPrice: getMaxRange(entityType),
@@ -81,7 +81,9 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
           <Checkbox
             id="verified"
             checked={verified}
-            onCheckedChange={(checked: boolean) => setVerified(checked)}
+            onCheckedChange={(checked: boolean) =>
+              setVerified(checked == true ? true : null)
+            }
           />
           <label
             htmlFor="verified"
