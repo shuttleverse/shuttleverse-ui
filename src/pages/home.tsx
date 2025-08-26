@@ -1,5 +1,5 @@
 import Layout from "@/components/layout/layout";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useCourts } from "@/services/courts";
 import { useCoaches } from "@/services/coaches";
 import { useStringers } from "@/services/stringers";
@@ -12,7 +12,6 @@ import LocationPicker from "@/components/shared/location-picker";
 
 const Home = () => {
   const isMobile = useIsMobile();
-  const navigate = useNavigate();
   const { user } = useAuth();
   const {
     locationData: { city, state, isLoading: locationLoading },

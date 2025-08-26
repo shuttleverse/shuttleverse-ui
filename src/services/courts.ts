@@ -38,8 +38,8 @@ type CourtCreationAPIData = {
   name: string;
   location: string;
   locationPoint: {
-    longitude?: string;
-    latitude?: string;
+    longitude: string;
+    latitude: string;
   };
   description: string;
   website: string;
@@ -78,13 +78,26 @@ export type CourtData = {
   type: "court";
   name: string;
   location: string;
+  locationPoint: {
+    longitude: string;
+    latitude: string;
+  };
   description?: string;
   website?: string;
   phoneNumber?: string;
   otherContacts?: Record<string, string>;
-  isVerified: boolean;
   scheduleList: CourtScheduleData[];
   priceList: CourtPriceData[];
+  owner?: {
+    id: string;
+    username: string;
+  };
+  creator: {
+    id: string;
+    username: string;
+  };
+  createdAt: string;
+  updatedAt: string;
 };
 
 export function useCourts(filters = {}) {
@@ -209,6 +222,25 @@ export function useUpvoteCourtPrice() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["upvotes"] });
+      queryClient.invalidateQueries({ queryKey: ["court"] });
+    },
+  });
+}
+
+export function useUpdateCourt() {
+  return useMutation({
+    mutationFn: async (params: {
+      courtId: string;
+      courtData: CourtCreationAPIData;
+    }) => {
+      const { data } = await api.put(
+        `/api/community/v1/court/${params.courtId}`,
+        params.courtData
+      );
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["courts"] });
       queryClient.invalidateQueries({ queryKey: ["court"] });
     },
   });

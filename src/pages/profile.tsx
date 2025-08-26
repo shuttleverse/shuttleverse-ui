@@ -1,23 +1,29 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useUpdateProfile } from "@/services/user";
+import { useUserOwnershipClaims } from "@/services/ownership-claims";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { User, Edit, Save, X } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { User, Edit, Save, X, Shield, File, Calendar } from "lucide-react";
 import { toast } from "@/components/ui/sonner-utils";
 import Navbar from "@/components/layout/navbar";
 import Footer from "@/components/layout/footer";
 import BottomNavigation from "@/components/layout/bottom-navigation";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useLogout } from "@/services/auth";
+import { useNavigate } from "react-router-dom";
+import { getEntityColor } from "@/lib/colors";
 
 const Profile = () => {
   const { user } = useAuth();
   const updateProfile = useUpdateProfile();
   const logout = useLogout();
+  const navigate = useNavigate();
+  const ownershipClaims = useUserOwnershipClaims();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     username: user?.username || "",
@@ -256,6 +262,17 @@ const Profile = () => {
                     </div>
                   )}
                 </div>
+                {user.admin && (
+                  <div className="pt-6 border-t border-gray-100">
+                    <Button
+                      onClick={() => navigate("/admin")}
+                      className="w-full bg-emerald-600 hover:bg-emerald-700 text-white"
+                    >
+                      <Shield className="h-4 w-4 mr-2" />
+                      Admin Dashboard
+                    </Button>
+                  </div>
+                )}
                 {isMobile && (
                   <Button
                     onClick={() => logout.mutate()}
@@ -264,6 +281,131 @@ const Profile = () => {
                   >
                     Logout
                   </Button>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="max-w-3xl mx-auto mt-8">
+            <Card className="bg-gradient-to-br from-emerald-100/90 via-teal-100/80 to-cyan-100/70 backdrop-blur-md border border-emerald-300/60 shadow-2xl">
+              <CardHeader className="text-center pb-6">
+                <div className="flex items-center justify-center gap-3 mb-2">
+                  <Shield className="h-6 w-6 text-emerald-600" />
+                  <CardTitle className="text-2xl font-bold text-emerald-800">
+                    Ownership Claims
+                  </CardTitle>
+                </div>
+                <p className="text-emerald-700">
+                  Track your submitted ownership claims
+                </p>
+              </CardHeader>
+              <CardContent>
+                {ownershipClaims.isLoading ? (
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600 mx-auto mb-4"></div>
+                    <p className="text-emerald-700">Loading claims...</p>
+                  </div>
+                ) : ownershipClaims.error ? (
+                  <div className="text-center py-8">
+                    <p className="text-red-600">
+                      Failed to load ownership claims
+                    </p>
+                    <Button
+                      onClick={() => ownershipClaims.refetch()}
+                      variant="outline"
+                      className="mt-2"
+                    >
+                      Try Again
+                    </Button>
+                  </div>
+                ) : !ownershipClaims.data ||
+                  ownershipClaims.data.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Shield className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-600 mb-2">
+                      No ownership claims yet
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      Submit ownership claims for courts, coaches, or stringers
+                      you own
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {ownershipClaims.data.map((claim) => (
+                      <div
+                        key={claim.id}
+                        className="bg-white/80 backdrop-blur-sm rounded-lg p-4 border border-emerald-200 shadow-sm"
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Badge
+                                variant="secondary"
+                                className="text-xs"
+                                style={{
+                                  backgroundColor: getEntityColor(
+                                    claim.entityType.toLowerCase(),
+                                    "solid"
+                                  ),
+                                  color: "white",
+                                  border: "none",
+                                }}
+                              >
+                                {claim.entityType}
+                              </Badge>
+                              <Badge
+                                className="text-xs"
+                                style={{
+                                  backgroundColor:
+                                    claim.status === "APPROVED"
+                                      ? "#10b981"
+                                      : claim.status === "REJECTED"
+                                      ? "#ef4444"
+                                      : "#6b7280",
+                                  color: "white",
+                                  border: "none",
+                                }}
+                              >
+                                {claim.status || "PENDING"}
+                              </Badge>
+                            </div>
+                            <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
+                              <Calendar className="h-4 w-4" />
+                              <span>
+                                Submitted on{" "}
+                                {new Date(claim.createdAt).toLocaleDateString()}
+                              </span>
+                            </div>
+                            {claim.userNotes && (
+                              <p className="text-sm text-gray-700 mb-2">
+                                <strong>Notes:</strong> {claim.userNotes}
+                              </p>
+                            )}
+                            {claim.files && claim.files.length > 0 && (
+                              <div className="flex items-center gap-2 text-sm text-gray-600">
+                                <File className="h-4 w-4" />
+                                <span>
+                                  {claim.files.length} file(s) uploaded
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                          <Button
+                            onClick={() => {
+                              const entityType = claim.entityType.toLowerCase();
+                              navigate(`/${entityType}s/${claim.entityId}`);
+                            }}
+                            variant="outline"
+                            size="sm"
+                            className="text-emerald-600 border-emerald-300 hover:bg-emerald-50"
+                          >
+                            View Entity
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 )}
               </CardContent>
             </Card>

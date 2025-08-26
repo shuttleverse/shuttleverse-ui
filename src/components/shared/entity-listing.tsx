@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { SlidersHorizontal, Plus } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useLocationContext } from "@/hooks/use-location-context";
 
 interface EntityData {
   id: string;
@@ -37,6 +38,8 @@ interface EntityListingProps {
     isVerified?: boolean;
     minPrice?: number;
     maxPrice?: number;
+    latitude?: string;
+    longitude?: string;
   }) => {
     data: { pages: PaginatedResponse[] } | undefined;
     isLoading: boolean;
@@ -56,6 +59,7 @@ const EntityListing: React.FC<EntityListingProps> = ({
   const navigate = useNavigate();
   const { isAuthenticated, user } = useAuth();
   const isMobile = useIsMobile();
+  const { locationData } = useLocationContext();
   const [showFilters, setShowFilters] = useState(false);
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
   const [activeFilters, setActiveFilters] = useState<{
@@ -73,6 +77,8 @@ const EntityListing: React.FC<EntityListingProps> = ({
       daysOfWeek?: number[];
       minPrice?: number;
       maxPrice?: number;
+      latitude?: string;
+      longitude?: string;
     } = {};
 
     if (activeFilters.isVerified !== undefined) {
@@ -102,8 +108,13 @@ const EntityListing: React.FC<EntityListingProps> = ({
       formatted.maxPrice = activeFilters.maxPrice;
     }
 
+    if (locationData.coordinates) {
+      formatted.latitude = locationData.coordinates.latitude;
+      formatted.longitude = locationData.coordinates.longitude;
+    }
+
     return formatted;
-  }, [activeFilters]);
+  }, [activeFilters, locationData.coordinates]);
 
   const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } =
     useEntityData(formattedFilters);
