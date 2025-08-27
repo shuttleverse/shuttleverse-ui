@@ -77,6 +77,7 @@ interface EntityDetailsProps {
   hasUpvotedPrice?: (priceId: string) => boolean;
   isUpvotesLoading?: boolean;
   onAddInfo?: (tab?: "schedule" | "pricing" | "contact") => void;
+  onRefetch?: () => void;
 }
 
 export function EntityDetails({
@@ -87,6 +88,7 @@ export function EntityDetails({
   hasUpvotedPrice,
   isUpvotesLoading = false,
   onAddInfo,
+  onRefetch,
 }: EntityDetailsProps) {
   const { user } = useAuth();
   const isOwner = user && entity.owner && user.id === entity.owner.id;
@@ -288,6 +290,11 @@ export function EntityDetails({
         });
       }
       toast.success("Schedules updated successfully!");
+      if (onRefetch) {
+        onRefetch();
+      } else {
+        window.location.reload();
+      }
     } catch (error) {
       console.error("Error updating schedules:", error);
       toast.error("Failed to update schedules. Please try again.");
@@ -315,6 +322,11 @@ export function EntityDetails({
         });
       }
       toast.success("Prices updated successfully!");
+      if (onRefetch) {
+        onRefetch();
+      } else {
+        window.location.reload();
+      }
     } catch (error) {
       console.error("Error updating prices:", error);
       toast.error("Failed to update prices. Please try again.");

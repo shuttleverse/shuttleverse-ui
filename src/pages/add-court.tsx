@@ -56,7 +56,7 @@ export default function AddCourt() {
         title: "Success",
         description: "Court added successfully!",
       });
-      navigate("/courts");
+      navigate(`/courts/${court.id}`);
     } catch (error) {
       toast({
         title: "Error",
