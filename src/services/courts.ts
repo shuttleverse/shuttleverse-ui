@@ -6,6 +6,7 @@ import {
 } from "@tanstack/react-query";
 import api from "@/api/axios";
 import { queryClient } from "@/api/query-client";
+import type { ScheduleData } from "@/components/forms/schedule-calendar";
 
 export type CourtFormScheduleData = {
   dayOfWeek: number;
@@ -236,6 +237,44 @@ export function useUpdateCourt() {
       const { data } = await api.put(
         `/api/community/v1/court/${params.courtId}`,
         params.courtData
+      );
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["courts"] });
+      queryClient.invalidateQueries({ queryKey: ["court"] });
+    },
+  });
+}
+
+export function useUpdateCourtSchedules() {
+  return useMutation({
+    mutationFn: async (params: {
+      courtId: string;
+      schedules: ScheduleData[];
+    }) => {
+      const { data } = await api.put(
+        `/api/community/v1/court/${params.courtId}/schedules`,
+        params.schedules
+      );
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["courts"] });
+      queryClient.invalidateQueries({ queryKey: ["court"] });
+    },
+  });
+}
+
+export function useUpdateCourtPrices() {
+  return useMutation({
+    mutationFn: async (params: {
+      courtId: string;
+      prices: CourtFormPriceData[];
+    }) => {
+      const { data } = await api.put(
+        `/api/community/v1/court/${params.courtId}/prices`,
+        params.prices
       );
       return data;
     },
