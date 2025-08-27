@@ -119,8 +119,12 @@ export function useCoaches(filters = {}) {
       return data;
     },
     getNextPageParam: (lastPage) => {
-      if (lastPage.data.last) return undefined;
-      return lastPage.data.number + 1;
+      if (!lastPage?.data?.content || lastPage.data.last) {
+        return undefined;
+      }
+
+      const currentPage = lastPage.data.page ?? 0;
+      return currentPage + 1;
     },
     initialPageParam: 0,
   });
