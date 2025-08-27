@@ -439,6 +439,7 @@ export default function EntityDetailsPage() {
           userUpvotesQuery.isLoading || userPriceUpvotesQuery.isLoading
         }
         onAddInfo={handleAddInfo}
+        onRefetch={() => activeQuery.refetch()}
       />
       <AddInfoModal
         isOpen={showAddInfoModal}

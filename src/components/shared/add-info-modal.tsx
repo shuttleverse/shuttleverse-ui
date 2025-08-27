@@ -92,14 +92,11 @@ export function AddInfoModal({
     setActiveTab(entityType === "stringer" ? "pricing" : defaultTab);
   }, [defaultTab, entityType]);
 
-  // Handle modal resize when switching between confirmation and main view
   useEffect(() => {
     if (isOpen) {
-      // Small delay to ensure DOM is updated
       const timer = setTimeout(() => {
         const dialogContent = document.querySelector('[role="dialog"]');
         if (dialogContent) {
-          // Trigger a resize event to recalculate dimensions
           window.dispatchEvent(new Event("resize"));
         }
       }, 100);

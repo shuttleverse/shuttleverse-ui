@@ -56,7 +56,7 @@ export default function AddCoach() {
         title: "Success",
         description: "Coach added successfully!",
       });
-      navigate("/coaches");
+      navigate(`/coaches/${coach.id}`);
     } catch (error) {
       toast({
         title: "Error",

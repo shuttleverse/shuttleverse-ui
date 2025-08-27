@@ -46,7 +46,7 @@ export default function AddStringer() {
         title: "Success",
         description: "Stringer added successfully!",
       });
-      navigate("/stringers");
+      navigate(`/stringers/${stringer.id}`);
     } catch (error) {
       toast({
         title: "Error",
