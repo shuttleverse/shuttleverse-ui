@@ -19,6 +19,7 @@ interface EntityData {
   website?: string;
   upvotes: number;
   isVerified: boolean;
+  owner?: { id: string };
   [key: string]: unknown;
 }
 
@@ -123,11 +124,6 @@ const EntityListing: React.FC<EntityListingProps> = ({
     () => data?.pages.flatMap((page) => page.data.content) || [],
     [data]
   );
-  const [filteredEntities, setFilteredEntities] = useState(entities);
-
-  useEffect(() => {
-    setFilteredEntities(entities);
-  }, [entities]);
 
   useEffect(() => {
     if (observerRef.current) {
@@ -227,12 +223,6 @@ const EntityListing: React.FC<EntityListingProps> = ({
           <div className="md:col-span-3">
             {isLoading && (
               <div className="text-center py-8">
-                Loading {getPluralForm(entityType)}...
-              </div>
-            )}
-
-            {isLoading && (
-              <div className="text-center py-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600 mx-auto mb-4"></div>
                 <p className="text-gray-600">
                   Loading {getPluralForm(entityType)}...
@@ -240,7 +230,7 @@ const EntityListing: React.FC<EntityListingProps> = ({
               </div>
             )}
 
-            {!isLoading && filteredEntities.length === 0 && (
+            {!isLoading && entities.length === 0 && (
               <div className="bg-white rounded-lg p-8 text-center">
                 <h2 className="text-xl font-semibold mb-2">
                   No {getPluralForm(entityType)} found
@@ -260,9 +250,9 @@ const EntityListing: React.FC<EntityListingProps> = ({
               </div>
             )}
 
-            {filteredEntities.length > 0 && (
+            {entities.length > 0 && (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-2">
-                {filteredEntities.map((entity, index) => (
+                {entities.map((entity, index) => (
                   <EntityCard
                     key={entity.id || index}
                     id={entity.id}
@@ -277,7 +267,7 @@ const EntityListing: React.FC<EntityListingProps> = ({
               {isFetchingNextPage && (
                 <p>Loading more {getPluralForm(entityType)}...</p>
               )}
-              {!hasNextPage && filteredEntities.length > 0 && (
+              {!hasNextPage && entities.length > 0 && (
                 <p className="text-sm text-gray-500">
                   No more {getPluralForm(entityType)} to load
                 </p>

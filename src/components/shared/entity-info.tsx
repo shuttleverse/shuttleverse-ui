@@ -1,9 +1,13 @@
 import React from "react";
 import { MapEntity } from "@/services/map";
-import { MapPin, Shield } from "lucide-react";
+import { MapPin, Shield, Crown } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { Badge } from "@/components/ui/badge";
 
 interface EntityInfoProps {
-  entity: MapEntity;
+  entity: MapEntity & {
+    owner?: { id: string };
+  };
   isSelected?: boolean;
   onClick?: (entity: MapEntity) => void;
   variant?: "desktop" | "mobile";
@@ -15,6 +19,8 @@ const EntityInfo: React.FC<EntityInfoProps> = ({
   onClick,
   variant = "desktop",
 }) => {
+  const { user } = useAuth();
+  const isOwner = user && entity.owner && user.id === entity.owner.id;
   const isClickable = !!onClick;
 
   const baseClasses = isClickable
@@ -43,30 +49,40 @@ const EntityInfo: React.FC<EntityInfoProps> = ({
       className={`${baseClasses} ${desktopClasses} ${selectedClasses}`}
       onClick={handleClick}
     >
-      <div className="flex items-center gap-2 mb-3">
-        <span
-          className={`font-bold capitalize tracking-wide ${
-            variant === "desktop" ? "text-sm" : "text-base"
-          } ${
-            entity.type === "court"
-              ? "text-emerald-600"
-              : entity.type === "coach"
-              ? "text-blue-600"
-              : "text-amber-600"
-          }`}
-        >
-          {entity.type}
-        </span>
-        {entity.isVerified && (
+      <div className="flex items-start justify-between mb-3">
+        <div className="flex flex-col">
           <span
-            className={`text-xs bg-emerald-100/80 text-emerald-800 px-2 py-1 rounded-full font-semibold flex items-center gap-1 ${
-              variant === "mobile" ? "bg-green-100 text-green-800" : ""
+            className={`font-bold capitalize tracking-wide ${
+              variant === "desktop" ? "text-sm" : "text-base"
+            } ${
+              entity.type === "court"
+                ? "text-emerald-600"
+                : entity.type === "coach"
+                ? "text-blue-600"
+                : "text-amber-600"
             }`}
           >
-            <Shield className="w-3 h-3 flex-shrink-0" />
-            <span className="leading-none">Verified</span>
+            {entity.type}
           </span>
-        )}
+        </div>
+        <div className="flex flex-row gap-1">
+          {entity.owner && (
+            <Badge
+              variant="secondary"
+              className="bg-green-600 text-white hover:bg-green-700 border border-green-600 shadow-sm w-fit"
+            >
+              <Shield className="w-3 h-3 mr-1" /> Verified
+            </Badge>
+          )}
+          {isOwner && (
+            <Badge
+              variant="secondary"
+              className="bg-amber-500 text-white hover:bg-amber-600 border border-amber-600 shadow-sm w-fit"
+            >
+              <Crown className="w-3 h-3 mr-1" /> Owner
+            </Badge>
+          )}
+        </div>
       </div>
       <div
         className={`font-bold text-gray-900 mb-2 tracking-tight ${
