@@ -18,6 +18,12 @@ const MarkerCluster: React.FC<MarkerClusterProps> = ({
 }) => {
   const clustererRef = useRef<MarkerClusterer | null>(null);
   const markersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
+  const overlappingMarkersRef = useRef<
+    google.maps.marker.AdvancedMarkerElement[]
+  >([]);
+  const markerEntityMapRef = useRef<
+    Map<google.maps.marker.AdvancedMarkerElement, MapEntity | MapEntity[]>
+  >(new Map());
 
   useEffect(() => {
     if (!map) return;
@@ -32,28 +38,74 @@ const MarkerCluster: React.FC<MarkerClusterProps> = ({
           clustererRef.current.clearMarkers();
         }
 
-        const markers = entities.map((entity) => {
-          const marker = new AdvancedMarkerElement({
-            position: {
-              lat: parseFloat(entity.locationPoint.latitude),
-              lng: parseFloat(entity.locationPoint.longitude),
-            },
-            title: entity.name,
-            content: createMarkerContent(entity),
-          });
+        const locationGroups = new Map<string, MapEntity[]>();
 
-          marker.addListener("click", () => {
-            onMarkerClick(entity);
-          });
-
-          return marker;
+        entities.forEach((entity) => {
+          const key = `${entity.locationPoint.latitude},${entity.locationPoint.longitude}`;
+          if (!locationGroups.has(key)) {
+            locationGroups.set(key, []);
+          }
+          locationGroups.get(key)!.push(entity);
         });
 
-        markersRef.current = markers;
+        const regularMarkers: google.maps.marker.AdvancedMarkerElement[] = [];
+        const overlappingMarkers: google.maps.marker.AdvancedMarkerElement[] =
+          [];
+        const markerEntityMap = new Map<
+          google.maps.marker.AdvancedMarkerElement,
+          MapEntity | MapEntity[]
+        >();
+
+        locationGroups.forEach((entitiesAtLocation, locationKey) => {
+          if (entitiesAtLocation.length === 1) {
+            const entity = entitiesAtLocation[0];
+            const marker = new AdvancedMarkerElement({
+              position: {
+                lat: parseFloat(entity.locationPoint.latitude),
+                lng: parseFloat(entity.locationPoint.longitude),
+              },
+              title: entity.name,
+              content: createMarkerContent(entity),
+            });
+
+            marker.addListener("click", () => {
+              onMarkerClick(entity);
+            });
+
+            regularMarkers.push(marker);
+            markerEntityMap.set(marker, entity);
+          } else {
+            const firstEntity = entitiesAtLocation[0];
+            const marker = new AdvancedMarkerElement({
+              position: {
+                lat: parseFloat(firstEntity.locationPoint.latitude),
+                lng: parseFloat(firstEntity.locationPoint.longitude),
+              },
+              title: `${entitiesAtLocation.length} entities at this location`,
+              content: createOverlappingMarkerContent(
+                entitiesAtLocation,
+                false
+              ),
+            });
+
+            marker.addListener("click", () => {
+              const position = marker.position as google.maps.LatLng;
+              map.setCenter(position);
+              map.setZoom(16);
+            });
+
+            overlappingMarkers.push(marker);
+            markerEntityMap.set(marker, entitiesAtLocation);
+          }
+        });
+
+        markersRef.current = regularMarkers;
+        overlappingMarkersRef.current = overlappingMarkers;
+        markerEntityMapRef.current = markerEntityMap;
 
         clustererRef.current = new MarkerClusterer({
           map,
-          markers,
+          markers: regularMarkers,
           algorithm: new GridAlgorithm({
             maxZoom: 15,
             gridSize: 40,
@@ -65,20 +117,18 @@ const MarkerCluster: React.FC<MarkerClusterProps> = ({
 
               const clusterEntities = markers
                 .map((marker) => {
-                  const entityIndex = markersRef.current.indexOf(
+                  const entity = markerEntityMapRef.current.get(
                     marker as google.maps.marker.AdvancedMarkerElement
                   );
-                  return entities[entityIndex];
+                  // Handle both single entities and overlapping entity arrays
+                  if (Array.isArray(entity)) {
+                    return entity[0]; // Return the first entity for overlapping groups
+                  }
+                  return entity;
                 })
                 .filter(Boolean);
 
               const entityBreakdown = getEntityBreakdown(clusterEntities);
-              console.log(
-                "Cluster breakdown:",
-                entityBreakdown,
-                "Total:",
-                count
-              );
 
               clusterElement.style.cssText = `
                 background: conic-gradient(
@@ -123,14 +173,17 @@ const MarkerCluster: React.FC<MarkerClusterProps> = ({
 
               clusterElement.addEventListener("click", () => {
                 if (count > 1) {
-                  const bounds = new google.maps.LatLngBounds();
-                  clusterEntities.forEach((entity) => {
-                    bounds.extend({
-                      lat: parseFloat(entity.locationPoint.latitude),
-                      lng: parseFloat(entity.locationPoint.longitude),
-                    });
-                  });
-                  map.fitBounds(bounds, 50);
+                  let targetZoom = 14;
+                  if (count <= 3) {
+                    targetZoom = 15;
+                  } else if (count <= 8) {
+                    targetZoom = 13;
+                  } else {
+                    targetZoom = 12;
+                  }
+
+                  map.setCenter(position);
+                  map.setZoom(targetZoom);
                 }
               });
 
@@ -140,6 +193,11 @@ const MarkerCluster: React.FC<MarkerClusterProps> = ({
               });
             },
           },
+        });
+
+        // Add overlapping markers directly to the map (bypassing clusterer)
+        overlappingMarkers.forEach((marker) => {
+          marker.map = map;
         });
       } catch (error) {
         console.error("Failed to load advanced markers:", error);
@@ -152,6 +210,10 @@ const MarkerCluster: React.FC<MarkerClusterProps> = ({
       if (clustererRef.current) {
         clustererRef.current.clearMarkers();
       }
+      // Clean up overlapping markers
+      overlappingMarkersRef.current.forEach((marker) => {
+        marker.map = null;
+      });
     };
   }, [entities, map, onMarkerClick]);
 
@@ -162,11 +224,29 @@ const MarkerCluster: React.FC<MarkerClusterProps> = ({
           "marker"
         )) as google.maps.MarkerLibrary;
 
-        markersRef.current.forEach((marker, index) => {
-          const entity = entities[index];
+        // Update regular markers (single entities)
+        markersRef.current.forEach((marker) => {
+          const entity = markerEntityMapRef.current.get(marker) as MapEntity;
           if (entity) {
             const isSelected = selectedEntity?.id === entity.id;
             marker.content = createMarkerContent(entity, isSelected);
+          }
+        });
+
+        // Update overlapping markers
+        overlappingMarkersRef.current.forEach((marker) => {
+          const entitiesAtLocation = markerEntityMapRef.current.get(
+            marker
+          ) as MapEntity[];
+          if (entitiesAtLocation && entitiesAtLocation.length > 1) {
+            // Check if any entity in this overlapping group is selected
+            const hasSelectedEntity = entitiesAtLocation.some(
+              (entity) => selectedEntity?.id === entity.id
+            );
+            marker.content = createOverlappingMarkerContent(
+              entitiesAtLocation,
+              hasSelectedEntity
+            );
           }
         });
       } catch (error) {
@@ -246,18 +326,18 @@ const createMarkerContent = (
   const markerElement = document.createElement("div");
   markerElement.className = "custom-marker";
   markerElement.style.cssText = `
-    width: 40px;
-    height: 40px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
     background: ${getMarkerColor(entity.type)};
-    border: 4px solid #fff;
+    border: 3px solid #fff;
     box-shadow: 0 2px 8px rgba(0,0,0,0.25);
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
     font-weight: bold;
-    font-size: 18px;
+    font-size: 14px;
     cursor: pointer;
     transition: all 0.2s ease;
     ${isSelected ? "transform: scale(1.2); border-color: #fbbf24;" : ""}
@@ -265,15 +345,15 @@ const createMarkerContent = (
 
   const svgNS = "http://www.w3.org/2000/svg";
   const svg = document.createElementNS(svgNS, "svg");
-  svg.setAttribute("width", "36");
-  svg.setAttribute("height", "36");
-  svg.setAttribute("viewBox", "0 0 36 36");
+  svg.setAttribute("width", "28");
+  svg.setAttribute("height", "28");
+  svg.setAttribute("viewBox", "0 0 28 28");
 
   const text = document.createElementNS(svgNS, "text");
-  text.setAttribute("x", "18");
-  text.setAttribute("y", "23");
+  text.setAttribute("x", "14");
+  text.setAttribute("y", "18");
   text.setAttribute("text-anchor", "middle");
-  text.setAttribute("font-size", "16");
+  text.setAttribute("font-size", "12");
   text.setAttribute("font-family", "sans-serif");
   text.setAttribute("fill", "#fff");
   text.textContent = entity.type.charAt(0).toUpperCase();
@@ -282,6 +362,45 @@ const createMarkerContent = (
   markerElement.innerHTML = "";
   markerElement.appendChild(svg);
 
+  return markerElement;
+};
+
+const createOverlappingMarkerContent = (
+  entities: MapEntity[],
+  isSelected: boolean = false
+) => {
+  const markerElement = document.createElement("div");
+  markerElement.className = "overlapping-marker";
+  markerElement.style.cssText = `
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: conic-gradient(
+      ${createPieChartGradient(getEntityBreakdown(entities), entities.length)}
+    );
+    border: 3px solid ${isSelected ? "#fbbf24" : "#fff"};
+    box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    ${isSelected ? "transform: scale(1.2);" : ""}
+  `;
+
+  const countElement = document.createElement("div");
+  countElement.textContent = entities.length.toString();
+  countElement.style.cssText = `
+    font-size: 14px;
+    font-weight: bold;
+    line-height: 1;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+  `;
+
+  markerElement.appendChild(countElement);
   return markerElement;
 };
 

@@ -10,7 +10,6 @@ import {
   Map,
   AdvancedMarker,
   Pin,
-  InfoWindow,
 } from "@vis.gl/react-google-maps";
 import { MapPinIcon, Maximize2 } from "lucide-react";
 import { MapEntity, BoundingBox } from "@/services/map";
@@ -19,8 +18,7 @@ import {
   useCoachesByBoundingBox,
   useStringersByBoundingBox,
 } from "@/services/map";
-import { Link, useNavigate } from "react-router-dom";
-import { CustomMarkerIcon } from "./custom-map-marker";
+import { useNavigate } from "react-router-dom";
 import MarkerCluster from "./marker-cluster";
 import MapController from "./map-controller";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -171,7 +169,7 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
           maxLon: bounds.east,
           maxLat: bounds.north,
         });
-      }, 1000);
+      }, 500);
     },
     []
   );

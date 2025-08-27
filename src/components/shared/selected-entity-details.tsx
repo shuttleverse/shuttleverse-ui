@@ -15,6 +15,7 @@ import {
 import type { MapEntity } from "@/services/map";
 import { EntityAvatar } from "./entity-avatar";
 import { MarkdownRenderer } from "@/components/ui/markdown-renderer";
+import { getEntityColor } from "@/lib/colors";
 
 interface SelectedEntityDetailsProps {
   entity: MapEntity & {
@@ -63,9 +64,9 @@ const SelectedEntityDetails: React.FC<SelectedEntityDetailsProps> = ({
   const getEntityTypeLabel = (type: string) => {
     switch (type) {
       case "court":
-        return "Badminton Court";
+        return "Court";
       case "coach":
-        return "Badminton Coach";
+        return "Coach";
       case "stringer":
         return "Stringer";
       default:
@@ -232,7 +233,10 @@ const SelectedEntityDetails: React.FC<SelectedEntityDetailsProps> = ({
           </button>
         )}
         <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-500 font-medium bg-gray-100 px-3 py-1 rounded-full">
+          <span
+            className="text-sm text-white font-medium px-3 py-1 rounded-full"
+            style={{ backgroundColor: getEntityColor(entity.type, "solid") }}
+          >
             {getEntityTypeLabel(entity.type)}
           </span>
         </div>

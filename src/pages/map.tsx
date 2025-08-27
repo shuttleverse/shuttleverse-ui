@@ -821,7 +821,7 @@ const MapPage = () => {
                   )}
 
                   {(showResults || selectedEntity) && (
-                    <div className="space-y-3">
+                    <div className="space-y-3 pb-20">
                       {selectedEntity ? (
                         <SelectedEntityDetails
                           entity={
