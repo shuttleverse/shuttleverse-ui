@@ -21,6 +21,7 @@ export type MapEntity = {
   locationPoint: LocationPoint;
   description?: string;
   isVerified: boolean;
+  owner?: { id: string };
   scheduleList?: unknown[];
   priceList?: unknown[];
   phoneNumber?: string;
@@ -56,6 +57,7 @@ export function useEntitiesByLocation(
           locationPoint: locationPoint,
           description: entityObj.description as string | undefined,
           isVerified: entityObj.isVerified as boolean,
+          owner: entityObj.owner as { id: string } | undefined,
           type: entityType,
           scheduleList: entityObj.scheduleList as unknown[] | undefined,
           priceList: entityObj.priceList as unknown[] | undefined,
@@ -93,6 +95,7 @@ export function useEntitiesByBoundingBox(
           locationPoint: entityObj.locationPoint as LocationPoint,
           description: entityObj.description as string | undefined,
           isVerified: entityObj.isVerified as boolean,
+          owner: entityObj.owner as { id: string } | undefined,
           type: entityType,
           scheduleList: entityObj.scheduleList as unknown[] | undefined,
           priceList: entityObj.priceList as unknown[] | undefined,

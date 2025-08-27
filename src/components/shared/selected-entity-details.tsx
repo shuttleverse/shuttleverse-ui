@@ -11,11 +11,14 @@ import {
   Shield,
   ExternalLink,
   X,
+  Crown,
 } from "lucide-react";
 import type { MapEntity } from "@/services/map";
 import { EntityAvatar } from "./entity-avatar";
 import { MarkdownRenderer } from "@/components/ui/markdown-renderer";
 import { getEntityColor } from "@/lib/colors";
+import { useAuth } from "@/hooks/useAuth";
+import { Badge } from "@/components/ui/badge";
 
 interface SelectedEntityDetailsProps {
   entity: MapEntity & {
@@ -27,6 +30,7 @@ interface SelectedEntityDetailsProps {
     scheduleList?: unknown[];
     priceList?: unknown[];
     upvotes?: number;
+    owner?: { id: string };
   };
   fullEntityData:
     | (MapEntity & {
@@ -38,6 +42,7 @@ interface SelectedEntityDetailsProps {
         scheduleList?: unknown[];
         priceList?: unknown[];
         upvotes?: number;
+        owner?: { id: string };
       })
     | null;
   isLoading: boolean;
@@ -61,6 +66,8 @@ const SelectedEntityDetails: React.FC<SelectedEntityDetailsProps> = ({
   showBackButton = true,
   transparentBackground = false,
 }) => {
+  const { user } = useAuth();
+  const isOwner = user && entity.owner && user.id === entity.owner.id;
   const getEntityTypeLabel = (type: string) => {
     switch (type) {
       case "court":
@@ -277,12 +284,24 @@ const SelectedEntityDetails: React.FC<SelectedEntityDetailsProps> = ({
                   <h3 className="text-2xl font-bold text-gray-900">
                     {entity.name}
                   </h3>
-                  {entity.isVerified && (
-                    <div className="flex items-center gap-1 bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full text-sm font-semibold shadow-sm mt-2">
-                      <Shield className="w-4 h-4" />
-                      <span>Verified</span>
-                    </div>
-                  )}
+                  <div className="flex flex-col gap-1 mt-2">
+                    {entity.owner && (
+                      <Badge
+                        variant="secondary"
+                        className="bg-green-600 text-white hover:bg-green-700 border border-green-600 shadow-sm w-fit"
+                      >
+                        <Shield className="w-3 h-3 mr-1" /> Verified
+                      </Badge>
+                    )}
+                    {isOwner && (
+                      <Badge
+                        variant="secondary"
+                        className="bg-amber-500 text-white hover:bg-amber-600 border border-amber-600 shadow-sm w-fit"
+                      >
+                        <Crown className="w-3 h-3 mr-1" /> Owner
+                      </Badge>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
