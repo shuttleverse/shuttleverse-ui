@@ -38,6 +38,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
 
 type CoachCourtPriceData = {
+  id?: string;
   minPrice: number;
   maxPrice: number;
   duration: number;
@@ -46,31 +47,36 @@ type CoachCourtPriceData = {
 };
 
 type StringerPriceData = {
+  id?: string;
   price: number;
   stringName: string;
 };
 
 type PriceData = CoachCourtPriceData | StringerPriceData;
 
-interface AddInfoModalProps {
+interface EditInfoModalProps {
   isOpen: boolean;
   onClose: () => void;
   entityType: "court" | "coach" | "stringer";
   entityId: string;
-  onAddSchedule?: (scheduleData: ScheduleData[]) => Promise<void>;
-  onAddPrice?: (priceData: PriceData[]) => Promise<void>;
+  existingSchedules?: ScheduleData[];
+  existingPrices?: PriceData[];
+  onUpdateSchedule?: (scheduleData: ScheduleData[]) => Promise<void>;
+  onUpdatePrice?: (priceData: PriceData[]) => Promise<void>;
   defaultTab?: "schedule" | "pricing";
 }
 
-export function AddInfoModal({
+export function EditInfoModal({
   isOpen,
   onClose,
   entityType,
   entityId,
-  onAddSchedule,
-  onAddPrice,
+  existingSchedules = [],
+  existingPrices = [],
+  onUpdateSchedule,
+  onUpdatePrice,
   defaultTab = "schedule",
-}: AddInfoModalProps) {
+}: EditInfoModalProps) {
   const { isAuthenticated, user } = useAuth();
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
   const [activeTab, setActiveTab] = useState(
@@ -92,14 +98,11 @@ export function AddInfoModal({
     setActiveTab(entityType === "stringer" ? "pricing" : defaultTab);
   }, [defaultTab, entityType]);
 
-  // Handle modal resize when switching between confirmation and main view
   useEffect(() => {
     if (isOpen) {
-      // Small delay to ensure DOM is updated
       const timer = setTimeout(() => {
         const dialogContent = document.querySelector('[role="dialog"]');
         if (dialogContent) {
-          // Trigger a resize event to recalculate dimensions
           window.dispatchEvent(new Event("resize"));
         }
       }, 100);
@@ -110,15 +113,24 @@ export function AddInfoModal({
 
   const scheduleForm = useForm<{ schedules: ScheduleData[] }>({
     defaultValues: {
-      schedules: [],
+      schedules: existingSchedules,
     },
+    mode: "onChange",
   });
 
   const priceForm = useForm<{ prices: PriceData[] }>({
     defaultValues: {
-      prices: [],
+      prices: existingPrices,
     },
+    mode: "onChange",
   });
+
+  useEffect(() => {
+    if (isOpen) {
+      scheduleForm.reset({ schedules: existingSchedules });
+      priceForm.reset({ prices: existingPrices });
+    }
+  }, [isOpen, existingSchedules, existingPrices, scheduleForm, priceForm]);
 
   const {
     fields: priceFields,
@@ -149,7 +161,15 @@ export function AddInfoModal({
       return;
     }
 
-    if (!onAddSchedule) return;
+    if (!onUpdateSchedule) return;
+
+    if (!data.schedules || data.schedules.length === 0) {
+      scheduleForm.setError("schedules", {
+        type: "required",
+        message: "At least one schedule is required",
+      });
+      return;
+    }
 
     setConfirmationData({ type: "schedule", data: data.schedules });
     setShowConfirmation(true);
@@ -161,7 +181,7 @@ export function AddInfoModal({
       return;
     }
 
-    if (!onAddPrice) return;
+    if (!onUpdatePrice) return;
 
     if (entityType !== "stringer") {
       for (let i = 0; i < data.prices.length; i++) {
@@ -202,20 +222,26 @@ export function AddInfoModal({
 
     setIsSubmitting(true);
     try {
-      if (confirmationData.type === "schedule" && onAddSchedule) {
-        await onAddSchedule(confirmationData.data as ScheduleData[]);
-        scheduleForm.reset();
-      } else if (confirmationData.type === "pricing" && onAddPrice) {
-        await onAddPrice(confirmationData.data as PriceData[]);
-        priceForm.reset();
+      if (confirmationData.type === "schedule" && onUpdateSchedule) {
+        await onUpdateSchedule(confirmationData.data as ScheduleData[]);
+      } else if (confirmationData.type === "pricing" && onUpdatePrice) {
+        await onUpdatePrice(confirmationData.data as PriceData[]);
       }
       setShowConfirmation(false);
       setConfirmationData(null);
       onClose();
+      toast({
+        title: "Success",
+        description: `${
+          confirmationData.type === "schedule" ? "Schedules" : "Prices"
+        } updated successfully!`,
+      });
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to add information. Please try again.",
+        description: `Failed to update ${
+          confirmationData.type === "schedule" ? "schedules" : "prices"
+        }. Please try again.`,
         variant: "destructive",
       });
     } finally {
@@ -226,6 +252,11 @@ export function AddInfoModal({
   const handleCancel = () => {
     setShowConfirmation(false);
     setConfirmationData(null);
+  };
+
+  const handleClose = () => {
+    if (isSubmitting) return;
+    onClose();
   };
 
   const getEntityTitle = () => {
@@ -242,7 +273,14 @@ export function AddInfoModal({
   };
 
   if (showAuthPrompt) {
-    return <AuthPrompt onClose={() => setShowAuthPrompt(false)} />;
+    return (
+      <AuthPrompt
+        title="Sign in to Edit Information"
+        description="You need to be signed in to edit this entity's information."
+        action="Sign in to edit"
+        onClose={() => setShowAuthPrompt(false)}
+      />
+    );
   }
 
   if (showConfirmation && confirmationData) {
@@ -262,13 +300,12 @@ export function AddInfoModal({
             <DialogTitle>
               Confirm{" "}
               {confirmationData.type === "schedule" ? "Schedule" : "Pricing"}{" "}
-              Information
+              Update
             </DialogTitle>
             <DialogDescription>
               Please review the{" "}
               {confirmationData.type === "schedule" ? "schedule" : "pricing"}{" "}
-              information before adding it to the{" "}
-              {getEntityTitle().toLowerCase()}.
+              information before updating the {getEntityTitle().toLowerCase()}.
             </DialogDescription>
           </DialogHeader>
 
@@ -351,8 +388,8 @@ export function AddInfoModal({
             </Button>
             <Button onClick={handleConfirm} disabled={isSubmitting}>
               {isSubmitting
-                ? "Adding..."
-                : `Add ${
+                ? "Updating..."
+                : `Update ${
                     confirmationData.type === "schedule"
                       ? "Schedule"
                       : "Pricing"
@@ -377,10 +414,10 @@ export function AddInfoModal({
         }}
       >
         <DialogHeader>
-          <DialogTitle>Add Information to {getEntityTitle()}</DialogTitle>
+          <DialogTitle>Edit {getEntityTitle()} Information</DialogTitle>
           <DialogDescription>
-            Add details about the {getEntityTitle().toLowerCase()} to help users
-            find and book them.
+            Update details about the {getEntityTitle().toLowerCase()} to help
+            users find and book them.
           </DialogDescription>
         </DialogHeader>
 
@@ -406,7 +443,9 @@ export function AddInfoModal({
             <TabsContent value="schedule" className="space-y-4 border-none">
               <Card className="bg-transparent border-none !important shadow-none">
                 <CardHeader>
-                  <CardTitle>Add Schedule</CardTitle>
+                  <CardTitle>
+                    Edit Schedule <span className="text-red-500 ml-1">*</span>
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <Form {...scheduleForm}>
@@ -417,6 +456,14 @@ export function AddInfoModal({
                       <FormField
                         control={scheduleForm.control}
                         name="schedules"
+                        rules={{
+                          validate: (value) => {
+                            if (!value || value.length === 0) {
+                              return "At least one schedule is required";
+                            }
+                            return true;
+                          },
+                        }}
                         render={({ field: { value, onChange } }) => (
                           <FormItem>
                             <ScheduleCalendar
@@ -437,7 +484,7 @@ export function AddInfoModal({
                           Cancel
                         </Button>
                         <Button type="submit" disabled={isSubmitting}>
-                          {isSubmitting ? "Adding..." : "Add Schedule"}
+                          {isSubmitting ? "Updating..." : "Update Schedule"}
                         </Button>
                       </div>
                     </form>
@@ -451,7 +498,7 @@ export function AddInfoModal({
             <Card className="bg-transparent border-none !important shadow-none">
               <CardHeader>
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                  <CardTitle>Add Pricing</CardTitle>
+                  <CardTitle>Edit Pricing</CardTitle>
                   <Button
                     type="button"
                     onClick={addPrice}
@@ -483,6 +530,19 @@ export function AddInfoModal({
                                   : `String Option ${index}`
                                 : `Pricing Option ${index + 1}`}
                             </h4>
+                            {priceFields.length > 1 &&
+                              (entityType !== "stringer" || index !== 0) && (
+                                <Button
+                                  type="button"
+                                  onClick={() => removePrice(index)}
+                                  variant="ghost"
+                                  size="sm"
+                                  className="text-red-500 hover:text-red-700"
+                                >
+                                  <Trash2 className="h-4 w-4 mr-2" />
+                                  Remove Price
+                                </Button>
+                              )}
                           </div>
                           {entityType === "stringer" ? (
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -961,22 +1021,6 @@ export function AddInfoModal({
                               />
                             </>
                           )}
-
-                          {priceFields.length > 1 &&
-                            (entityType !== "stringer" || index !== 0) && (
-                              <div className="flex justify-end md:col-span-2">
-                                <Button
-                                  type="button"
-                                  onClick={() => removePrice(index)}
-                                  variant="ghost"
-                                  size="sm"
-                                  className="text-red-500 hover:text-red-700"
-                                >
-                                  <Trash2 className="h-4 w-4 mr-2" />
-                                  Remove Price
-                                </Button>
-                              </div>
-                            )}
                         </div>
                       </div>
                     ))}
@@ -985,7 +1029,7 @@ export function AddInfoModal({
                         Cancel
                       </Button>
                       <Button type="submit" disabled={isSubmitting}>
-                        {isSubmitting ? "Adding..." : "Add Pricing"}
+                        {isSubmitting ? "Updating..." : "Update Pricing"}
                       </Button>
                     </div>
                   </form>

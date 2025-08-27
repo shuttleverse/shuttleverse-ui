@@ -22,8 +22,16 @@ import { ScheduleDisplay } from "@/components/shared/schedule-display";
 import { EntityAvatar } from "@/components/shared/entity-avatar";
 import { MarkdownRenderer } from "@/components/ui/markdown-renderer";
 import AuthPrompt from "@/components/shared/auth-prompt";
-import type { CourtData, CourtPriceData } from "@/services/courts";
-import type { CoachData, CoachPriceData } from "@/services/coaches";
+import type {
+  CourtData,
+  CourtPriceData,
+  CourtFormScheduleData,
+} from "@/services/courts";
+import type {
+  CoachData,
+  CoachPriceData,
+  CoachFormScheduleData,
+} from "@/services/coaches";
 import type { StringerData, StringerPriceData } from "@/services/stringers";
 import { useState } from "react";
 
@@ -42,9 +50,22 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import GoogleAutoComplete from "@/components/shared/google-autocomplete";
-import { useUpdateCourt } from "@/services/courts";
-import { useUpdateCoach } from "@/services/coaches";
-import { useUpdateStringer } from "@/services/stringers";
+import {
+  useUpdateCourt,
+  useUpdateCourtSchedules,
+  useUpdateCourtPrices,
+} from "@/services/courts";
+import {
+  useUpdateCoach,
+  useUpdateCoachSchedules,
+  useUpdateCoachPrices,
+} from "@/services/coaches";
+import {
+  useUpdateStringer,
+  useUpdateStringerPrices,
+} from "@/services/stringers";
+import { EditInfoModal } from "@/components/shared/edit-info-modal";
+import type { ScheduleData } from "@/components/forms/schedule-calendar";
 
 type EntityData = CourtData | CoachData | StringerData;
 
@@ -110,6 +131,10 @@ export function EntityDetails({
   >(null);
   const [isPriceInfoDialogOpen, setIsPriceInfoDialogOpen] = useState(false);
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
+  const [isEditInfoModalOpen, setIsEditInfoModalOpen] = useState(false);
+  const [editInfoTab, setEditInfoTab] = useState<"schedule" | "pricing">(
+    "schedule"
+  );
 
   const updateCourtMutation = useUpdateCourt();
   const updateCoachMutation = useUpdateCoach();
@@ -236,6 +261,64 @@ export function EntityDetails({
       ...prev,
       otherContacts: contacts,
     }));
+  };
+
+  const handleEditInfo = (tab: "schedule" | "pricing") => {
+    setEditInfoTab(tab);
+    setIsEditInfoModalOpen(true);
+  };
+
+  const updateCourtSchedulesMutation = useUpdateCourtSchedules();
+  const updateCourtPricesMutation = useUpdateCourtPrices();
+  const updateCoachSchedulesMutation = useUpdateCoachSchedules();
+  const updateCoachPricesMutation = useUpdateCoachPrices();
+  const updateStringerPricesMutation = useUpdateStringerPrices();
+
+  const handleUpdateSchedule = async (scheduleData: ScheduleData[]) => {
+    try {
+      if (entity.type === "court") {
+        await updateCourtSchedulesMutation.mutateAsync({
+          courtId: entity.id,
+          schedules: scheduleData,
+        });
+      } else if (entity.type === "coach") {
+        await updateCoachSchedulesMutation.mutateAsync({
+          coachId: entity.id,
+          schedules: scheduleData,
+        });
+      }
+      toast.success("Schedules updated successfully!");
+    } catch (error) {
+      console.error("Error updating schedules:", error);
+      toast.error("Failed to update schedules. Please try again.");
+    }
+  };
+
+  const handleUpdatePrice = async (
+    priceData: (CourtPriceData | CoachPriceData | StringerPriceData)[]
+  ) => {
+    try {
+      if (entity.type === "court") {
+        await updateCourtPricesMutation.mutateAsync({
+          courtId: entity.id,
+          prices: priceData as CourtPriceData[],
+        });
+      } else if (entity.type === "coach") {
+        await updateCoachPricesMutation.mutateAsync({
+          coachId: entity.id,
+          prices: priceData as CoachPriceData[],
+        });
+      } else if (entity.type === "stringer") {
+        await updateStringerPricesMutation.mutateAsync({
+          stringerId: entity.id,
+          prices: priceData as StringerPriceData[],
+        });
+      }
+      toast.success("Prices updated successfully!");
+    } catch (error) {
+      console.error("Error updating prices:", error);
+      toast.error("Failed to update prices. Please try again.");
+    }
   };
 
   const handlePriceUpvote = (priceId: string) => {
@@ -931,7 +1014,11 @@ export function EntityDetails({
                                     setShowAuthPrompt(true);
                                     return;
                                   }
-                                  onAddInfo("schedule");
+                                  if (isOwner || (user && user.admin)) {
+                                    handleEditInfo("schedule");
+                                  } else {
+                                    onAddInfo("schedule");
+                                  }
                                 }}
                                 variant="outline"
                                 size="sm"
@@ -970,7 +1057,11 @@ export function EntityDetails({
                           setShowAuthPrompt(true);
                           return;
                         }
-                        onAddInfo("pricing");
+                        if (isOwner || (user && user.admin)) {
+                          handleEditInfo("pricing");
+                        } else {
+                          onAddInfo("pricing");
+                        }
                       }}
                       variant="outline"
                       size="sm"
@@ -1097,6 +1188,22 @@ export function EntityDetails({
             )}
           </DialogContent>
         </Dialog>
+
+        <EditInfoModal
+          isOpen={isEditInfoModalOpen}
+          onClose={() => setIsEditInfoModalOpen(false)}
+          entityType={entity.type}
+          entityId={entity.id}
+          existingSchedules={
+            entity.type === "stringer"
+              ? []
+              : (entity as CourtData | CoachData).scheduleList || []
+          }
+          existingPrices={entity.priceList || []}
+          onUpdateSchedule={handleUpdateSchedule}
+          onUpdatePrice={handleUpdatePrice}
+          defaultTab={editInfoTab}
+        />
       </div>
     </>
   );

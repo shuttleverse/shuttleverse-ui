@@ -187,3 +187,22 @@ export function useUpdateStringer() {
     },
   });
 }
+
+export function useUpdateStringerPrices() {
+  return useMutation({
+    mutationFn: async (params: {
+      stringerId: string;
+      prices: StringerFormPriceData[];
+    }) => {
+      const { data } = await api.put(
+        `/api/community/v1/stringer/${params.stringerId}/prices`,
+        params.prices
+      );
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["stringers"] });
+      queryClient.invalidateQueries({ queryKey: ["stringer"] });
+    },
+  });
+}

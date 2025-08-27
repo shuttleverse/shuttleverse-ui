@@ -6,6 +6,7 @@ import {
 } from "@tanstack/react-query";
 import api from "@/api/axios";
 import { queryClient } from "@/api/query-client";
+import type { ScheduleData } from "@/components/forms/schedule-calendar";
 
 export type CoachFormScheduleData = {
   dayOfWeek: number;
@@ -238,6 +239,44 @@ export function useUpdateCoach() {
       const { data } = await api.put(
         `/api/community/v1/coach/${params.coachId}`,
         params.coachData
+      );
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["coaches"] });
+      queryClient.invalidateQueries({ queryKey: ["coach"] });
+    },
+  });
+}
+
+export function useUpdateCoachSchedules() {
+  return useMutation({
+    mutationFn: async (params: {
+      coachId: string;
+      schedules: ScheduleData[];
+    }) => {
+      const { data } = await api.put(
+        `/api/community/v1/coach/${params.coachId}/schedules`,
+        params.schedules
+      );
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["coaches"] });
+      queryClient.invalidateQueries({ queryKey: ["coach"] });
+    },
+  });
+}
+
+export function useUpdateCoachPrices() {
+  return useMutation({
+    mutationFn: async (params: {
+      coachId: string;
+      prices: CoachFormPriceData[];
+    }) => {
+      const { data } = await api.put(
+        `/api/community/v1/coach/${params.coachId}/prices`,
+        params.prices
       );
       return data;
     },
