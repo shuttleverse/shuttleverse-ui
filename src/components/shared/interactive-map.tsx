@@ -387,6 +387,12 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
                 onMarkerClick={handleMarkerClick}
                 selectedEntity={selectedEntity}
                 map={mapRef.current}
+                fullScreen={fullScreen}
+                hasLeftPanel={
+                  fullScreen &&
+                  !isMobile &&
+                  (!selectedEntity || canShowDualPanels)
+                }
               />
 
               {showSidePanel && (
@@ -412,7 +418,6 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
             </Map>
           </APIProvider>
 
-          {/* Right Panel - Entity Details */}
           {selectedEntity && !isMobile && renderRightPanel()}
         </div>
       </div>

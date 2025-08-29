@@ -349,7 +349,7 @@ export function EntityDetails({
   };
 
   const renderPrices = () => {
-    if (!entity.priceList || entity.priceList.length === 0) {
+    if (!entity.priceList || entity.priceList.length === 0 ) {
       return (
         <div className="text-center text-muted-foreground py-4">
           No prices available
@@ -1007,8 +1007,9 @@ export function EntityDetails({
                   )}
 
                   {entity.type !== "stringer" &&
-                    entity.scheduleList &&
-                    entity.scheduleList.length > 0 && (
+                    ((entity.scheduleList && entity.scheduleList.length > 0) ||
+                      (entity.owner && user && entity.owner.id === user.id) ||
+                      (user && user.admin)) && (
                       <div className="bg-white/50 rounded-lg p-3 sm:p-6 shadow-sm xl:col-span-2 min-h-[700px]">
                         <div className="flex justify-between items-center mb-4 sm:mb-6">
                           <h2 className="text-lg sm:text-2xl font-semibold text-primary-indigo">

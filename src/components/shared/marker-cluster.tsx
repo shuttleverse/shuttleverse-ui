@@ -2,12 +2,15 @@ import React, { useEffect, useRef } from "react";
 import { MarkerClusterer, GridAlgorithm } from "@googlemaps/markerclusterer";
 import { MapEntity } from "@/services/map";
 import { entityColors } from "@/lib/colors";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface MarkerClusterProps {
   entities: MapEntity[];
   onMarkerClick: (entity: MapEntity) => void;
   selectedEntity: MapEntity | null;
   map: google.maps.Map | null;
+  fullScreen?: boolean;
+  hasLeftPanel?: boolean;
 }
 
 const MarkerCluster: React.FC<MarkerClusterProps> = ({
@@ -15,7 +18,10 @@ const MarkerCluster: React.FC<MarkerClusterProps> = ({
   onMarkerClick,
   selectedEntity,
   map,
+  fullScreen = false,
+  hasLeftPanel = false,
 }) => {
+  const isMobile = useIsMobile();
   const clustererRef = useRef<MarkerClusterer | null>(null);
   const markersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
   const overlappingMarkersRef = useRef<
@@ -91,7 +97,7 @@ const MarkerCluster: React.FC<MarkerClusterProps> = ({
             marker.addListener("click", () => {
               const position = marker.position as google.maps.LatLng;
               map.setCenter(position);
-              map.setZoom(16);
+              map.setZoom(20);
             });
 
             overlappingMarkers.push(marker);
@@ -120,9 +126,8 @@ const MarkerCluster: React.FC<MarkerClusterProps> = ({
                   const entity = markerEntityMapRef.current.get(
                     marker as google.maps.marker.AdvancedMarkerElement
                   );
-                  // Handle both single entities and overlapping entity arrays
                   if (Array.isArray(entity)) {
-                    return entity[0]; // Return the first entity for overlapping groups
+                    return entity[0];
                   }
                   return entity;
                 })
@@ -173,17 +178,38 @@ const MarkerCluster: React.FC<MarkerClusterProps> = ({
 
               clusterElement.addEventListener("click", () => {
                 if (count > 1) {
-                  let targetZoom = 14;
-                  if (count <= 3) {
-                    targetZoom = 15;
-                  } else if (count <= 8) {
-                    targetZoom = 13;
-                  } else {
-                    targetZoom = 12;
-                  }
+                  const clusterEntities = markers
+                    .map((marker) => {
+                      const entity = markerEntityMapRef.current.get(
+                        marker as google.maps.marker.AdvancedMarkerElement
+                      );
+                      if (Array.isArray(entity)) {
+                        return entity[0];
+                      }
+                      return entity;
+                    })
+                    .filter(Boolean) as MapEntity[];
 
-                  map.setCenter(position);
-                  map.setZoom(targetZoom);
+                  const bounds = new google.maps.LatLngBounds();
+                  clusterEntities.forEach((entity) => {
+                    bounds.extend({
+                      lat: parseFloat(entity.locationPoint.latitude),
+                      lng: parseFloat(entity.locationPoint.longitude),
+                    });
+                  });
+
+                  map.fitBounds(bounds);
+
+                  if (!isMobile && fullScreen && hasLeftPanel) {
+                    setTimeout(() => {
+                      if (map) {
+                        map.panBy(160, 0);
+                        const currentZoom = map.getZoom() || 10;
+                        const targetZoom = Math.max(currentZoom - 0.5, 8);
+                        map.setZoom(targetZoom);
+                      }
+                    }, 100);
+                  }
                 }
               });
 
@@ -195,7 +221,6 @@ const MarkerCluster: React.FC<MarkerClusterProps> = ({
           },
         });
 
-        // Add overlapping markers directly to the map (bypassing clusterer)
         overlappingMarkers.forEach((marker) => {
           marker.map = map;
         });
@@ -210,12 +235,11 @@ const MarkerCluster: React.FC<MarkerClusterProps> = ({
       if (clustererRef.current) {
         clustererRef.current.clearMarkers();
       }
-      // Clean up overlapping markers
       overlappingMarkersRef.current.forEach((marker) => {
         marker.map = null;
       });
     };
-  }, [entities, map, onMarkerClick]);
+  }, [entities, map, onMarkerClick, isMobile, fullScreen, hasLeftPanel]);
 
   useEffect(() => {
     const updateMarkers = async () => {
@@ -224,7 +248,6 @@ const MarkerCluster: React.FC<MarkerClusterProps> = ({
           "marker"
         )) as google.maps.MarkerLibrary;
 
-        // Update regular markers (single entities)
         markersRef.current.forEach((marker) => {
           const entity = markerEntityMapRef.current.get(marker) as MapEntity;
           if (entity) {
@@ -233,13 +256,11 @@ const MarkerCluster: React.FC<MarkerClusterProps> = ({
           }
         });
 
-        // Update overlapping markers
         overlappingMarkersRef.current.forEach((marker) => {
           const entitiesAtLocation = markerEntityMapRef.current.get(
             marker
           ) as MapEntity[];
           if (entitiesAtLocation && entitiesAtLocation.length > 1) {
-            // Check if any entity in this overlapping group is selected
             const hasSelectedEntity = entitiesAtLocation.some(
               (entity) => selectedEntity?.id === entity.id
             );
@@ -323,6 +344,15 @@ const createMarkerContent = (
     );
   };
 
+  const getBorderColor = (type: string) => {
+    const colors = {
+      court: "#047857",
+      coach: "#1d4ed8",
+      stringer: "#d97706",
+    };
+    return colors[type as keyof typeof colors] || "#374151";
+  };
+
   const markerElement = document.createElement("div");
   markerElement.className = "custom-marker";
   markerElement.style.cssText = `
@@ -330,8 +360,8 @@ const createMarkerContent = (
     height: 32px;
     border-radius: 50%;
     background: ${getMarkerColor(entity.type)};
-    border: 3px solid #fff;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+    border: 3px solid ${getBorderColor(entity.type)};
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4), 0 2px 4px rgba(0,0,0,0.2);
     display: flex;
     align-items: center;
     justify-content: center;

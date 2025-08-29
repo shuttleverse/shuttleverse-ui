@@ -88,9 +88,9 @@ const MapPage = () => {
         mapRef.current.panTo(entityPosition);
         mapRef.current.setZoom(14);
 
-        if (!isMobile && canShowDualPanels) {
-          const rightPanelWidth = 384;
-          const mapOffset = rightPanelWidth / 2;
+        if (!isMobile && !canShowDualPanels) {
+          const leftPanelWidth = 320;
+          const mapOffset = leftPanelWidth / 8;
 
           setTimeout(() => {
             if (mapRef.current) {
@@ -478,9 +478,9 @@ const MapPage = () => {
         mapRef.current.panTo(entityPosition);
         mapRef.current.setZoom(14);
 
-        if (!isMobile && canShowDualPanels) {
-          const rightPanelWidth = 384;
-          const mapOffset = rightPanelWidth / 2;
+        if (!isMobile && !canShowDualPanels) {
+          const leftPanelWidth = 320;
+          const mapOffset = leftPanelWidth / 2;
 
           setTimeout(() => {
             if (mapRef.current) {
@@ -500,6 +500,14 @@ const MapPage = () => {
           setTimeout(() => {
             if (mapRef.current) {
               mapRef.current.panBy(mapOffset, 0);
+            }
+          }, 100);
+        } else if (!isMobile && !canShowDualPanels) {
+          const leftPanelWidth = 320;
+
+          setTimeout(() => {
+            if (mapRef.current) {
+              mapRef.current.panBy(leftPanelWidth, 0);
             }
           }, 100);
         } else if (isMobile) {
