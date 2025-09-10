@@ -46,9 +46,6 @@ export function ScheduleDisplay({
   }, []);
 
   const getTimeRange = (schedule: ScheduleData) => {
-    if ("openTime" in schedule) {
-      return `${schedule.openTime} - ${schedule.closeTime}`;
-    }
     return `${schedule.startTime} - ${schedule.endTime}`;
   };
 
@@ -81,8 +78,8 @@ export function ScheduleDisplay({
     id: schedule.id,
     title: getTimeRange(schedule),
     daysOfWeek: [schedule.dayOfWeek === 7 ? 0 : schedule.dayOfWeek],
-    startTime: "openTime" in schedule ? schedule.openTime : schedule.startTime,
-    endTime: "openTime" in schedule ? schedule.closeTime : schedule.endTime,
+    startTime: schedule.startTime,
+    endTime: schedule.endTime,
     backgroundColor: "hsl(var(--primary))",
     borderColor: "hsl(var(--primary))",
     textColor: "hsl(var(--primary-foreground))",

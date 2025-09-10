@@ -1,6 +1,5 @@
 import { MapPin } from "lucide-react";
 import { useLocationContext } from "@/hooks/use-location-context";
-import { useToast } from "@/hooks/use-toast";
 import LocationPicker from "./location-picker";
 
 interface LocationDisplayProps {
@@ -13,18 +12,6 @@ const LocationDisplay: React.FC<LocationDisplayProps> = ({
   className = "",
 }) => {
   const { locationData, refreshLocation } = useLocationContext();
-  const { toast } = useToast();
-
-  const handleLocationClick = async () => {
-    const errorMessage = await refreshLocation();
-    if (errorMessage) {
-      toast({
-        title: "Location Error",
-        description: String(errorMessage),
-        variant: "destructive",
-      });
-    }
-  };
 
   if (locationData.isLoading) {
     return (

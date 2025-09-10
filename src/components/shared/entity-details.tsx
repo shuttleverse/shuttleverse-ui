@@ -328,7 +328,6 @@ export function EntityDetails({
         window.location.reload();
       }
     } catch (error) {
-      console.error("Error updating prices:", error);
       toast.error("Failed to update prices. Please try again.");
     }
   };

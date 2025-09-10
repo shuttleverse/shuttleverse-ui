@@ -362,17 +362,11 @@ export function EntityForm({
                               "Friday",
                               "Saturday",
                               "Sunday",
-                            ][
-                              "dayOfWeek" in schedule
-                                ? schedule.dayOfWeek - 1
-                                : schedule.dayOfWeek - 1
-                            ]
+                            ][schedule.dayOfWeek - 1]
                           }
                         </span>
                         <span className="text-sm font-medium text-gray-600 bg-white px-3 py-1 rounded-full break-words">
-                          {"startTime" in schedule
-                            ? `${schedule.startTime} - ${schedule.endTime}`
-                            : `${schedule.openTime} - ${schedule.closeTime}`}
+                          {schedule.startTime} - {schedule.endTime}
                         </span>
                       </div>
                     </div>

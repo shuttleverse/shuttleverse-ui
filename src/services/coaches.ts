@@ -146,7 +146,8 @@ export function useCreateCoach() {
             },
           }),
         description: coachData.description,
-        experienceYears: coachData.experienceYears,
+        experienceYears:
+          coachData.experienceYears === 0 ? null : coachData.experienceYears,
         phoneNumber: coachData.phoneNumber,
         otherContacts: coachData.otherContacts,
       };

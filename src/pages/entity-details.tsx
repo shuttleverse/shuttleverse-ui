@@ -259,15 +259,11 @@ export default function EntityDetailsPage() {
     if (type === "court") {
       const courtScheduleData: CourtFormScheduleData[] = scheduleData.map(
         (schedule) => {
-          if ("openTime" in schedule) {
-            return schedule as CourtFormScheduleData;
-          } else {
-            return {
-              dayOfWeek: schedule.dayOfWeek,
-              openTime: schedule.startTime,
-              closeTime: schedule.endTime,
-            };
-          }
+          return {
+            dayOfWeek: schedule.dayOfWeek,
+            startTime: schedule.startTime,
+            endTime: schedule.endTime,
+          };
         }
       );
       await (
@@ -279,15 +275,11 @@ export default function EntityDetailsPage() {
     } else if (type === "coach") {
       const coachScheduleData: CoachFormScheduleData[] = scheduleData.map(
         (schedule) => {
-          if ("startTime" in schedule) {
-            return schedule as CoachFormScheduleData;
-          } else {
-            return {
-              dayOfWeek: schedule.dayOfWeek,
-              startTime: schedule.openTime,
-              endTime: schedule.closeTime,
-            };
-          }
+          return {
+            dayOfWeek: schedule.dayOfWeek,
+            startTime: schedule.startTime,
+            endTime: schedule.endTime,
+          };
         }
       );
       await (

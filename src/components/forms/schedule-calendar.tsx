@@ -59,9 +59,8 @@ export function ScheduleCalendar({
       id: index.toString(),
       title: "Operating Hours",
       daysOfWeek: [schedule.dayOfWeek === 7 ? 0 : schedule.dayOfWeek],
-      startTime:
-        "startTime" in schedule ? schedule.startTime : schedule.openTime,
-      endTime: "startTime" in schedule ? schedule.endTime : schedule.closeTime,
+      startTime: schedule.startTime,
+      endTime: schedule.endTime,
       backgroundColor: "hsl(var(--primary))",
       borderColor: "hsl(var(--primary))",
       textColor: "hsl(var(--primary-foreground))",
@@ -103,8 +102,8 @@ export function ScheduleCalendar({
           } as CoachFormScheduleData)
         : ({
             dayOfWeek: apiDay,
-            openTime: startDate.toTimeString().slice(0, 5),
-            closeTime: endDate.toTimeString().slice(0, 5),
+            startTime: startDate.toTimeString().slice(0, 5),
+            endTime: endDate.toTimeString().slice(0, 5),
           } as CourtFormScheduleData);
 
     onChange([...schedules, newSchedule]);
@@ -124,10 +123,7 @@ export function ScheduleCalendar({
   };
 
   const getTimeRange = (schedule: ScheduleData) => {
-    if ("startTime" in schedule) {
-      return `${schedule.startTime} - ${schedule.endTime}`;
-    }
-    return `${schedule.openTime} - ${schedule.closeTime}`;
+    return `${schedule.startTime} - ${schedule.endTime}`;
   };
 
   const handleAddSchedule = () => {
@@ -140,8 +136,8 @@ export function ScheduleCalendar({
           } as CoachFormScheduleData)
         : ({
             dayOfWeek: mobileFormData.dayOfWeek,
-            openTime: mobileFormData.startTime,
-            closeTime: mobileFormData.endTime,
+            startTime: mobileFormData.startTime,
+            endTime: mobileFormData.endTime,
           } as CourtFormScheduleData);
 
     onChange([...schedules, newSchedule]);

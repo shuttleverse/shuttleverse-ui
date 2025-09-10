@@ -41,7 +41,6 @@ const LocationPicker: React.FC<LocationPickerProps> = ({ trigger }) => {
       previousLocation.current = currentLocation;
       toast({
         title: "Location Updated",
-        description: `Set to ${locationData.city}, ${locationData.state}`,
       });
     }
   }, [locationData.city, locationData.state, isUpdatingLocation, toast]);

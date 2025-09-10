@@ -10,8 +10,8 @@ import type { ScheduleData } from "@/components/forms/schedule-calendar";
 
 export type CourtFormScheduleData = {
   dayOfWeek: number;
-  openTime: string;
-  closeTime: string;
+  startTime: string;
+  endTime: string;
 };
 
 export type CourtFormPriceData = {
@@ -51,8 +51,8 @@ type CourtCreationAPIData = {
 export type CourtScheduleData = {
   id: string;
   dayOfWeek: number;
-  openTime: string;
-  closeTime: string;
+  startTime: string;
+  endTime: string;
   upvotes: number;
   submittedBy?: {
     username: string;
