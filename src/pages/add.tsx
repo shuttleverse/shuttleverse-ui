@@ -44,7 +44,9 @@ const AddPage = () => {
   };
 
   const handleContinue = () => {
-    if (selectedType) {
+    if (selectedType === "coach") {
+      navigate(`/coaches/add`);
+    } else {
       navigate(`/${selectedType}s/add`);
     }
   };

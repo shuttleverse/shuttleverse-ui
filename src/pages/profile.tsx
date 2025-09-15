@@ -394,7 +394,11 @@ const Profile = () => {
                           <Button
                             onClick={() => {
                               const entityType = claim.entityType.toLowerCase();
-                              navigate(`/${entityType}s/${claim.entityId}`);
+                              if (entityType === "coach") {
+                                navigate(`/coaches/${claim.entityId}`);
+                              } else {
+                                navigate(`/${entityType}s/${claim.entityId}`);
+                              }
                             }}
                             variant="outline"
                             size="sm"

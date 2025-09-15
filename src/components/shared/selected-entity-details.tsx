@@ -321,17 +321,19 @@ const SelectedEntityDetails: React.FC<SelectedEntityDetailsProps> = ({
               Contact Information
             </h4>
             {entity.location && (
-              <div className="flex items-center gap-3 text-sm text-gray-600">
-                <MapPin className="w-5 h-5 text-gray-400" />
-                <span className="text-base font-medium">{entity.location}</span>
+              <div className="flex items-center gap-3 text-sm text-gray-600 min-w-0">
+                <MapPin className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                <span className="text-base font-medium break-words min-w-0 flex-1">
+                  {entity.location}
+                </span>
               </div>
             )}
             {entity.phoneNumber && (
-              <div className="flex items-center gap-3 text-sm text-gray-600">
-                <Phone className="w-5 h-5 text-gray-400" />
+              <div className="flex items-center gap-3 text-sm text-gray-600 min-w-0">
+                <Phone className="w-5 h-5 text-gray-400 flex-shrink-0" />
                 <a
                   href={`tel:${entity.phoneNumber}`}
-                  className="text-emerald-600 hover:text-emerald-700 text-base font-medium"
+                  className="text-emerald-600 hover:text-emerald-700 text-base font-medium break-words min-w-0 flex-1"
                 >
                   {entity.phoneNumber}
                 </a>
@@ -340,8 +342,8 @@ const SelectedEntityDetails: React.FC<SelectedEntityDetailsProps> = ({
             {entity.type === "coach" &&
               entity.experienceYears &&
               entity.experienceYears !== 0 && (
-                <div className="flex items-center gap-3 text-sm text-gray-600">
-                  <div className="w-5 h-5 text-gray-400 flex items-center justify-center">
+                <div className="flex items-center gap-3 text-sm text-gray-600 min-w-0">
+                  <div className="w-5 h-5 text-gray-400 flex items-center justify-center flex-shrink-0">
                     <svg
                       className="w-4 h-4"
                       viewBox="0 0 24 24"
@@ -350,19 +352,19 @@ const SelectedEntityDetails: React.FC<SelectedEntityDetailsProps> = ({
                       <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
                     </svg>
                   </div>
-                  <span className="text-base font-medium">
+                  <span className="text-base font-medium break-words min-w-0 flex-1">
                     {entity.experienceYears} Years of Experience
                   </span>
                 </div>
               )}
             {entity.type === "court" && entity.website && (
-              <div className="flex items-start gap-3 text-sm text-gray-600">
+              <div className="flex items-start gap-3 text-sm text-gray-600 min-w-0">
                 <Globe className="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" />
                 <a
                   href={entity.website}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-emerald-600 hover:text-emerald-700 text-base font-medium break-all hover:break-words"
+                  className="text-emerald-600 hover:text-emerald-700 text-base font-medium break-all hover:break-words min-w-0 flex-1"
                 >
                   {entity.website}
                 </a>
@@ -375,7 +377,7 @@ const SelectedEntityDetails: React.FC<SelectedEntityDetailsProps> = ({
                     ([type, contact]) => (
                       <div
                         key={type}
-                        className="flex items-center gap-3 text-sm text-gray-600"
+                        className="flex items-center gap-3 text-sm text-gray-600 min-w-0"
                       >
                         <span className="w-5 h-5 text-gray-400 flex-shrink-0 flex items-center justify-center">
                           {type === "instagram" && (
@@ -447,7 +449,7 @@ const SelectedEntityDetails: React.FC<SelectedEntityDetailsProps> = ({
                             </svg>
                           )}
                         </span>
-                        <span className="text-base font-medium capitalize">
+                        <span className="text-base font-medium capitalize break-words min-w-0 flex-1">
                           {contact}
                         </span>
                       </div>

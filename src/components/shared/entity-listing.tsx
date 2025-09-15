@@ -168,7 +168,11 @@ const EntityListing: React.FC<EntityListingProps> = ({
     if (onAddEntity) {
       onAddEntity();
     } else {
-      navigate(`/${entityType}s/add`);
+      if (entityType === "coach") {
+        navigate(`/coaches/add`);
+      } else {
+        navigate(`/${entityType}s/add`);
+      }
     }
   };
 
