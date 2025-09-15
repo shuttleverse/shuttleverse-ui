@@ -315,7 +315,9 @@ const Home = () => {
                   recentAdditions.map((item) => (
                     <Link
                       key={item.id}
-                      to={`/${item.type}s/${item.id}`}
+                      to={`/${item.type}${item.type === "coach" ? "es" : "s"}/${
+                        item.id
+                      }`}
                       className="flex items-start border-b border-gray-100 pb-3 hover:bg-gray-50 p-2 rounded transition-colors"
                     >
                       <div className="bg-emerald-100 p-2 rounded-full mr-3">

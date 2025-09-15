@@ -260,7 +260,12 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
               isLoading={false}
               onBack={() => setSelectedEntity(null)}
               onViewDetails={(entity) => {
-                const path = `/${entity.type}s/${entity.id}`;
+                let path;
+                if (entity.type === "coach") {
+                  path = `/coaches/${entity.id}`;
+                } else {
+                  path = `/${entity.type}s/${entity.id}`;
+                }
                 navigate(path);
               }}
               showBackButton={!canShowDualPanels}

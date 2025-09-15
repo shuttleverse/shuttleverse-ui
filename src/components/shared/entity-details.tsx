@@ -495,7 +495,7 @@ export function EntityDetails({
                               </h1>
                             )}
                           </div>
-                          <div className="flex flex-wrap items-center gap-2">
+                          <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
                             {isEditing ? (
                               <div className="flex gap-2">
                                 <Button

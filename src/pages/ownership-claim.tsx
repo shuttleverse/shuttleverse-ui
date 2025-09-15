@@ -109,7 +109,12 @@ export default function OwnershipClaimPage() {
       });
 
       toast.success("Ownership claim submitted successfully!");
-      navigate(`/${entityType.toLowerCase()}s/${id}`);
+      const entityTypeLower = entityType.toLowerCase();
+      if (entityTypeLower === "coach") {
+        navigate(`/coaches/${id}`);
+      } else {
+        navigate(`/${entityTypeLower}s/${id}`);
+      }
     } catch (error) {
       toast.error("Failed to submit ownership claim. Please try again.");
     } finally {
