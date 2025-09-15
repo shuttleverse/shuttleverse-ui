@@ -840,13 +840,52 @@ export function EntityForm({
                                     value={contact}
                                     onChange={(e) => {
                                       const currentContacts = field.value || {};
+                                      const nextValue = e.target.value;
                                       field.onChange({
                                         ...currentContacts,
-                                        [type]: e.target.value,
+                                        [type]: nextValue,
                                       });
                                     }}
+                                    onBlur={(e) => {
+                                      if (
+                                        type !== "xiaohongshu" &&
+                                        type !== "instagram" &&
+                                        type !== "facebook"
+                                      )
+                                        return;
+                                      const currentContacts = field.value || {};
+                                      const value = e.target.value?.trim();
+                                      if (!value) return;
+
+                                      const looksLikeUrl =
+                                        /^(https?:\/\/|www\.)/i.test(value);
+                                      if (!looksLikeUrl) return;
+
+                                      let sanitized = value;
+                                      try {
+                                        const url = new URL(
+                                          value.startsWith("http")
+                                            ? value
+                                            : `https://${value}`
+                                        );
+                                        sanitized = `${url.protocol}//${url.host}${url.pathname}`;
+                                      } catch {
+                                        const qIndex = value.indexOf("?");
+                                        sanitized =
+                                          qIndex !== -1
+                                            ? value.substring(0, qIndex)
+                                            : value;
+                                      }
+
+                                      if (sanitized !== value) {
+                                        field.onChange({
+                                          ...currentContacts,
+                                          [type]: sanitized,
+                                        });
+                                      }
+                                    }}
                                     className="flex-1"
-                                    maxLength={50}
+                                    maxLength={150}
                                   />
                                   <Button
                                     type="button"

@@ -786,8 +786,51 @@ export function EntityDetails({
                                                 [type]: e.target.value,
                                               });
                                             }}
+                                            onBlur={(e) => {
+                                              if (
+                                                type !== "xiaohongshu" &&
+                                                type !== "instagram" &&
+                                                type !== "facebook"
+                                              )
+                                                return;
+                                              const currentContacts =
+                                                formData.otherContacts || {};
+                                              const value =
+                                                e.target.value?.trim();
+                                              if (!value) return;
+
+                                              const looksLikeUrl =
+                                                /^(https?:\/\/|www\.)/i.test(
+                                                  value
+                                                );
+                                              if (!looksLikeUrl) return;
+
+                                              let sanitized = value;
+                                              try {
+                                                const url = new URL(
+                                                  value.startsWith("http")
+                                                    ? value
+                                                    : `https://${value}`
+                                                );
+                                                sanitized = `${url.protocol}//${url.host}${url.pathname}`;
+                                              } catch {
+                                                const qIndex =
+                                                  value.indexOf("?");
+                                                sanitized =
+                                                  qIndex !== -1
+                                                    ? value.substring(0, qIndex)
+                                                    : value;
+                                              }
+
+                                              if (sanitized !== value) {
+                                                handleOtherContactsChange({
+                                                  ...currentContacts,
+                                                  [type]: sanitized,
+                                                });
+                                              }
+                                            }}
                                             className="flex-1 h-10 px-3 py-2 rounded-md border border-primary-indigo focus:border-primary-indigo focus:outline-none focus:ring-2 focus:ring-primary-indigo focus:ring-offset-0 bg-transparent"
-                                            maxLength={50}
+                                            maxLength={150}
                                           />
                                           <Button
                                             type="button"
