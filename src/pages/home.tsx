@@ -139,6 +139,28 @@ const Home = () => {
           </div>
         </div>
 
+        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+          <Link
+            to="/add"
+            className="block bg-emerald-50 p-6 rounded-lg hover:bg-emerald-100 transition-colors text-emerald-600 cursor-pointer"
+          >
+            <div className="text-center">
+              <div className="flex items-center justify-center mb-4">
+                <div className="bg-emerald-100 p-3 rounded-full">
+                  <Plus className="h-8 w-8 text-emerald-600" />
+                </div>
+              </div>
+              <h2 className="text-2xl font-bold mb-2">
+                Contribute to the Community
+              </h2>
+              <p className="text-emerald-600">
+                Help grow the badminton community by adding courts, coaches, or
+                stringers
+              </p>
+            </div>
+          </Link>
+        </div>
+
         {!isMobile && (
           <div className="mb-12">
             <div

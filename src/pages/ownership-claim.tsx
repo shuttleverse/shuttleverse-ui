@@ -100,6 +100,17 @@ export default function OwnershipClaimPage() {
 
     setIsSubmitting(true);
 
+    toast.success(
+      "Ownership claim submitted successfully! Processing in the background..."
+    );
+
+    const entityTypeLower = entityType.toLowerCase();
+    if (entityTypeLower === "coach") {
+      navigate(`/coaches/${id}`);
+    } else {
+      navigate(`/${entityTypeLower}s/${id}`);
+    }
+
     try {
       await createClaim.mutateAsync({
         entityType,
@@ -108,15 +119,9 @@ export default function OwnershipClaimPage() {
         files: selectedFiles,
       });
 
-      toast.success("Ownership claim submitted successfully!");
-      const entityTypeLower = entityType.toLowerCase();
-      if (entityTypeLower === "coach") {
-        navigate(`/coaches/${id}`);
-      } else {
-        navigate(`/${entityTypeLower}s/${id}`);
-      }
+      toast.success("Ownership claim processed successfully!");
     } catch (error) {
-      toast.error("Failed to submit ownership claim. Please try again.");
+      toast.error("Failed to process ownership claim. Please try again later.");
     } finally {
       setIsSubmitting(false);
     }
