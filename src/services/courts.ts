@@ -187,7 +187,7 @@ export function useAddCourtPrice() {
   });
 }
 
-export function useCourt(id: string) {
+export function useCourt(id: string, options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: ["court", id],
     queryFn: async () => {
@@ -199,6 +199,7 @@ export function useCourt(id: string) {
         prices: data.data.priceList || [],
       };
     },
+    enabled: options?.enabled !== false && !!id,
   });
 }
 

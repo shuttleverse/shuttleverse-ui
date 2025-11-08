@@ -190,7 +190,7 @@ export function useAddCoachPrice() {
   });
 }
 
-export function useCoach(id: string) {
+export function useCoach(id: string, options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: ["coach", id],
     queryFn: async () => {
@@ -202,6 +202,7 @@ export function useCoach(id: string) {
         prices: data.data.priceList || [],
       };
     },
+    enabled: options?.enabled !== false && !!id,
   });
 }
 

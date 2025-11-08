@@ -10,6 +10,9 @@ import { useLocationContext } from "@/hooks/use-location-context";
 import BottomNavigation from "@/components/layout/bottom-navigation";
 import { MapPin } from "lucide-react";
 import { entityColors } from "@/lib/colors";
+import { useCourt } from "@/services/courts";
+import { useCoach } from "@/services/coaches";
+import { useStringer } from "@/services/stringers";
 
 const MIN_HEIGHT = 120;
 const DEFAULT_HEIGHT = 0.5;
@@ -312,16 +315,30 @@ const MapPage = () => {
     };
   }, [onDragMove, onDragEnd]);
 
+  const urlParams = new URLSearchParams(window.location.search);
+  const courtId = urlParams.get("court");
+  const coachId = urlParams.get("coach");
+  const stringerId = urlParams.get("stringer");
+
+  const entityId = courtId || coachId || stringerId;
+  const entityType = courtId ? "court" : coachId ? "coach" : "stringer";
+
+  const courtQuery = useCourt(courtId || "", { enabled: !!courtId });
+  const coachQuery = useCoach(coachId || "", { enabled: !!coachId });
+  const stringerQuery = useStringer(stringerId || "", {
+    enabled: !!stringerId,
+  });
+
+  const urlEntity = courtId
+    ? courtQuery.data
+    : coachId
+    ? coachQuery.data
+    : stringerId
+    ? stringerQuery.data
+    : null;
+
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const courtId = urlParams.get("court");
-    const coachId = urlParams.get("coach");
-    const stringerId = urlParams.get("stringer");
-
-    if (courtId || coachId || stringerId) {
-      const entityId = courtId || coachId || stringerId;
-      const entityType = courtId ? "court" : coachId ? "coach" : "stringer";
-
+    if (entityId && entityType) {
       const targetEntity = entities.find(
         (entity) => entity.id === entityId && entity.type === entityType
       );
@@ -329,12 +346,21 @@ const MapPage = () => {
       if (targetEntity) {
         setSelectedEntity(targetEntity);
         handlePanToEntity(targetEntity);
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, "", newUrl);
+      } else if (urlEntity) {
+        const entity = {
+          ...urlEntity,
+          type: entityType,
+        } as MapEntity;
 
+        setSelectedEntity(entity);
+        handlePanToEntity(entity);
         const newUrl = window.location.pathname;
         window.history.replaceState({}, "", newUrl);
       }
     }
-  }, [entities, handlePanToEntity]);
+  }, [entities, urlEntity, entityId, entityType, handlePanToEntity]);
 
   const defaultZoom = isMobile ? 11 : 12;
 

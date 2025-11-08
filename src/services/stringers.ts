@@ -145,7 +145,7 @@ export function useAddStringerPrice() {
   });
 }
 
-export function useStringer(id: string) {
+export function useStringer(id: string, options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: ["stringer", id],
     queryFn: async () => {
@@ -155,6 +155,7 @@ export function useStringer(id: string) {
         type: "stringer" as const,
       };
     },
+    enabled: options?.enabled !== false && !!id,
   });
 }
 
