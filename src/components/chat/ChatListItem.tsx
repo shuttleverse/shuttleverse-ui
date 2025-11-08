@@ -3,16 +3,17 @@ import { format } from "date-fns";
 import { ChatResponse } from "@/types/chat";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/hooks/useAuth";
 
 interface ChatListItemProps {
   chat: ChatResponse;
 }
 
 export const ChatListItem = ({ chat }: ChatListItemProps) => {
+  const { user } = useAuth();
   const otherParticipant =
     chat.type === "DIRECT"
-      ? chat.participants.find((p) => p.id !== chat.participants[0]?.id) ||
-        chat.participants[0]
+      ? chat.participants.find((p) => p.id !== user?.id) || chat.participants[0]
       : null;
 
   const displayName =
@@ -55,4 +56,3 @@ export const ChatListItem = ({ chat }: ChatListItemProps) => {
     </Link>
   );
 };
-

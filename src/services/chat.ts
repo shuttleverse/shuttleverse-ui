@@ -16,7 +16,7 @@ import type {
   UserDto,
 } from "@/types/chat";
 
-export function useChats() {
+export function useChats(enabled: boolean = true) {
   return useQuery({
     queryKey: ["chats"],
     queryFn: async () => {
@@ -25,6 +25,7 @@ export function useChats() {
       );
       return data.data;
     },
+    enabled,
   });
 }
 

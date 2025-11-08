@@ -22,12 +22,11 @@ const Navbar = () => {
   const { isAuthenticated, user } = useAuth();
   const logout = useLogout();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { data: chatsData } = useChats();
-  
-  const totalUnreadCount = chatsData?.chats.reduce(
-    (sum, chat) => sum + (chat.unreadCount || 0),
-    0
-  ) || 0;
+  const { data: chatsData } = useChats(isAuthenticated);
+
+  const totalUnreadCount =
+    chatsData?.chats.reduce((sum, chat) => sum + (chat.unreadCount || 0), 0) ||
+    0;
 
   const handleLogout = () => {
     logout.mutate();
