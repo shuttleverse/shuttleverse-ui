@@ -18,6 +18,7 @@ import EntityDetailsPage from "@/pages/entity-details";
 import OwnershipClaimPage from "@/pages/ownership-claim";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { LocationProvider } from "@/contexts/LocationContext";
+import { WebSocketProvider } from "@/contexts/WebSocketContext";
 import MapPage from "@/pages/map";
 import AddPage from "@/pages/add";
 import Profile from "@/pages/profile";
@@ -26,6 +27,8 @@ import About from "@/pages/about";
 import Contact from "@/pages/contact";
 import PrivacyPolicy from "@/pages/privacy-policy";
 import TermsOfService from "@/pages/terms-of-service";
+import ChatListPage from "@/pages/chat";
+import ChatPage from "@/pages/chat-detail";
 import { useScrollToTop } from "@/hooks/useScrollToTop";
 
 const queryClient = new QueryClient();
@@ -58,6 +61,8 @@ const AppContent = () => {
         <Route path="/coaches/add" element={<AddCoach />} />
         <Route path="/stringers/add" element={<AddStringer />} />
         <Route path="/claim/:id" element={<OwnershipClaimPage />} />
+        <Route path="/chat" element={<ChatListPage />} />
+        <Route path="/chat/:chatId" element={<ChatPage />} />
       </Route>
       <Route path="*" element={<NotFound />} />
     </Routes>
@@ -68,15 +73,17 @@ const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <LocationProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <AppContent />
-            </BrowserRouter>
-          </TooltipProvider>
-        </LocationProvider>
+        <WebSocketProvider>
+          <LocationProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Sonner />
+              <BrowserRouter>
+                <AppContent />
+              </BrowserRouter>
+            </TooltipProvider>
+          </LocationProvider>
+        </WebSocketProvider>
       </AuthProvider>
     </QueryClientProvider>
   );

@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Search, User, LogOut, Menu, X } from "lucide-react";
+import { Search, User, LogOut, Menu, X, MessageSquare } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useLogout } from "@/services/auth";
+import { useChats } from "@/services/chat";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +22,12 @@ const Navbar = () => {
   const { isAuthenticated, user } = useAuth();
   const logout = useLogout();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { data: chatsData } = useChats();
+  
+  const totalUnreadCount = chatsData?.chats.reduce(
+    (sum, chat) => sum + (chat.unreadCount || 0),
+    0
+  ) || 0;
 
   const handleLogout = () => {
     logout.mutate();
@@ -47,6 +54,16 @@ const Navbar = () => {
               <Link to="/stringers" className={navLinkStyle}>
                 Stringers
               </Link>
+              {isAuthenticated && (
+                <Link to="/chat" className={`${navLinkStyle} relative`}>
+                  Messages
+                  {totalUnreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-emerald-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                      {totalUnreadCount > 99 ? "99+" : totalUnreadCount}
+                    </span>
+                  )}
+                </Link>
+              )}
             </div>
           </div>
 
@@ -128,6 +145,19 @@ const Navbar = () => {
                 >
                   Stringers
                 </Link>
+                {isAuthenticated && (
+                  <Link
+                    to="/chat"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-primary rounded-md transition-colors hover:underline decoration-primary decoration-2 underline-offset-4 relative"
+                  >
+                    Messages
+                    {totalUnreadCount > 0 && (
+                      <span className="ml-2 bg-emerald-600 text-white text-xs rounded-full h-5 w-5 inline-flex items-center justify-center">
+                        {totalUnreadCount > 99 ? "99+" : totalUnreadCount}
+                      </span>
+                    )}
+                  </Link>
+                )}
               </div>
 
               {isAuthenticated ? (
