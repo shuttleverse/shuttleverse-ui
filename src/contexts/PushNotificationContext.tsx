@@ -48,10 +48,15 @@ export const PushNotificationProvider = ({
   const [isSubscribing, setIsSubscribing] = useState(false);
   const prevAuthenticatedRef = useRef<boolean | undefined>(undefined);
   const hasExplicitlyUnsubscribedRef = useRef<boolean>(false);
+  const isSubscribingRef = useRef<boolean>(false);
+  const hasAttemptedAutoSubscribeRef = useRef<boolean>(false);
 
   const { data: vapidPublicKey } = useVapidPublicKey();
   const subscribeMutation = useSubscribePush();
   const unsubscribeMutation = useUnsubscribeAllPush();
+
+  const subscribeMutationRef = useRef(subscribeMutation);
+  subscribeMutationRef.current = subscribeMutation;
 
   useEffect(() => {
     const checkPermission = () => {
@@ -106,6 +111,10 @@ export const PushNotificationProvider = ({
   }, [isAuthenticated]);
 
   const subscribe = useCallback(async () => {
+    if (isSubscribingRef.current) {
+      return;
+    }
+
     if (!vapidPublicKey) {
       return;
     }
@@ -129,6 +138,7 @@ export const PushNotificationProvider = ({
       return;
     }
 
+    isSubscribingRef.current = true;
     setIsSubscribing(true);
     try {
       const subscription = await createPushSubscription(vapidPublicKey);
@@ -137,15 +147,17 @@ export const PushNotificationProvider = ({
       }
 
       const request = subscriptionToRequest(subscription);
-      await subscribeMutation.mutateAsync(request);
+      await subscribeMutationRef.current.mutateAsync(request);
       setIsSubscribed(true);
       hasExplicitlyUnsubscribedRef.current = false;
     } catch (error) {
       console.error("Failed to subscribe to push notifications:", error);
+      setIsSubscribed(false);
     } finally {
+      isSubscribingRef.current = false;
       setIsSubscribing(false);
     }
-  }, [vapidPublicKey, permission, subscribeMutation, isAuthenticated]);
+  }, [vapidPublicKey, permission, isAuthenticated]);
 
   const unsubscribe = useCallback(async () => {
     try {
@@ -161,7 +173,8 @@ export const PushNotificationProvider = ({
         }
       }
     } catch (error) {
-      // Silently handle error
+      setIsSubscribed(false);
+      console.error("Failed to unsubscribe:", error);
     }
   }, [unsubscribeMutation]);
 
@@ -178,21 +191,56 @@ export const PushNotificationProvider = ({
       return;
     }
 
+    if (hasAttemptedAutoSubscribeRef.current) {
+      return;
+    }
+
     const autoSubscribe = async () => {
+      if (isSubscribingRef.current) {
+        return;
+      }
+
       try {
         const registration = await navigator.serviceWorker.ready;
         const existingSubscription =
           await registration.pushManager.getSubscription();
 
         if (!existingSubscription) {
-          await subscribe();
+          if (!isSubscribingRef.current && vapidPublicKey) {
+            isSubscribingRef.current = true;
+            hasAttemptedAutoSubscribeRef.current = true;
+            try {
+              const newSubscription = await createPushSubscription(
+                vapidPublicKey
+              );
+              if (newSubscription) {
+                const request = subscriptionToRequest(newSubscription);
+                await subscribeMutationRef.current.mutateAsync(request);
+                setIsSubscribed(true);
+                hasExplicitlyUnsubscribedRef.current = false;
+              }
+            } catch (error) {
+              console.error("Failed to auto-subscribe:", error);
+              hasAttemptedAutoSubscribeRef.current = false;
+            } finally {
+              isSubscribingRef.current = false;
+            }
+          }
         } else {
           setIsSubscribed(true);
-          try {
-            const request = subscriptionToRequest(existingSubscription);
-            await subscribeMutation.mutateAsync(request);
-          } catch (error) {
-            // If it fails, subscription might already exist
+          if (!isSubscribingRef.current) {
+            hasAttemptedAutoSubscribeRef.current = true;
+            try {
+              const request = subscriptionToRequest(existingSubscription);
+              await subscribeMutationRef.current.mutateAsync(request);
+            } catch (error) {
+              const errorMessage =
+                (error as { response?: { data?: { message?: string } } })
+                  ?.response?.data?.message || "";
+              if (!errorMessage.includes("already exists for another user")) {
+                hasAttemptedAutoSubscribeRef.current = false;
+              }
+            }
           }
         }
       } catch (error) {
@@ -202,13 +250,7 @@ export const PushNotificationProvider = ({
 
     const timer = setTimeout(autoSubscribe, 1000);
     return () => clearTimeout(timer);
-  }, [
-    isAuthenticated,
-    vapidPublicKey,
-    permission,
-    subscribe,
-    subscribeMutation,
-  ]);
+  }, [isAuthenticated, vapidPublicKey, permission]);
 
   useEffect(() => {
     const wasAuthenticated = prevAuthenticatedRef.current;
@@ -216,9 +258,14 @@ export const PushNotificationProvider = ({
 
     if (wasAuthenticated === true && !isAuthenticated) {
       unsubscribe();
-      hasExplicitlyUnsubscribedRef.current = false; // Reset on logout
+      hasExplicitlyUnsubscribedRef.current = false;
+      hasAttemptedAutoSubscribeRef.current = false;
+    } else if (wasAuthenticated === false && isAuthenticated) {
+      hasExplicitlyUnsubscribedRef.current = false;
+      hasAttemptedAutoSubscribeRef.current = false;
     } else if (wasAuthenticated === undefined && isAuthenticated) {
       hasExplicitlyUnsubscribedRef.current = false;
+      hasAttemptedAutoSubscribeRef.current = false;
     }
   }, [isAuthenticated, unsubscribe]);
 

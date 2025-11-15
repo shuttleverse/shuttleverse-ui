@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { usePushNotification } from "@/contexts/PushNotificationContext";
+import { useAuth } from "@/hooks/useAuth";
 import { requestNotificationPermission } from "@/services/push";
 import { Bell, X } from "lucide-react";
 
@@ -16,10 +17,15 @@ const STORAGE_KEY = "push-notification-prompt-dismissed";
 
 export const PushNotificationPrompt = () => {
   const { permission, subscribe, isSubscribing } = usePushNotification();
+  const { isAuthenticated } = useAuth();
   const [open, setOpen] = useState(false);
   const [isDismissed, setIsDismissed] = useState(false);
 
   useEffect(() => {
+    if (!isAuthenticated) {
+      return;
+    }
+
     const dismissed = localStorage.getItem(STORAGE_KEY);
     if (dismissed === "true") {
       setIsDismissed(true);
@@ -39,7 +45,7 @@ export const PushNotificationPrompt = () => {
       }, 2000);
       return () => clearTimeout(timer);
     }
-  }, [permission]);
+  }, [isAuthenticated, permission]);
 
   const handleEnable = async () => {
     setOpen(false);

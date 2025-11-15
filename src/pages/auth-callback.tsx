@@ -1,22 +1,22 @@
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 
 const AuthCallback = () => {
-  const [searchParams] = useSearchParams();
   const queryClient = useQueryClient();
-  const [status, setStatus] = useState<"processing" | "success" | "error">(
-    "processing"
-  );
+  const [status, setStatus] = useState<"processing" | "success">("processing");
 
   useEffect(() => {
-    const error = searchParams.get("error");
-
-    if (error) {
-      setStatus("error");
+    if (window.opener) {
+      window.opener.postMessage(
+        {
+          type: "OAUTH_SUCCESS",
+        },
+        window.location.origin
+      );
+      setStatus("success");
       setTimeout(() => {
-        window.location.href = "/login?error=" + encodeURIComponent(error);
-      }, 1000);
+        window.close();
+      }, 500);
     } else {
       setStatus("success");
       Promise.all([
@@ -26,7 +26,7 @@ const AuthCallback = () => {
         window.location.href = "/onboarding";
       });
     }
-  }, [searchParams, queryClient]);
+  }, [queryClient]);
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-emerald-800 via-emerald-600 to-emerald-400">
@@ -43,15 +43,9 @@ const AuthCallback = () => {
           <>
             <div className="text-green-500 text-4xl mb-4">✓</div>
             <p className="text-emerald-900 font-medium">
-              Sign in successful! Redirecting...
-            </p>
-          </>
-        )}
-        {status === "error" && (
-          <>
-            <div className="text-red-500 text-4xl mb-4">✗</div>
-            <p className="text-emerald-900 font-medium">
-              Sign in failed. Redirecting...
+              {window.opener
+                ? "Sign in successful! Closing window..."
+                : "Sign in successful! Redirecting..."}
             </p>
           </>
         )}
