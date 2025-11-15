@@ -12,7 +12,6 @@ import {
   useVapidPublicKey,
   useSubscribePush,
   useUnsubscribeAllPush,
-  requestNotificationPermission,
   createPushSubscription,
   subscriptionToRequest,
 } from "@/services/push";
@@ -126,6 +125,10 @@ export const PushNotificationProvider = ({
       }
     }
 
+    if (!isAuthenticated) {
+      return;
+    }
+
     setIsSubscribing(true);
     try {
       const subscription = await createPushSubscription(vapidPublicKey);
@@ -138,11 +141,11 @@ export const PushNotificationProvider = ({
       setIsSubscribed(true);
       hasExplicitlyUnsubscribedRef.current = false;
     } catch (error) {
-      // Silently handle error
+      console.error("Failed to subscribe to push notifications:", error);
     } finally {
       setIsSubscribing(false);
     }
-  }, [vapidPublicKey, permission, subscribeMutation]);
+  }, [vapidPublicKey, permission, subscribeMutation, isAuthenticated]);
 
   const unsubscribe = useCallback(async () => {
     try {
@@ -163,11 +166,7 @@ export const PushNotificationProvider = ({
   }, [unsubscribeMutation]);
 
   useEffect(() => {
-    if (!isAuthenticated || !vapidPublicKey || permission === "denied") {
-      return;
-    }
-
-    if (permission !== "granted") {
+    if (!isAuthenticated || !vapidPublicKey || permission !== "granted") {
       return;
     }
 
@@ -175,8 +174,7 @@ export const PushNotificationProvider = ({
       return;
     }
 
-    const wasAuthenticated = prevAuthenticatedRef.current;
-    if (wasAuthenticated === true) {
+    if (!("serviceWorker" in navigator)) {
       return;
     }
 
@@ -190,6 +188,12 @@ export const PushNotificationProvider = ({
           await subscribe();
         } else {
           setIsSubscribed(true);
+          try {
+            const request = subscriptionToRequest(existingSubscription);
+            await subscribeMutation.mutateAsync(request);
+          } catch (error) {
+            // If it fails, subscription might already exist
+          }
         }
       } catch (error) {
         // Silently handle error
@@ -198,39 +202,13 @@ export const PushNotificationProvider = ({
 
     const timer = setTimeout(autoSubscribe, 1000);
     return () => clearTimeout(timer);
-  }, [isAuthenticated, vapidPublicKey, permission, subscribe]);
-
-  useEffect(() => {
-    if (!isAuthenticated || !vapidPublicKey || permission !== "granted") {
-      return;
-    }
-
-    if (hasExplicitlyUnsubscribedRef.current) {
-      return;
-    }
-
-    const checkAndSubscribe = async () => {
-      try {
-        const registration = await navigator.serviceWorker.ready;
-        const existingSubscription =
-          await registration.pushManager.getSubscription();
-
-        if (!existingSubscription) {
-          await subscribe();
-        } else {
-          setIsSubscribed(true);
-        }
-      } catch (error) {
-        // Silently handle error
-      }
-    };
-
-    const wasAuthenticated = prevAuthenticatedRef.current;
-    if (wasAuthenticated === true) {
-      const timer = setTimeout(checkAndSubscribe, 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [permission, isAuthenticated, vapidPublicKey, subscribe]);
+  }, [
+    isAuthenticated,
+    vapidPublicKey,
+    permission,
+    subscribe,
+    subscribeMutation,
+  ]);
 
   useEffect(() => {
     const wasAuthenticated = prevAuthenticatedRef.current;

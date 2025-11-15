@@ -1,61 +1,32 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 
 const AuthCallback = () => {
   const [searchParams] = useSearchParams();
+  const queryClient = useQueryClient();
   const [status, setStatus] = useState<"processing" | "success" | "error">(
     "processing"
   );
 
   useEffect(() => {
-    if (window.opener) {
-      const error = searchParams.get("error");
-      const success = searchParams.get("success");
+    const error = searchParams.get("error");
 
-      if (error) {
-        window.opener.postMessage(
-          {
-            type: "OAUTH_ERROR",
-            error: error,
-          },
-          window.location.origin
-        );
-        setStatus("error");
-        setTimeout(() => {
-          window.close();
-        }, 1000);
-      } else if (success !== "false") {
-        window.opener.postMessage(
-          {
-            type: "OAUTH_SUCCESS",
-          },
-          window.location.origin
-        );
-        setStatus("success");
-        setTimeout(() => {
-          window.close();
-        }, 500);
-      } else {
-        window.opener.postMessage(
-          {
-            type: "OAUTH_SUCCESS",
-          },
-          window.location.origin
-        );
-        setStatus("success");
-        setTimeout(() => {
-          window.close();
-        }, 500);
-      }
-    } else {
-      const error = searchParams.get("error");
-      if (error) {
+    if (error) {
+      setStatus("error");
+      setTimeout(() => {
         window.location.href = "/login?error=" + encodeURIComponent(error);
-      } else {
+      }, 1000);
+    } else {
+      setStatus("success");
+      Promise.all([
+        queryClient.refetchQueries({ queryKey: ["authStatus"] }),
+        queryClient.refetchQueries({ queryKey: ["userProfile"] }),
+      ]).then(() => {
         window.location.href = "/onboarding";
-      }
+      });
     }
-  }, [searchParams]);
+  }, [searchParams, queryClient]);
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-emerald-800 via-emerald-600 to-emerald-400">
@@ -72,7 +43,7 @@ const AuthCallback = () => {
           <>
             <div className="text-green-500 text-4xl mb-4">✓</div>
             <p className="text-emerald-900 font-medium">
-              Sign in successful! Closing window...
+              Sign in successful! Redirecting...
             </p>
           </>
         )}
@@ -80,7 +51,7 @@ const AuthCallback = () => {
           <>
             <div className="text-red-500 text-4xl mb-4">✗</div>
             <p className="text-emerald-900 font-medium">
-              Sign in failed. Closing window...
+              Sign in failed. Redirecting...
             </p>
           </>
         )}
