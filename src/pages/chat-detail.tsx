@@ -1,5 +1,5 @@
 import { useParams } from "react-router-dom";
-import { useEffect, useState, useRef, useMemo } from "react";
+import { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import { ChatHeader } from "@/components/chat/ChatHeader";
 import { MessageList } from "@/components/chat/MessageList";
 import { MessageInput } from "@/components/chat/MessageInput";
@@ -8,6 +8,7 @@ import { useWebSocket } from "@/contexts/WebSocketContext";
 import { MessageResponse } from "@/types/chat";
 import { useQueryClient } from "@tanstack/react-query";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsViewingChat } from "@/hooks/useIsViewingChat";
 import Navbar from "@/components/layout/navbar";
 import BottomNavigation from "@/components/layout/bottom-navigation";
 
@@ -17,6 +18,22 @@ const ChatPage = () => {
   const queryClient = useQueryClient();
   const [localMessages, setLocalMessages] = useState<MessageResponse[]>([]);
   const markAsRead = useMarkMessagesAsRead();
+  const isViewing = useIsViewingChat();
+
+  const markAsReadTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const debouncedMarkAsRead = useCallback(
+    (chatId: string) => {
+      if (markAsReadTimeoutRef.current) {
+        clearTimeout(markAsReadTimeoutRef.current);
+      }
+
+      markAsReadTimeoutRef.current = setTimeout(() => {
+        markAsRead.mutate(chatId);
+      }, 500);
+    },
+    [markAsRead]
+  );
 
   const {
     data: messagesData,
@@ -69,6 +86,10 @@ const ChatPage = () => {
         });
         queryClient.invalidateQueries({ queryKey: ["chatMessages", chatId] });
         queryClient.invalidateQueries({ queryKey: ["chats"] });
+
+        if (isViewing) {
+          debouncedMarkAsRead(chatId);
+        }
       }
     );
 
@@ -82,6 +103,10 @@ const ChatPage = () => {
             return [...prev, message];
           });
           queryClient.invalidateQueries({ queryKey: ["chatMessages", chatId] });
+
+          if (isViewing) {
+            debouncedMarkAsRead(chatId);
+          }
         }
         queryClient.invalidateQueries({ queryKey: ["chats"] });
       }
@@ -91,7 +116,15 @@ const ChatPage = () => {
       unsubscribeChat();
       unsubscribeUserQueue();
     };
-  }, [chatId, isConnected, subscribeToChat, subscribeToUserQueue, queryClient]);
+  }, [
+    chatId,
+    isConnected,
+    subscribeToChat,
+    subscribeToUserQueue,
+    queryClient,
+    isViewing,
+    debouncedMarkAsRead,
+  ]);
 
   useEffect(() => {
     setLocalMessages([]);
@@ -105,6 +138,20 @@ const ChatPage = () => {
       });
     }
   }, [allMessages]);
+
+  useEffect(() => {
+    if (isViewing && chatId) {
+      debouncedMarkAsRead(chatId);
+    }
+  }, [isViewing, chatId, debouncedMarkAsRead]);
+
+  useEffect(() => {
+    return () => {
+      if (markAsReadTimeoutRef.current) {
+        clearTimeout(markAsReadTimeoutRef.current);
+      }
+    };
+  }, []);
 
   if (!chatId) {
     return (
