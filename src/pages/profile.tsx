@@ -8,7 +8,17 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { User, Edit, Save, X, Shield, File, Calendar } from "lucide-react";
+import {
+  User,
+  Edit,
+  Save,
+  X,
+  Shield,
+  File,
+  Calendar,
+  Bell,
+  BellOff,
+} from "lucide-react";
 import { toast } from "@/components/ui/sonner-utils";
 import Navbar from "@/components/layout/navbar";
 import Footer from "@/components/layout/footer";
@@ -17,6 +27,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useLogout } from "@/services/auth";
 import { useNavigate } from "react-router-dom";
 import { getEntityColor } from "@/lib/colors";
+import { usePushNotification } from "@/contexts/PushNotificationContext";
 
 const Profile = () => {
   const { user } = useAuth();
@@ -24,6 +35,8 @@ const Profile = () => {
   const logout = useLogout();
   const navigate = useNavigate();
   const ownershipClaims = useUserOwnershipClaims();
+  const { isSubscribed, isSubscribing, permission, subscribe, unsubscribe } =
+    usePushNotification();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     username: user?.username || "",
@@ -261,6 +274,105 @@ const Profile = () => {
                       </div>
                     </div>
                   )}
+                </div>
+                <div className="pt-6 border-t border-gray-100">
+                  <div className="flex items-center gap-2 mb-6">
+                    <Bell className="h-5 w-5" />
+                    <h3 className="text-xl font-semibold text-gray-900">
+                      Push Notifications
+                    </h3>
+                  </div>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between p-4 bg-emerald-50/90 backdrop-blur-sm rounded-lg border border-emerald-300">
+                      <div className="flex-1">
+                        <p className="font-semibold text-gray-900 mb-1">
+                          Notification Status
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          {permission === "granted" && isSubscribed
+                            ? "You'll receive push notifications for new messages"
+                            : permission === "granted" && !isSubscribed
+                            ? "Permission granted but not subscribed"
+                            : permission === "denied"
+                            ? "Notifications are blocked. Enable them in your browser settings."
+                            : "Notifications are not enabled"}
+                        </p>
+                      </div>
+                      <Badge
+                        className={
+                          permission === "granted" && isSubscribed
+                            ? "bg-green-500 text-white"
+                            : permission === "denied"
+                            ? "bg-red-500 text-white"
+                            : "bg-gray-400 text-white"
+                        }
+                      >
+                        {permission === "granted" && isSubscribed
+                          ? "Enabled"
+                          : permission === "denied"
+                          ? "Blocked"
+                          : "Disabled"}
+                      </Badge>
+                    </div>
+
+                    {permission === "denied" ? (
+                      <div className="p-4 bg-amber-50/90 backdrop-blur-sm rounded-lg border border-amber-300">
+                        <p className="text-sm text-amber-800 mb-2">
+                          <strong>Notifications are blocked</strong>
+                        </p>
+                        <p className="text-xs text-amber-700">
+                          To enable notifications, please update your browser
+                          settings:
+                        </p>
+                        <ul className="text-xs text-amber-700 mt-2 list-disc list-inside space-y-1">
+                          <li>
+                            Chrome/Edge: Settings → Privacy → Site Settings →
+                            Notifications
+                          </li>
+                          <li>
+                            Firefox: Settings → Privacy → Permissions →
+                            Notifications
+                          </li>
+                          <li>
+                            Safari: Preferences → Websites → Notifications
+                          </li>
+                        </ul>
+                      </div>
+                    ) : permission === "granted" && isSubscribed ? (
+                      <Button
+                        onClick={async () => {
+                          try {
+                            await unsubscribe();
+                            toast.success("Notifications disabled");
+                          } catch (error) {
+                            toast.error("Failed to disable notifications");
+                          }
+                        }}
+                        variant="outline"
+                        className="w-full border-red-300 text-red-600 hover:bg-red-50"
+                        disabled={isSubscribing}
+                      >
+                        <BellOff className="h-4 w-4 mr-2" />
+                        Disable Notifications
+                      </Button>
+                    ) : (
+                      <Button
+                        onClick={async () => {
+                          try {
+                            await subscribe();
+                            toast.success("Notifications enabled");
+                          } catch (error) {
+                            toast.error("Failed to enable notifications");
+                          }
+                        }}
+                        className="w-full bg-emerald-600 hover:bg-emerald-700 text-white"
+                        disabled={isSubscribing}
+                      >
+                        <Bell className="h-4 w-4 mr-2" />
+                        {isSubscribing ? "Enabling..." : "Enable Notifications"}
+                      </Button>
+                    )}
+                  </div>
                 </div>
                 {user.admin && (
                   <div className="pt-6 border-t border-gray-100">

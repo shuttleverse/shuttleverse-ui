@@ -1,10 +1,13 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { FcGoogle } from "react-icons/fc";
+import { useOAuthPopup } from "@/hooks/useOAuthPopup";
 
 const Login = () => {
+  const { openOAuthPopup } = useOAuthPopup();
+
   const handleGoogleLogin = () => {
-    window.location.href = `${import.meta.env.VITE_API_URL}/api/auth/login`;
+    openOAuthPopup();
   };
 
   return (

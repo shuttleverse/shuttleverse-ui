@@ -48,15 +48,44 @@ export const PushNotificationProvider = ({
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isSubscribing, setIsSubscribing] = useState(false);
   const prevAuthenticatedRef = useRef<boolean | undefined>(undefined);
+  const hasExplicitlyUnsubscribedRef = useRef<boolean>(false);
 
   const { data: vapidPublicKey } = useVapidPublicKey();
   const subscribeMutation = useSubscribePush();
   const unsubscribeMutation = useUnsubscribeAllPush();
 
   useEffect(() => {
-    if ("Notification" in window) {
-      setPermission(Notification.permission);
-    }
+    const checkPermission = () => {
+      if ("Notification" in window) {
+        const currentPermission = Notification.permission;
+        setPermission((prev) => {
+          if (prev !== currentPermission) {
+            return currentPermission;
+          }
+          return prev;
+        });
+      }
+    };
+
+    checkPermission();
+
+    const handleFocus = () => {
+      checkPermission();
+    };
+
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        checkPermission();
+      }
+    };
+
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
   }, []);
 
   useEffect(() => {
@@ -107,6 +136,7 @@ export const PushNotificationProvider = ({
       const request = subscriptionToRequest(subscription);
       await subscribeMutation.mutateAsync(request);
       setIsSubscribed(true);
+      hasExplicitlyUnsubscribedRef.current = false;
     } catch (error) {
       // Silently handle error
     } finally {
@@ -118,6 +148,7 @@ export const PushNotificationProvider = ({
     try {
       await unsubscribeMutation.mutateAsync();
       setIsSubscribed(false);
+      hasExplicitlyUnsubscribedRef.current = true;
 
       if ("serviceWorker" in navigator) {
         const registration = await navigator.serviceWorker.ready;
@@ -137,6 +168,15 @@ export const PushNotificationProvider = ({
     }
 
     if (permission !== "granted") {
+      return;
+    }
+
+    if (hasExplicitlyUnsubscribedRef.current) {
+      return;
+    }
+
+    const wasAuthenticated = prevAuthenticatedRef.current;
+    if (wasAuthenticated === true) {
       return;
     }
 
@@ -161,11 +201,46 @@ export const PushNotificationProvider = ({
   }, [isAuthenticated, vapidPublicKey, permission, subscribe]);
 
   useEffect(() => {
+    if (!isAuthenticated || !vapidPublicKey || permission !== "granted") {
+      return;
+    }
+
+    if (hasExplicitlyUnsubscribedRef.current) {
+      return;
+    }
+
+    const checkAndSubscribe = async () => {
+      try {
+        const registration = await navigator.serviceWorker.ready;
+        const existingSubscription =
+          await registration.pushManager.getSubscription();
+
+        if (!existingSubscription) {
+          await subscribe();
+        } else {
+          setIsSubscribed(true);
+        }
+      } catch (error) {
+        // Silently handle error
+      }
+    };
+
+    const wasAuthenticated = prevAuthenticatedRef.current;
+    if (wasAuthenticated === true) {
+      const timer = setTimeout(checkAndSubscribe, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [permission, isAuthenticated, vapidPublicKey, subscribe]);
+
+  useEffect(() => {
     const wasAuthenticated = prevAuthenticatedRef.current;
     prevAuthenticatedRef.current = isAuthenticated;
 
     if (wasAuthenticated === true && !isAuthenticated) {
       unsubscribe();
+      hasExplicitlyUnsubscribedRef.current = false; // Reset on logout
+    } else if (wasAuthenticated === undefined && isAuthenticated) {
+      hasExplicitlyUnsubscribedRef.current = false;
     }
   }, [isAuthenticated, unsubscribe]);
 

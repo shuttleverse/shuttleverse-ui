@@ -31,6 +31,7 @@ import PrivacyPolicy from "@/pages/privacy-policy";
 import TermsOfService from "@/pages/terms-of-service";
 import ChatListPage from "@/pages/chat";
 import ChatPage from "@/pages/chat-detail";
+import AuthCallback from "@/pages/auth-callback";
 import { useScrollToTop } from "@/hooks/useScrollToTop";
 
 const queryClient = new QueryClient();
@@ -43,6 +44,7 @@ const AppContent = () => {
       <Route path="/" element={<Home />} />
       <Route path="/home" element={<Navigate to="/" replace />} />
       <Route path="/login" element={<Login />} />
+      <Route path="/auth/callback" element={<AuthCallback />} />
       <Route path="/map" element={<MapPage />} />
       <Route path="/add" element={<AddPage />} />
       <Route path="/courts" element={<Courts />} />
