@@ -19,6 +19,8 @@ import OwnershipClaimPage from "@/pages/ownership-claim";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { LocationProvider } from "@/contexts/LocationContext";
 import { WebSocketProvider } from "@/contexts/WebSocketContext";
+import { PushNotificationProvider } from "@/contexts/PushNotificationContext";
+import { PushNotificationPrompt } from "@/components/push/PushNotificationPrompt";
 import MapPage from "@/pages/map";
 import AddPage from "@/pages/add";
 import Profile from "@/pages/profile";
@@ -73,17 +75,20 @@ const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <WebSocketProvider>
-          <LocationProvider>
-            <TooltipProvider>
-              <Toaster />
-              <Sonner />
-              <BrowserRouter>
-                <AppContent />
-              </BrowserRouter>
-            </TooltipProvider>
-          </LocationProvider>
-        </WebSocketProvider>
+        <PushNotificationProvider>
+          <WebSocketProvider>
+            <LocationProvider>
+              <TooltipProvider>
+                <Toaster />
+                <Sonner />
+                <BrowserRouter>
+                  <AppContent />
+                  <PushNotificationPrompt />
+                </BrowserRouter>
+              </TooltipProvider>
+            </LocationProvider>
+          </WebSocketProvider>
+        </PushNotificationProvider>
       </AuthProvider>
     </QueryClientProvider>
   );
