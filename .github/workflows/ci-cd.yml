@@ -19,7 +19,25 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-    # TODO: Add prettier check and tests
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: latest
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm run build
+
+      # TODO: Add prettier check and tests
 
   # CD for main branch
   cd:
@@ -47,6 +65,10 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+        with:
+          driver-opts: |
+            image=moby/buildkit:latest
+            network=host
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
@@ -69,6 +91,8 @@ jobs:
             VITE_EMAIL_SERVICE_ID=${{ secrets.VITE_EMAIL_SERVICE_ID }}
             VITE_EMAIL_TEMPLATE_ID=${{ secrets.VITE_EMAIL_TEMPLATE_ID }}
             VITE_EMAIL_PRIVATE_KEY=${{ secrets.VITE_EMAIL_PRIVATE_KEY }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: Configure Kubectl
         uses: oracle-actions/configure-kubectl-oke@v1.5.0

@@ -7,25 +7,34 @@ const AuthCallback = () => {
 
   useEffect(() => {
     if (window.opener) {
-      window.opener.postMessage(
-        {
-          type: "OAUTH_SUCCESS",
-        },
-        window.location.origin
-      );
-      setStatus("success");
-      setTimeout(() => {
-        window.close();
-      }, 500);
-    } else {
-      setStatus("success");
-      Promise.all([
-        queryClient.refetchQueries({ queryKey: ["authStatus"] }),
-        queryClient.refetchQueries({ queryKey: ["userProfile"] }),
-      ]).then(() => {
-        window.location.href = "/onboarding";
-      });
+      try {
+        window.opener.postMessage(
+          {
+            type: "OAUTH_SUCCESS",
+          },
+          window.location.origin
+        );
+        setTimeout(() => {
+          try {
+            window.close();
+          } catch (e) {
+            // Ignore errors closing popup
+          }
+        }, 100);
+      } catch (e) {
+        // Ignore postMessage errors
+      }
     }
+
+    setStatus("success");
+    Promise.all([
+      queryClient.refetchQueries({ queryKey: ["authStatus"] }),
+      queryClient.refetchQueries({ queryKey: ["userProfile"] }),
+    ]).then(() => {
+      setTimeout(() => {
+        window.location.replace("/onboarding");
+      }, 200);
+    });
   }, [queryClient]);
 
   return (
@@ -43,9 +52,7 @@ const AuthCallback = () => {
           <>
             <div className="text-green-500 text-4xl mb-4">✓</div>
             <p className="text-emerald-900 font-medium">
-              {window.opener
-                ? "Sign in successful! Closing window..."
-                : "Sign in successful! Redirecting..."}
+              Sign in successful! Redirecting...
             </p>
           </>
         )}

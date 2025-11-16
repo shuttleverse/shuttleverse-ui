@@ -1,5 +1,8 @@
 FROM node:18-alpine AS builder
 
+# Enable corepack and install pnpm
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
 WORKDIR /app
 
 ARG VITE_API_URL
@@ -14,13 +17,16 @@ ENV VITE_EMAIL_SERVICE_ID=$VITE_EMAIL_SERVICE_ID
 ENV VITE_EMAIL_TEMPLATE_ID=$VITE_EMAIL_TEMPLATE_ID
 ENV VITE_EMAIL_PRIVATE_KEY=$VITE_EMAIL_PRIVATE_KEY
 
-COPY package*.json ./
+# Copy lockfile and package.json
+COPY pnpm-lock.yaml package.json ./
 
-RUN npm install
+# Install dependencies with BuildKit cache mount for pnpm store
+RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
+    pnpm install --frozen-lockfile
 
 COPY . .
 
-RUN npm run build
+RUN pnpm run build
 
 FROM node:18-alpine AS production
 

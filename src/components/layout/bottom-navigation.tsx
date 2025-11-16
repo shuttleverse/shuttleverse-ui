@@ -6,7 +6,7 @@ import { useChats } from "@/services/chat";
 const BottomNavigation = () => {
   const location = useLocation();
   const { isAuthenticated } = useAuth();
-  const { data: chatsData } = useChats(isAuthenticated);
+  const { data: chatsData } = useChats(isAuthenticated === true);
 
   const totalUnreadCount =
     chatsData?.chats.reduce((sum, chat) => sum + (chat.unreadCount || 0), 0) ||

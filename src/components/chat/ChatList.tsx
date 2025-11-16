@@ -1,9 +1,11 @@
 import { ChatListItem } from "./ChatListItem";
 import { useChats } from "@/services/chat";
+import { useAuth } from "@/hooks/useAuth";
 import { Loader2, MessageSquare } from "lucide-react";
 
 export const ChatList = () => {
-  const { data, isLoading, error } = useChats();
+  const { isAuthenticated } = useAuth();
+  const { data, isLoading, error } = useChats(isAuthenticated === true);
 
   if (isLoading) {
     return (

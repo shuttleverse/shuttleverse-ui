@@ -22,7 +22,7 @@ const Navbar = () => {
   const { isAuthenticated, user } = useAuth();
   const logout = useLogout();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { data: chatsData } = useChats(isAuthenticated);
+  const { data: chatsData } = useChats(isAuthenticated === true);
 
   const totalUnreadCount =
     chatsData?.chats.reduce((sum, chat) => sum + (chat.unreadCount || 0), 0) ||
