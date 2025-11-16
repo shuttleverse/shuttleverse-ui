@@ -1,14 +1,23 @@
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { FcGoogle } from "react-icons/fc";
 import { useOAuthPopup } from "@/hooks/useOAuthPopup";
 import { AlertCircle } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
 
 const Login = () => {
   const { openOAuthPopup } = useOAuthPopup();
   const [searchParams, setSearchParams] = useSearchParams();
   const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
+  const { isAuthenticated, isAuthLoading, isUserLoading } = useAuth();
+
+  useEffect(() => {
+    if (!isAuthLoading && !isUserLoading && isAuthenticated) {
+      navigate("/profile", { replace: true });
+    }
+  }, [isAuthenticated, isAuthLoading, isUserLoading, navigate]);
 
   useEffect(() => {
     const errorParam = searchParams.get("error");
