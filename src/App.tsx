@@ -20,6 +20,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { LocationProvider } from "@/contexts/LocationContext";
 import { WebSocketProvider } from "@/contexts/WebSocketContext";
 import { PushNotificationProvider } from "@/contexts/PushNotificationContext";
+import { GoogleAnalyticsProvider } from "@/contexts/GoogleAnalyticsContext";
 import { PushNotificationPrompt } from "@/components/push/PushNotificationPrompt";
 import MapPage from "@/pages/map";
 import AddPage from "@/pages/add";
@@ -40,36 +41,38 @@ const AppContent = () => {
   useScrollToTop();
 
   return (
-    <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/home" element={<Navigate to="/" replace />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/auth/callback" element={<AuthCallback />} />
-      <Route path="/map" element={<MapPage />} />
-      <Route path="/add" element={<AddPage />} />
-      <Route path="/courts" element={<Courts />} />
-      <Route path="/courts/:id" element={<EntityDetailsPage />} />
-      <Route path="/coaches" element={<Coaches />} />
-      <Route path="/coaches/:id" element={<EntityDetailsPage />} />
-      <Route path="/stringers" element={<Stringers />} />
-      <Route path="/stringers/:id" element={<EntityDetailsPage />} />
-      <Route path="/about" element={<About />} />
-      <Route path="/contact" element={<Contact />} />
-      <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-      <Route path="/terms-of-service" element={<TermsOfService />} />
-      <Route element={<ProtectedRoute />}>
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/admin" element={<Admin />} />
-        <Route path="/onboarding" element={<Onboarding />} />
-        <Route path="/courts/add" element={<AddCourt />} />
-        <Route path="/coaches/add" element={<AddCoach />} />
-        <Route path="/stringers/add" element={<AddStringer />} />
-        <Route path="/claim/:id" element={<OwnershipClaimPage />} />
-        <Route path="/chat" element={<ChatListPage />} />
-        <Route path="/chat/:chatId" element={<ChatPage />} />
-      </Route>
-      <Route path="*" element={<NotFound />} />
-    </Routes>
+    <GoogleAnalyticsProvider>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/home" element={<Navigate to="/" replace />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/auth/callback" element={<AuthCallback />} />
+        <Route path="/map" element={<MapPage />} />
+        <Route path="/add" element={<AddPage />} />
+        <Route path="/courts" element={<Courts />} />
+        <Route path="/courts/:id" element={<EntityDetailsPage />} />
+        <Route path="/coaches" element={<Coaches />} />
+        <Route path="/coaches/:id" element={<EntityDetailsPage />} />
+        <Route path="/stringers" element={<Stringers />} />
+        <Route path="/stringers/:id" element={<EntityDetailsPage />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/terms-of-service" element={<TermsOfService />} />
+        <Route element={<ProtectedRoute />}>
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/admin" element={<Admin />} />
+          <Route path="/onboarding" element={<Onboarding />} />
+          <Route path="/courts/add" element={<AddCourt />} />
+          <Route path="/coaches/add" element={<AddCoach />} />
+          <Route path="/stringers/add" element={<AddStringer />} />
+          <Route path="/claim/:id" element={<OwnershipClaimPage />} />
+          <Route path="/chat" element={<ChatListPage />} />
+          <Route path="/chat/:chatId" element={<ChatPage />} />
+        </Route>
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </GoogleAnalyticsProvider>
   );
 };
 
